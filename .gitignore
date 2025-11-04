@@ -1,0 +1,14 @@
+# env
+.env
+
+# venv
+.venv/
+
+# vscode
+.vscode/
+
+# Python
+__pycache__/
+
+# log
+*.log
