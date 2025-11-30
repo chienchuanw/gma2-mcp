@@ -11,7 +11,7 @@ According to coding-standards.md, the Telnet client is the only component that c
 - Perform reconnection logic
 - Send raw MA commands
 
-使用 telnetlib3 (基於 asyncio) 取代已棄用的 telnetlib
+Uses telnetlib3 (based on asyncio) to replace the deprecated telnetlib module.
 """
 
 import asyncio
@@ -26,13 +26,14 @@ logger = logging.getLogger(__name__)
 
 class GMA2TelnetClient:
     """
-    grandMA2 Telnet Connection Client (Async 版本)
+    grandMA2 Telnet Connection Client (Async Version)
 
     Provides Telnet connection management functionality for grandMA2 onPC/Console,
     including connection establishment, authentication, command sending, and
     reconnection logic.
 
-    此版本使用 telnetlib3 和 asyncio 實現，避免 Python 3.13 中 telnetlib 棄用的問題。
+    This version uses telnetlib3 and asyncio to avoid the deprecation of telnetlib
+    in Python 3.13.
 
     Attributes:
         host: grandMA2 host IP address
@@ -44,7 +45,7 @@ class GMA2TelnetClient:
         >>> async with GMA2TelnetClient(host="192.168.1.100") as client:
         ...     await client.send_command("selfix fixture 1 thru 10")
 
-    Example (Sync - 使用 run_sync 方法):
+    Example (Sync - using run_sync method):
         >>> client = GMA2TelnetClient(host="192.168.1.100")
         >>> client.run_sync(client.connect())
         >>> client.run_sync(client.login())
@@ -77,10 +78,10 @@ class GMA2TelnetClient:
         self.port = port
         self.user = user
         self.password = password
-        # telnetlib3 使用 reader/writer 模式
+        # telnetlib3 uses reader/writer pattern
         self._reader: Optional[Any] = None
         self._writer: Optional[Any] = None
-        self._connection: Optional[Any] = None  # 保留以支援相容性檢查
+        self._connection: Optional[Any] = None  # Kept for compatibility checks
 
         logger.debug(
             f"GMA2TelnetClient initialized: host={host}, port={port}, user={user}"
@@ -88,13 +89,13 @@ class GMA2TelnetClient:
 
     def run_sync(self, coro: Any) -> Any:
         """
-        在同步環境中執行 async 方法的輔助函數。
+        Helper function to run async methods in synchronous environments.
 
         Args:
-            coro: 要執行的 coroutine
+            coro: The coroutine to execute
 
         Returns:
-            coroutine 的執行結果
+            The result of the coroutine execution
         """
         return asyncio.get_event_loop().run_until_complete(coro)
 
@@ -108,14 +109,14 @@ class GMA2TelnetClient:
         logger.info(f"Connecting to {self.host}:{self.port}...")
 
         try:
-            # telnetlib3 使用 open_connection 建立連線
+            # telnetlib3 uses open_connection to establish connection
             self._reader, self._writer = await telnetlib3.open_connection(
                 host=self.host,
                 port=self.port,
             )
-            # 標記連線狀態
+            # Mark connection state
             self._connection = True
-            # 等待連線穩定
+            # Wait for connection to stabilize
             await asyncio.sleep(0.5)
             logger.info(f"Successfully connected to {self.host}:{self.port}")
         except Exception as e:
@@ -141,10 +142,10 @@ class GMA2TelnetClient:
         login_cmd = f'login "{self.user}" "{self.password}"\r\n'
         self._writer.write(login_cmd)
 
-        # 等待登入回應
+        # Wait for login response
         await asyncio.sleep(0.5)
 
-        # 嘗試讀取回應（非阻塞）
+        # Attempt to read response (non-blocking)
         try:
             response = await asyncio.wait_for(
                 self._reader.read(1024),
@@ -152,7 +153,7 @@ class GMA2TelnetClient:
             )
             logger.debug(f"Login response: {response}")
         except asyncio.TimeoutError:
-            # 超時是正常的，grandMA2 可能不會立即回應
+            # Timeout is normal behavior, grandMA2 may not respond immediately
             logger.debug("Login response timeout (normal behavior)")
 
         logger.info("Login successful")

@@ -4,7 +4,7 @@ Telnet Client Module Tests
 Tests for GMA2TelnetClient connection, login, command sending, and other functionality.
 Uses mocks to simulate Telnet connections and avoid actual network calls.
 
-使用 pytest-asyncio 進行非同步測試
+Uses pytest-asyncio for async testing.
 """
 
 import asyncio
@@ -52,7 +52,7 @@ class TestGMA2TelnetClientConnection:
         """Test successful connection establishment."""
         from src.telnet_client import GMA2TelnetClient
 
-        # 配置 mock 行為 - 模擬 telnetlib3 的 reader/writer
+        # Configure mock behavior - simulate telnetlib3 reader/writer
         mock_reader = MagicMock()
         mock_writer = MagicMock()
         mock_open_connection.return_value = (mock_reader, mock_writer)
@@ -60,7 +60,7 @@ class TestGMA2TelnetClientConnection:
         client = GMA2TelnetClient(host="192.168.1.100")
         await client.connect()
 
-        # 驗證 open_connection 被正確呼叫
+        # Verify open_connection was called correctly
         mock_open_connection.assert_called_once_with(
             host="192.168.1.100",
             port=30000,
@@ -75,10 +75,10 @@ class TestGMA2TelnetClientConnection:
         """Test successful login."""
         from src.telnet_client import GMA2TelnetClient
 
-        # 配置 mock 行為
+        # Configure mock behavior
         mock_reader = MagicMock()
         mock_writer = MagicMock()
-        # 模擬非同步讀取
+        # Simulate async read
         mock_reader.read = AsyncMock(return_value="Login successful")
         mock_open_connection.return_value = (mock_reader, mock_writer)
 
@@ -86,7 +86,7 @@ class TestGMA2TelnetClientConnection:
         await client.connect()
         result = await client.login()
 
-        # 驗證登入指令被發送
+        # Verify login command was sent
         expected_cmd = 'login "administrator" "admin"\r\n'
         mock_writer.write.assert_called_with(expected_cmd)
         assert result is True
@@ -97,7 +97,7 @@ class TestGMA2TelnetClientConnection:
         """Test sending a command."""
         from src.telnet_client import GMA2TelnetClient
 
-        # 配置 mock 行為
+        # Configure mock behavior
         mock_reader = MagicMock()
         mock_writer = MagicMock()
         mock_reader.read = AsyncMock(return_value="OK")
@@ -107,7 +107,7 @@ class TestGMA2TelnetClientConnection:
         await client.connect()
         await client.send_command("selfix fixture 1 thru 10")
 
-        # 驗證指令被正確發送
+        # Verify command was sent correctly
         expected_cmd = "selfix fixture 1 thru 10\r\n"
         mock_writer.write.assert_called_with(expected_cmd)
 
@@ -125,7 +125,7 @@ class TestGMA2TelnetClientConnection:
         await client.connect()
         await client.disconnect()
 
-        # 驗證連線已關閉
+        # Verify connection was closed
         mock_writer.close.assert_called_once()
         assert client._connection is None
 
@@ -147,5 +147,5 @@ class TestGMA2TelnetClientContextManager:
         async with GMA2TelnetClient(host="192.168.1.100") as client:
             await client.send_command("test command")
 
-        # 驗證離開 context 時連線已關閉
+        # Verify connection was closed when exiting context
         mock_writer.close.assert_called_once()
