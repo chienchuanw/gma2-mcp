@@ -3,23 +3,23 @@ import telnetlib
 import time
 
 GMA_HOST = dotenv.get_key(".env", "GMA_HOST")
-# gma2 use 30000 as default, 30001 for read only
+# grandMA2 uses 30000 as default, 30001 for read-only
 GMA_PORT = 30000
 GMA_USER = dotenv.get_key(".env", "GMA_USER") or "administrator"
 GMA_PASSWORD = dotenv.get_key(".env", "GMA_PASSWORD") or "admin"
 
 
 def login():
-    """Login to grandMA2"""
+    """Login to grandMA2."""
     tn = None
 
     try:
-        # setup telnet
+        # Setup telnet connection
         tn = telnetlib.Telnet(GMA_HOST, GMA_PORT)
 
         time.sleep(1)
 
-        # read initial message
+        # Read initial message
         init_res = tn.read_very_eager()
         print("=== initial message ===")
         print(init_res.decode("utf-8"))

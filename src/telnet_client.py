@@ -1,14 +1,15 @@
 """
-Telnet Client 模組
+Telnet Client Module
 
-這個模組負責與 grandMA2 建立 Telnet 連線，處理登入驗證，
-以及發送指令。這是專案中唯一允許直接操作 Telnet 的模組。
+This module is responsible for establishing Telnet connections with grandMA2,
+handling authentication, and sending commands. This is the only module in the
+project permitted to directly manipulate Telnet.
 
-根據 coding-standards.md，Telnet client 是唯一可以：
-- 開啟連線
-- 執行登入指令
-- 執行重連邏輯
-- 發送原始 MA 指令
+According to coding-standards.md, the Telnet client is the only component that can:
+- Open connections
+- Execute login commands
+- Perform reconnection logic
+- Send raw MA commands
 """
 
 import logging
@@ -16,29 +17,30 @@ import telnetlib
 import time
 from typing import Optional
 
-# 設定 logger
+# Configure logger
 logger = logging.getLogger(__name__)
 
 
 class GMA2TelnetClient:
     """
-    grandMA2 Telnet 連線客戶端
+    grandMA2 Telnet Connection Client
 
-    提供與 grandMA2 onPC/Console 的 Telnet 連線管理功能，
-    包含連線建立、登入驗證、指令發送、以及斷線重連。
+    Provides Telnet connection management functionality for grandMA2 onPC/Console,
+    including connection establishment, authentication, command sending, and
+    reconnection logic.
 
     Attributes:
-        host: grandMA2 主機 IP 位址
-        port: Telnet 連接埠（預設 30000，30001 為唯讀）
-        user: 登入使用者名稱
-        password: 登入密碼
+        host: grandMA2 host IP address
+        port: Telnet port (default 30000, 30001 is read-only)
+        user: Login username
+        password: Login password
 
     Example:
         >>> with GMA2TelnetClient(host="192.168.1.100") as client:
         ...     client.send_command("selfix fixture 1 thru 10")
     """
 
-    # 預設設定值
+    # Default configuration values
     DEFAULT_PORT = 30000
     DEFAULT_USER = "administrator"
     DEFAULT_PASSWORD = "admin"
@@ -51,13 +53,13 @@ class GMA2TelnetClient:
         password: str = DEFAULT_PASSWORD,
     ):
         """
-        初始化 Telnet Client
+        Initialize Telnet Client.
 
         Args:
-            host: grandMA2 主機 IP 位址
-            port: Telnet 連接埠（預設 30000）
-            user: 登入使用者名稱（預設 "administrator"）
-            password: 登入密碼（預設 "admin"）
+            host: grandMA2 host IP address
+            port: Telnet port (default 30000)
+            user: Login username (default "administrator")
+            password: Login password (default "admin")
         """
         self.host = host
         self.port = port
@@ -65,92 +67,94 @@ class GMA2TelnetClient:
         self.password = password
         self._connection: Optional[telnetlib.Telnet] = None
 
-        logger.debug(f"GMA2TelnetClient 初始化: host={host}, port={port}, user={user}")
+        logger.debug(
+            f"GMA2TelnetClient initialized: host={host}, port={port}, user={user}"
+        )
 
     def connect(self) -> None:
         """
-        建立 Telnet 連線
+        Establish a Telnet connection.
 
         Raises:
-            ConnectionError: 無法連線到 grandMA2 主機
+            ConnectionError: Unable to connect to grandMA2 host
         """
-        logger.info(f"正在連線到 {self.host}:{self.port}...")
+        logger.info(f"Connecting to {self.host}:{self.port}...")
 
         try:
             self._connection = telnetlib.Telnet(self.host, self.port)
-            # 等待連線穩定
+            # Wait for connection to stabilize
             time.sleep(0.5)
-            logger.info(f"成功連線到 {self.host}:{self.port}")
+            logger.info(f"Successfully connected to {self.host}:{self.port}")
         except Exception as e:
-            logger.error(f"連線失敗: {e}")
-            raise ConnectionError(f"無法連線到 {self.host}:{self.port}: {e}")
+            logger.error(f"Connection failed: {e}")
+            raise ConnectionError(f"Unable to connect to {self.host}:{self.port}: {e}")
 
     def login(self) -> bool:
         """
-        執行登入驗證
+        Perform login authentication.
 
         Returns:
-            bool: 登入成功回傳 True
+            bool: True if login is successful
 
         Raises:
-            RuntimeError: 尚未建立連線
+            RuntimeError: Connection not established
         """
         if self._connection is None:
-            raise RuntimeError("尚未建立連線，請先呼叫 connect()")
+            raise RuntimeError("Connection not established, call connect() first")
 
-        logger.info(f"正在以 {self.user} 身份登入...")
+        logger.info(f"Logging in as {self.user}...")
 
-        # 組建登入指令（密碼不記錄到 log）
+        # Build login command (password is not logged)
         login_cmd = f'login "{self.user}" "{self.password}"\r\n'
         self._connection.write(login_cmd.encode("utf-8"))
 
-        # 等待登入回應
+        # Wait for login response
         time.sleep(0.5)
         response = self._connection.read_very_eager()
 
-        logger.debug(f"登入回應: {response.decode('utf-8', errors='ignore')}")
-        logger.info("登入成功")
+        logger.debug(f"Login response: {response.decode('utf-8', errors='ignore')}")
+        logger.info("Login successful")
 
         return True
 
     def send_command(self, command: str, delay: float = 0.3) -> None:
         """
-        發送指令到 grandMA2
+        Send a command to grandMA2.
 
         Args:
-            command: 要發送的 MA 指令
-            delay: 發送指令後的等待時間（秒），讓 grandMA2 有時間處理
+            command: MA command to send
+            delay: Wait time in seconds after sending command to allow grandMA2 to process
 
         Raises:
-            RuntimeError: 尚未建立連線
+            RuntimeError: Connection not established
         """
         if self._connection is None:
-            raise RuntimeError("尚未建立連線，請先呼叫 connect()")
+            raise RuntimeError("Connection not established, call connect() first")
 
-        logger.debug(f"發送指令: {command}")
+        logger.debug(f"Sending command: {command}")
 
-        # 發送指令（自動加上換行符號）
+        # Send command (automatically add newline)
         full_command = f"{command}\r\n"
         self._connection.write(full_command.encode("utf-8"))
 
-        # 等待 grandMA2 處理指令
+        # Wait for grandMA2 to process command
         time.sleep(delay)
-        logger.debug(f"指令已發送，等待 {delay} 秒")
+        logger.debug(f"Command sent, waiting {delay} seconds")
 
     def disconnect(self) -> None:
-        """斷開 Telnet 連線"""
+        """Close the Telnet connection."""
         if self._connection is not None:
-            logger.info("正在斷開連線...")
+            logger.info("Closing connection...")
             self._connection.close()
             self._connection = None
-            logger.info("已斷開連線")
+            logger.info("Connection closed")
 
     def __enter__(self) -> "GMA2TelnetClient":
-        """Context manager 進入點：建立連線並登入"""
+        """Context manager entry point: establish connection and login."""
         self.connect()
         self.login()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        """Context manager 離開點：斷開連線"""
+        """Context manager exit point: close connection."""
         self.disconnect()

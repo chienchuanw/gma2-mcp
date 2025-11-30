@@ -1,8 +1,8 @@
 """
-MCP Tools 測試
+MCP Tools Tests
 
-測試 MCP tools 的高階功能，這些是 AI 可以呼叫的工具。
-使用 mock 來模擬 Telnet 連線，避免實際網路呼叫。
+Tests for high-level MCP tools functionality. These are tools that AI can call.
+Uses mocks to simulate Telnet connections and avoid actual network calls.
 """
 
 import pytest
@@ -10,31 +10,27 @@ from unittest.mock import Mock, patch, MagicMock, AsyncMock
 
 
 class TestCreateFixtureGroupTool:
-    """測試建立 fixture group 的 MCP tool"""
+    """Tests for the create fixture group MCP tool."""
 
     @pytest.mark.asyncio
     @patch("src.tools.get_gma2_client")
     async def test_create_fixture_group_basic(self, mock_get_client):
-        """測試建立基本的 fixture group"""
+        """Test creating a basic fixture group."""
         from src.tools import create_fixture_group
 
-        # 設定 mock
+        # Configure mock
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
 
-        result = await create_fixture_group(
-            start_fixture=1,
-            end_fixture=10,
-            group_id=1
-        )
+        result = await create_fixture_group(start_fixture=1, end_fixture=10, group_id=1)
 
-        # 驗證發送的指令
+        # Verify sent commands
         calls = mock_client.send_command.call_args_list
         assert len(calls) == 2
         assert calls[0][0][0] == "selfix fixture 1 thru 10"
         assert calls[1][0][0] == "store group 1"
 
-        # 驗證回傳訊息
+        # Verify return message
         assert "Group 1" in result
         assert "Fixture 1" in result
         assert "10" in result
@@ -42,20 +38,17 @@ class TestCreateFixtureGroupTool:
     @pytest.mark.asyncio
     @patch("src.tools.get_gma2_client")
     async def test_create_fixture_group_with_label(self, mock_get_client):
-        """測試建立 fixture group 並加上標籤"""
+        """Test creating a fixture group with a label."""
         from src.tools import create_fixture_group
 
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
 
         result = await create_fixture_group(
-            start_fixture=1,
-            end_fixture=10,
-            group_id=1,
-            group_name="Front Wash"
+            start_fixture=1, end_fixture=10, group_id=1, group_name="Front Wash"
         )
 
-        # 驗證發送的指令（包含 label）
+        # Verify sent commands (including label)
         calls = mock_client.send_command.call_args_list
         assert len(calls) == 3
         assert calls[0][0][0] == "selfix fixture 1 thru 10"
@@ -65,17 +58,14 @@ class TestCreateFixtureGroupTool:
     @pytest.mark.asyncio
     @patch("src.tools.get_gma2_client")
     async def test_create_fixture_group_with_chinese_name(self, mock_get_client):
-        """測試使用中文名稱建立 fixture group"""
+        """Test creating a fixture group with a Chinese name."""
         from src.tools import create_fixture_group
 
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
 
         result = await create_fixture_group(
-            start_fixture=1,
-            end_fixture=10,
-            group_id=1,
-            group_name="前區洗牆燈"
+            start_fixture=1, end_fixture=10, group_id=1, group_name="前區洗牆燈"
         )
 
         calls = mock_client.send_command.call_args_list
@@ -83,12 +73,12 @@ class TestCreateFixtureGroupTool:
 
 
 class TestExecuteSequenceTool:
-    """測試執行 sequence 的 MCP tool"""
+    """Tests for the execute sequence MCP tool."""
 
     @pytest.mark.asyncio
     @patch("src.tools.get_gma2_client")
     async def test_execute_sequence_go(self, mock_get_client):
-        """測試執行 sequence (go)"""
+        """Test executing a sequence (go)."""
         from src.tools import execute_sequence
 
         mock_client = MagicMock()
@@ -101,7 +91,7 @@ class TestExecuteSequenceTool:
     @pytest.mark.asyncio
     @patch("src.tools.get_gma2_client")
     async def test_execute_sequence_pause(self, mock_get_client):
-        """測試暫停 sequence"""
+        """Test pausing a sequence."""
         from src.tools import execute_sequence
 
         mock_client = MagicMock()
@@ -114,7 +104,7 @@ class TestExecuteSequenceTool:
     @pytest.mark.asyncio
     @patch("src.tools.get_gma2_client")
     async def test_execute_sequence_goto(self, mock_get_client):
-        """測試跳轉到指定 cue"""
+        """Test jumping to a specific cue."""
         from src.tools import execute_sequence
 
         mock_client = MagicMock()
@@ -126,12 +116,12 @@ class TestExecuteSequenceTool:
 
 
 class TestSendRawCommandTool:
-    """測試發送原始指令的 MCP tool"""
+    """Tests for the send raw command MCP tool."""
 
     @pytest.mark.asyncio
     @patch("src.tools.get_gma2_client")
     async def test_send_raw_command(self, mock_get_client):
-        """測試發送原始 MA 指令"""
+        """Test sending a raw MA command."""
         from src.tools import send_raw_command
 
         mock_client = MagicMock()
@@ -141,4 +131,3 @@ class TestSendRawCommandTool:
 
         mock_client.send_command.assert_called_once_with("selfix fixture 1 thru 10")
         assert "selfix fixture 1 thru 10" in result
-

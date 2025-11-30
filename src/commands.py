@@ -1,22 +1,23 @@
 """
-Command Builder 模組
+Command Builder Module
 
-這個模組提供高階函式來建構 grandMA2 指令字串。
-這些函式只負責產生正確格式的指令，不負責發送。
+This module provides high-level functions to construct grandMA2 command strings.
+These functions are responsible only for generating correctly formatted commands,
+not for sending them.
 
-根據 coding-standards.md，這些函式是「thin wrappers」，
-只負責建構 MA 指令，不包含任何 Telnet 邏輯。
+According to coding-standards.md, these functions are "thin wrappers" that
+only construct MA commands without any Telnet logic.
 """
 
 from typing import Optional
 
-# Preset 類型對應的編號
-# grandMA2 使用數字來區分 preset 類型
+# Preset type mappings to numeric IDs
+# grandMA2 uses numbers to distinguish preset types
 PRESET_TYPES = {
     "dimmer": 1,
     "position": 2,
     "gobo": 3,
-    "color": 2,  # color 也是使用 preset type 2
+    "color": 2,  # color also uses preset type 2
     "beam": 4,
     "focus": 5,
     "control": 6,
@@ -26,20 +27,20 @@ PRESET_TYPES = {
 
 
 # ============================================================
-# Fixture 相關指令
+# Fixture-related commands
 # ============================================================
 
 
 def select_fixture(start: int, end: Optional[int] = None) -> str:
     """
-    建構選取 fixture 的指令
+    Construct a command to select fixtures.
 
     Args:
-        start: 起始 fixture 編號
-        end: 結束 fixture 編號（可選，若未指定則只選取單一 fixture）
+        start: Starting fixture number
+        end: Ending fixture number (optional; if not specified, selects a single fixture)
 
     Returns:
-        str: 選取 fixture 的 MA 指令
+        str: MA command to select fixtures
 
     Examples:
         >>> select_fixture(1)
@@ -54,87 +55,87 @@ def select_fixture(start: int, end: Optional[int] = None) -> str:
 
 def clear_selection() -> str:
     """
-    建構清除選取的指令
+    Construct a command to clear the current selection.
 
     Returns:
-        str: 清除選取的 MA 指令
+        str: MA command to clear selection
     """
     return "clearall"
 
 
 # ============================================================
-# Group 相關指令
+# Group-related commands
 # ============================================================
 
 
 def store_group(group_id: int) -> str:
     """
-    建構儲存 group 的指令
+    Construct a command to store a group.
 
     Args:
-        group_id: Group 編號
+        group_id: Group number
 
     Returns:
-        str: 儲存 group 的 MA 指令
+        str: MA command to store a group
     """
     return f"store group {group_id}"
 
 
 def label_group(group_id: int, name: str) -> str:
     """
-    建構為 group 加上標籤的指令
+    Construct a command to label a group.
 
     Args:
-        group_id: Group 編號
-        name: Group 名稱
+        group_id: Group number
+        name: Group name
 
     Returns:
-        str: 標記 group 的 MA 指令
+        str: MA command to label a group
     """
     return f'label group {group_id} "{name}"'
 
 
 def select_group(group_id: int) -> str:
     """
-    建構選取 group 的指令
+    Construct a command to select a group.
 
     Args:
-        group_id: Group 編號
+        group_id: Group number
 
     Returns:
-        str: 選取 group 的 MA 指令
+        str: MA command to select a group
     """
     return f"group {group_id}"
 
 
 def delete_group(group_id: int) -> str:
     """
-    建構刪除 group 的指令
+    Construct a command to delete a group.
 
     Args:
-        group_id: Group 編號
+        group_id: Group number
 
     Returns:
-        str: 刪除 group 的 MA 指令
+        str: MA command to delete a group
     """
     return f"delete group {group_id}"
 
 
 # ============================================================
-# Preset 相關指令
+# Preset-related commands
 # ============================================================
 
 
 def store_preset(preset_type: str, preset_id: int) -> str:
     """
-    建構儲存 preset 的指令
+    Construct a command to store a preset.
 
     Args:
-        preset_type: Preset 類型（dimmer, position, gobo, color, beam, focus, control, shapers, video）
-        preset_id: Preset 編號
+        preset_type: Preset type (dimmer, position, gobo, color, beam, focus, control, shapers, video)
+        preset_id: Preset number
 
     Returns:
-        str: 儲存 preset 的 MA 指令
+        str: MA command to store a preset
     """
     type_num = PRESET_TYPES.get(preset_type.lower(), 1)
     return f"store preset {type_num}.{preset_id}"
@@ -142,15 +143,15 @@ def store_preset(preset_type: str, preset_id: int) -> str:
 
 def label_preset(preset_type: str, preset_id: int, name: str) -> str:
     """
-    建構為 preset 加上標籤的指令
+    Construct a command to label a preset.
 
     Args:
-        preset_type: Preset 類型
-        preset_id: Preset 編號
-        name: Preset 名稱
+        preset_type: Preset type
+        preset_id: Preset number
+        name: Preset name
 
     Returns:
-        str: 標記 preset 的 MA 指令
+        str: MA command to label a preset
     """
     type_num = PRESET_TYPES.get(preset_type.lower(), 1)
     return f'label preset {type_num}.{preset_id} "{name}"'
@@ -158,59 +159,59 @@ def label_preset(preset_type: str, preset_id: int, name: str) -> str:
 
 def call_preset(preset_type: str, preset_id: int) -> str:
     """
-    建構呼叫 preset 的指令
+    Construct a command to call a preset.
 
     Args:
-        preset_type: Preset 類型
-        preset_id: Preset 編號
+        preset_type: Preset type
+        preset_id: Preset number
 
     Returns:
-        str: 呼叫 preset 的 MA 指令
+        str: MA command to call a preset
     """
     type_num = PRESET_TYPES.get(preset_type.lower(), 1)
     return f"preset {type_num}.{preset_id}"
 
 
 # ============================================================
-# Sequence 相關指令
+# Sequence-related commands
 # ============================================================
 
 
 def go_sequence(sequence_id: int) -> str:
     """
-    建構執行 sequence 的指令
+    Construct a command to execute a sequence.
 
     Args:
-        sequence_id: Sequence 編號
+        sequence_id: Sequence number
 
     Returns:
-        str: 執行 sequence 的 MA 指令
+        str: MA command to execute a sequence
     """
     return f"go+ sequence {sequence_id}"
 
 
 def pause_sequence(sequence_id: int) -> str:
     """
-    建構暫停 sequence 的指令
+    Construct a command to pause a sequence.
 
     Args:
-        sequence_id: Sequence 編號
+        sequence_id: Sequence number
 
     Returns:
-        str: 暫停 sequence 的 MA 指令
+        str: MA command to pause a sequence
     """
     return f"pause sequence {sequence_id}"
 
 
 def goto_cue(sequence_id: int, cue_id: int) -> str:
     """
-    建構跳轉到指定 cue 的指令
+    Construct a command to jump to a specific cue.
 
     Args:
-        sequence_id: Sequence 編號
-        cue_id: Cue 編號
+        sequence_id: Sequence number
+        cue_id: Cue number
 
     Returns:
-        str: 跳轉 cue 的 MA 指令
+        str: MA command to jump to a cue
     """
     return f"goto cue {cue_id} sequence {sequence_id}"

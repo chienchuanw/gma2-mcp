@@ -1,11 +1,11 @@
 """
-MCP Tools 模組
+MCP Tools Module
 
-這個模組定義 AI 可以呼叫的高階工具函式。
-這些 tools 會整合 telnet_client 和 commands 模組，
-提供簡單易用的介面給 AI 使用。
+This module defines high-level tool functions that AI can call.
+These tools integrate the telnet_client and commands modules,
+providing a simple and easy-to-use interface for AI.
 
-每個 tool 都是 async 函式，讓 MCP server 可以非同步處理請求。
+Each tool is an async function, allowing the MCP server to handle requests asynchronously.
 """
 
 import logging
@@ -22,17 +22,17 @@ from src.commands import (
 
 logger = logging.getLogger(__name__)
 
-# 全域的 GMA2 client 實例
-# 這會在 server.py 中初始化
+# Global GMA2 client instance
+# This will be initialized in server.py
 _gma2_client = None
 
 
 def set_gma2_client(client) -> None:
     """
-    設定全域的 GMA2 client 實例
+    Set the global GMA2 client instance.
 
     Args:
-        client: GMA2TelnetClient 實例
+        client: GMA2TelnetClient instance
     """
     global _gma2_client
     _gma2_client = client
@@ -40,17 +40,17 @@ def set_gma2_client(client) -> None:
 
 def get_gma2_client():
     """
-    取得全域的 GMA2 client 實例
+    Get the global GMA2 client instance.
 
     Returns:
-        GMA2TelnetClient: 全域的 client 實例
+        GMA2TelnetClient: Global client instance
 
     Raises:
-        RuntimeError: 尚未設定 client
+        RuntimeError: Client not initialized
     """
     global _gma2_client
     if _gma2_client is None:
-        raise RuntimeError("GMA2 client 尚未初始化，請先呼叫 set_gma2_client()")
+        raise RuntimeError("GMA2 client not initialized, call set_gma2_client() first")
     return _gma2_client
 
 
@@ -66,42 +66,44 @@ async def create_fixture_group(
     group_name: Optional[str] = None,
 ) -> str:
     """
-    建立一個包含指定 fixture 範圍的 group
+    Create a group containing a specified range of fixtures.
 
-    這個工具會執行以下步驟：
-    1. 選取指定範圍的 fixtures
-    2. 將選取的 fixtures 儲存為一個 group
-    3. (可選) 為 group 加上名稱標籤
+    This tool performs the following steps:
+    1. Select the specified range of fixtures
+    2. Save the selected fixtures as a group
+    3. (Optional) Add a name label to the group
 
     Args:
-        start_fixture: 起始 fixture 編號
-        end_fixture: 結束 fixture 編號
-        group_id: 要儲存的 group 編號
-        group_name: (可選) group 的名稱
+        start_fixture: Starting fixture number
+        end_fixture: Ending fixture number
+        group_id: Group number to save
+        group_name: (Optional) Group name
 
     Returns:
-        str: 操作結果訊息
+        str: Operation result message
     """
     client = get_gma2_client()
 
-    # 步驟 1: 選取 fixtures
+    # Step 1: Select fixtures
     select_cmd = select_fixture(start_fixture, end_fixture)
     client.send_command(select_cmd)
-    logger.info(f"已選取 Fixture {start_fixture} 到 {end_fixture}")
+    logger.info(f"Selected Fixtures {start_fixture} to {end_fixture}")
 
-    # 步驟 2: 儲存為 group
+    # Step 2: Save as group
     store_cmd = store_group(group_id)
     client.send_command(store_cmd)
-    logger.info(f"已儲存為 Group {group_id}")
+    logger.info(f"Saved as Group {group_id}")
 
-    # 步驟 3: (可選) 加上標籤
+    # Step 3: (Optional) Add label
     if group_name:
         label_cmd = label_group(group_id, group_name)
         client.send_command(label_cmd)
-        logger.info(f'已將 Group {group_id} 命名為 "{group_name}"')
-        return f'已建立 Group {group_id} "{group_name}"，包含 Fixture {start_fixture} 到 {end_fixture}'
+        logger.info(f'Named Group {group_id} as "{group_name}"')
+        return f'Created Group {group_id} "{group_name}" containing Fixtures {start_fixture} to {end_fixture}'
 
-    return f"已建立 Group {group_id}，包含 Fixture {start_fixture} 到 {end_fixture}"
+    return (
+        f"Created Group {group_id} containing Fixtures {start_fixture} to {end_fixture}"
+    )
 
 
 async def execute_sequence(
@@ -110,52 +112,52 @@ async def execute_sequence(
     cue_id: Optional[int] = None,
 ) -> str:
     """
-    執行 sequence 相關操作
+    Execute sequence-related operations.
 
     Args:
-        sequence_id: Sequence 編號
-        action: 操作類型（go=執行, pause=暫停, goto=跳轉到指定 cue）
-        cue_id: (僅 goto 時需要) 目標 cue 編號
+        sequence_id: Sequence number
+        action: Operation type (go=execute, pause=pause, goto=jump to specific cue)
+        cue_id: (Required for goto) Target cue number
 
     Returns:
-        str: 操作結果訊息
+        str: Operation result message
     """
     client = get_gma2_client()
 
     if action == "go":
         cmd = go_sequence(sequence_id)
         client.send_command(cmd)
-        return f"已執行 Sequence {sequence_id}"
+        return f"Executed Sequence {sequence_id}"
 
     elif action == "pause":
         cmd = pause_sequence(sequence_id)
         client.send_command(cmd)
-        return f"已暫停 Sequence {sequence_id}"
+        return f"Paused Sequence {sequence_id}"
 
     elif action == "goto":
         if cue_id is None:
-            return "錯誤：goto 操作需要指定 cue_id"
+            return "Error: goto action requires cue_id to be specified"
         cmd = goto_cue(sequence_id, cue_id)
         client.send_command(cmd)
-        return f"已跳轉到 Sequence {sequence_id} 的 Cue {cue_id}"
+        return f"Jumped to Cue {cue_id} of Sequence {sequence_id}"
 
-    return f"未知的操作: {action}"
+    return f"Unknown action: {action}"
 
 
 async def send_raw_command(command: str) -> str:
     """
-    發送原始 MA 指令
+    Send a raw MA command.
 
-    這是一個底層工具，允許發送任何 grandMA2 指令。
-    建議優先使用其他高階工具，只在需要時才使用此工具。
+    This is a low-level tool that allows sending any grandMA2 command.
+    It is recommended to use other high-level tools first; use this tool only when needed.
 
     Args:
-        command: 要發送的原始 MA 指令
+        command: Raw MA command to send
 
     Returns:
-        str: 操作結果訊息
+        str: Operation result message
     """
     client = get_gma2_client()
     client.send_command(command)
-    logger.info(f"已發送指令: {command}")
-    return f"已發送指令: {command}"
+    logger.info(f"Sent command: {command}")
+    return f"Sent command: {command}"

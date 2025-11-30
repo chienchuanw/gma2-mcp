@@ -1,4 +1,3 @@
 """
-grandMA2 MCP 測試套件
+grandMA2 MCP Test Suite
 """
-
