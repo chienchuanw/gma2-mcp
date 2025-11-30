@@ -104,7 +104,44 @@ Copy creates copies of objects. Move relocates objects (swaps if destination is 
 
 Copy options: `overwrite`, `merge`, `status`, `cueonly`, `noconfirm`
 
-### 6. Macro Placeholder (@ Character)
+### 6. Assign Keyword
+
+Assign defines relationships between objects, patching, and property assignment.
+
+| Function                                     | Description               | Example                                |
+| -------------------------------------------- | ------------------------- | -------------------------------------- |
+| `assign("sequence", 1, "executor", 6)`       | Assign seq to executor    | `assign sequence 1 at executor 6`      |
+| `assign("dmx", "2.101", "channel", 5)`       | Patch DMX to channel      | `assign dmx 2.101 at channel 5`        |
+| `assign("group", 1, "layout", 1, x=5, y=2)`  | Assign to layout          | `assign group 1 at layout 1 /x=5 /y=2` |
+| `assign_function("Toggle", "executor", 101)` | Assign function to button | `assign toggle at executor 101`        |
+| `assign_fade(3, 5)`                          | Assign fade time to cue   | `assign fade 3 cue 5`                  |
+| `assign_to_layout("group", 1, 1, x=5, y=2)`  | Assign to layout position | `assign group 1 at layout 1 /x=5 /y=2` |
+
+Assign options: `break_`, `multipatch`, `reset`, `x`, `y`, `noconfirm`, `special`, `cue_mode`, `password`
+
+### 7. Label Keyword
+
+Label gives names to objects. Numbers in names auto-enumerate for ranges.
+
+| Function                                   | Description  | Example                              |
+| ------------------------------------------ | ------------ | ------------------------------------ |
+| `label("group", 3, "All Studiocolors")`    | Label group  | `label group 3 "All Studiocolors"`   |
+| `label("fixture", 1, "Mac700 1", end=10)`  | Label range  | `label fixture 1 thru 10 "Mac700 1"` |
+| `label("preset", '"color"."Red"', "Dark")` | Label preset | `label preset "color"."Red" "Dark"`  |
+
+### 8. Appearance Keyword
+
+Appearance changes frame colors of pool objects and background colors of cues.
+
+| Function                                                    | Description      | Example                                   |
+| ----------------------------------------------------------- | ---------------- | ----------------------------------------- |
+| `appearance("preset", "0.1", red=100, green=0, blue=0)`     | Set RGB color    | `appearance preset 0.1 /r=100 /g=0 /b=0`  |
+| `appearance("preset", "0.1", hue=0, saturation=100)`        | Set HSB color    | `appearance preset 0.1 /h=0 /s=100`       |
+| `appearance("group", 1, end=5, color="FF0000")`             | Set hex color    | `appearance group 1 thru 5 /color=FF0000` |
+| `appearance("macro", 2, source_type="macro", source_id=13)` | Copy from source | `appearance macro 2 at macro 13`          |
+| `appearance("preset", 1, reset=True)`                       | Reset appearance | `appearance preset 1 /reset`              |
+
+### 9. Macro Placeholder (@ Character)
 
 The `@` character is different from the `At` keyword - it's used as a placeholder for user input in macros.
 

@@ -58,6 +58,15 @@ from .objects import (
 
 # Function Keywords
 from .functions import (
+    # Assign Function Keyword
+    assign,
+    assign_fade,
+    assign_function,
+    assign_to_layout,
+    # Label Function Keyword
+    label,
+    # Appearance Function Keyword
+    appearance,
     # At Function Keyword
     at,
     at_full,
@@ -109,6 +118,15 @@ __all__ = [
     "preset",
     "cue",
     "sequence",
+    # Assign Function Keyword
+    "assign",
+    "assign_fade",
+    "assign_function",
+    "assign_to_layout",
+    # Label Function Keyword
+    "label",
+    # Appearance Function Keyword
+    "appearance",
     # At Function Keyword
     "at",
     "at_full",

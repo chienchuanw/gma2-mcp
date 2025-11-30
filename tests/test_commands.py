@@ -913,3 +913,240 @@ class TestMoveCommands:
 
         result = move("group", [1, 2, 3], 10)
         assert result == "move group 1 + 2 + 3 at 10"
+
+
+class TestAssignCommands:
+    """Tests for Assign keyword commands."""
+
+    # ---- Basic Assign ----
+
+    def test_assign_sequence_to_executor(self):
+        """Test assign sequence to executor."""
+        from src.commands import assign
+
+        result = assign("sequence", 1, "executor", 6)
+        assert result == "assign sequence 1 at executor 6"
+
+    def test_assign_sequence_range_to_executor_range(self):
+        """Test assign sequence range to executor range."""
+        from src.commands import assign
+
+        result = assign("sequence", 1, "executor", 6, source_end=5, target_end=10)
+        assert result == "assign sequence 1 thru 5 at executor 6 thru 10"
+
+    def test_assign_dmx_to_channel(self):
+        """Test assign DMX address to channel."""
+        from src.commands import assign
+
+        result = assign("dmx", "2.101", "channel", 5)
+        assert result == "assign dmx 2.101 at channel 5"
+
+    def test_assign_group_to_layout(self):
+        """Test assign group to layout with coordinates."""
+        from src.commands import assign
+
+        result = assign("group", 1, "layout", 1, x=5, y=2)
+        assert result == "assign group 1 at layout 1 /x=5 /y=2"
+
+    def test_assign_with_password(self):
+        """Test assign user with password."""
+        from src.commands import assign
+
+        result = assign("user", "JohnDoe", password="qwerty")
+        assert result == 'assign user JohnDoe /password="qwerty"'
+
+    def test_assign_with_cue_mode(self):
+        """Test assign with cue_mode option - use assign_function for this."""
+        from src.commands import assign_function
+
+        result = assign_function("go", "execbutton1", "1.1", cue_mode="xassert")
+        assert result == "assign go at execbutton1 1.1 /cue_mode=xassert"
+
+    def test_assign_with_reset(self):
+        """Test assign with reset option."""
+        from src.commands import assign
+
+        result = assign("dmx", "1.1", "channel", 1, reset=True)
+        assert result == "assign dmx 1.1 at channel 1 /reset"
+
+    def test_assign_with_break(self):
+        """Test assign with break option."""
+        from src.commands import assign
+
+        result = assign("dmx", "1.1", "fixture", 1, break_=2)
+        assert result == "assign dmx 1.1 at fixture 1 /break=2"
+
+    # ---- assign_function ----
+
+    def test_assign_function_toggle(self):
+        """Test assign toggle function to executor."""
+        from src.commands import assign_function
+
+        result = assign_function("Toggle", "executor", 101)
+        assert result == "assign toggle at executor 101"
+
+    def test_assign_function_go_with_cue_mode(self):
+        """Test assign go function with cue_mode."""
+        from src.commands import assign_function
+
+        result = assign_function("Go", "execbutton1", "1.1", cue_mode="xassert")
+        assert result == "assign go at execbutton1 1.1 /cue_mode=xassert"
+
+    # ---- assign_fade ----
+
+    def test_assign_fade_basic(self):
+        """Test assign fade time to cue."""
+        from src.commands import assign_fade
+
+        result = assign_fade(3, 5)
+        assert result == "assign fade 3 cue 5"
+
+    def test_assign_fade_with_sequence(self):
+        """Test assign fade time with sequence."""
+        from src.commands import assign_fade
+
+        result = assign_fade(2.5, 3, sequence_id=1)
+        assert result == "assign fade 2.5 cue 3 sequence 1"
+
+    # ---- assign_to_layout ----
+
+    def test_assign_to_layout_basic(self):
+        """Test assign object to layout with position."""
+        from src.commands import assign_to_layout
+
+        result = assign_to_layout("group", 1, 1, x=5, y=2)
+        assert result == "assign group 1 at layout 1 /x=5 /y=2"
+
+    def test_assign_to_layout_range(self):
+        """Test assign object range to layout."""
+        from src.commands import assign_to_layout
+
+        result = assign_to_layout("macro", 1, 2, x=0, y=0, end=5)
+        assert result == "assign macro 1 thru 5 at layout 2 /x=0 /y=0"
+
+
+class TestLabelCommands:
+    """Tests for Label keyword commands."""
+
+    def test_label_group(self):
+        """Test label group."""
+        from src.commands import label
+
+        result = label("group", 3, "All Studiocolors")
+        assert result == 'label group 3 "All Studiocolors"'
+
+    def test_label_fixture_range(self):
+        """Test label fixture range with auto-enumerate."""
+        from src.commands import label
+
+        result = label("fixture", 1, "Mac700 1", end=10)
+        assert result == 'label fixture 1 thru 10 "Mac700 1"'
+
+    def test_label_preset_compound_id(self):
+        """Test label preset with compound ID."""
+        from src.commands import label
+
+        result = label("preset", '"color"."Red"', "Dark Red")
+        assert result == 'label preset "color"."Red" "Dark Red"'
+
+    def test_label_with_quoted_name(self):
+        """Test label with already quoted name."""
+        from src.commands import label
+
+        result = label("macro", 1, '"My Macro"')
+        assert result == 'label macro 1 "My Macro"'
+
+    def test_label_multiple_objects(self):
+        """Test label multiple objects."""
+        from src.commands import label
+
+        result = label("group", [1, 2, 3], "Selected")
+        assert result == 'label group 1 + 2 + 3 "Selected"'
+
+
+class TestAppearanceCommands:
+    """Tests for Appearance keyword commands."""
+
+    # ---- RGB Colors ----
+
+    def test_appearance_rgb(self):
+        """Test appearance with RGB values."""
+        from src.commands import appearance
+
+        result = appearance("preset", "0.1", red=100, green=0, blue=0)
+        assert result == "appearance preset 0.1 /r=100 /g=0 /b=0"
+
+    def test_appearance_rgb_full(self):
+        """Test appearance with full RGB."""
+        from src.commands import appearance
+
+        result = appearance("group", 1, red=50, green=75, blue=100)
+        assert result == "appearance group 1 /r=50 /g=75 /b=100"
+
+    # ---- HSB Colors ----
+
+    def test_appearance_hsb(self):
+        """Test appearance with HSB values."""
+        from src.commands import appearance
+
+        result = appearance("preset", "0.1", hue=0, saturation=100, brightness=50)
+        assert result == "appearance preset 0.1 /h=0 /s=100 /br=50"
+
+    def test_appearance_hue_only(self):
+        """Test appearance with hue only."""
+        from src.commands import appearance
+
+        result = appearance("cue", 1, hue=180)
+        assert result == "appearance cue 1 /h=180"
+
+    # ---- Hex Color ----
+
+    def test_appearance_hex_color(self):
+        """Test appearance with hex color."""
+        from src.commands import appearance
+
+        result = appearance("group", 1, end=5, color="FF0000")
+        assert result == "appearance group 1 thru 5 /color=FF0000"
+
+    # ---- Copy from Source ----
+
+    def test_appearance_from_source(self):
+        """Test appearance copied from source object."""
+        from src.commands import appearance
+
+        result = appearance("macro", 2, source_type="macro", source_id=13)
+        assert result == "appearance macro 2 at macro 13"
+
+    def test_appearance_cue_from_group(self):
+        """Test appearance cue same as group."""
+        from src.commands import appearance
+
+        result = appearance("cue", 1, source_type="group", source_id=2)
+        assert result == "appearance cue 1 at group 2"
+
+    # ---- Reset ----
+
+    def test_appearance_reset(self):
+        """Test appearance reset."""
+        from src.commands import appearance
+
+        result = appearance("preset", 1, reset=True)
+        assert result == "appearance preset 1 /reset"
+
+    # ---- Range ----
+
+    def test_appearance_range(self):
+        """Test appearance with range."""
+        from src.commands import appearance
+
+        result = appearance("group", 1, end=5, hue=240, saturation=100, brightness=75)
+        assert result == "appearance group 1 thru 5 /h=240 /s=100 /br=75"
+
+    # ---- Multiple Objects ----
+
+    def test_appearance_multiple_objects(self):
+        """Test appearance with multiple objects."""
+        from src.commands import appearance
+
+        result = appearance("macro", [1, 3, 5], color="00FF00")
+        assert result == "appearance macro 1 + 3 + 5 /color=00FF00"
