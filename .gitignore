@@ -12,3 +12,6 @@ __pycache__/
 
 # log
 *.log
+
+# augment
+.augment/
