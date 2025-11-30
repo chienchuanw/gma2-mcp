@@ -149,11 +149,25 @@ class TestGroupCommands:
         assert result == 'label group 1 "Front Wash"'
 
     def test_select_group(self):
-        """Test selecting a group."""
+        """Test selecting a group - default function is SelFix."""
         from src.commands import select_group
 
         result = select_group(1)
         assert result == "group 1"
+
+    def test_select_group_with_range(self):
+        """Test selecting a range of groups: group 1 thru 5"""
+        from src.commands import select_group
+
+        result = select_group(1, end=5)
+        assert result == "group 1 thru 5"
+
+    def test_select_multiple_groups(self):
+        """Test selecting multiple groups: group 1 + 3 + 5"""
+        from src.commands import select_group
+
+        result = select_group([1, 3, 5])
+        assert result == "group 1 + 3 + 5"
 
     def test_delete_group(self):
         """Test deleting a group."""
@@ -161,6 +175,84 @@ class TestGroupCommands:
 
         result = delete_group(1)
         assert result == "delete group 1"
+
+
+class TestFixtureCommands_Advanced:
+    """Tests for fixture keyword (direct fixture access)."""
+
+    def test_fixture_single(self):
+        """Test selecting a single fixture by ID: fixture 34"""
+        from src.commands import fixture
+
+        result = fixture(34)
+        assert result == "fixture 34"
+
+    def test_fixture_with_subfixture(self):
+        """Test selecting a subfixture: fixture 11.5"""
+        from src.commands import fixture
+
+        result = fixture(11, sub_id=5)
+        assert result == "fixture 11.5"
+
+    def test_fixture_range(self):
+        """Test selecting fixture range: fixture 1 thru 10"""
+        from src.commands import fixture
+
+        result = fixture(1, end=10)
+        assert result == "fixture 1 thru 10"
+
+    def test_fixture_multiple(self):
+        """Test selecting multiple fixtures: fixture 1 + 5 + 10"""
+        from src.commands import fixture
+
+        result = fixture([1, 5, 10])
+        assert result == "fixture 1 + 5 + 10"
+
+    def test_fixture_all(self):
+        """Test selecting all fixtures: fixture thru"""
+        from src.commands import fixture
+
+        result = fixture(select_all=True)
+        assert result == "fixture thru"
+
+
+class TestChannelCommands:
+    """Tests for channel keyword (access fixtures by Channel ID)."""
+
+    def test_channel_single(self):
+        """Test selecting a single channel: channel 34"""
+        from src.commands import channel
+
+        result = channel(34)
+        assert result == "channel 34"
+
+    def test_channel_with_subfixture(self):
+        """Test selecting a channel subfixture: channel 11.5"""
+        from src.commands import channel
+
+        result = channel(11, sub_id=5)
+        assert result == "channel 11.5"
+
+    def test_channel_range(self):
+        """Test selecting channel range: channel 1 thru 10"""
+        from src.commands import channel
+
+        result = channel(1, end=10)
+        assert result == "channel 1 thru 10"
+
+    def test_channel_multiple(self):
+        """Test selecting multiple channels: channel 1 + 5 + 10"""
+        from src.commands import channel
+
+        result = channel([1, 5, 10])
+        assert result == "channel 1 + 5 + 10"
+
+    def test_channel_all(self):
+        """Test selecting all channels: channel thru"""
+        from src.commands import channel
+
+        result = channel(select_all=True)
+        assert result == "channel thru"
 
 
 class TestPresetCommands:
