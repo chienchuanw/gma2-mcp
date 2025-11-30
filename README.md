@@ -17,6 +17,15 @@ GMA2 MCP provides a programmatic interface to communicate with grandMA2 consoles
 
 - Python 3.12 or higher
 - grandMA2 console with Telnet access enabled
+- Telnet client installed on your system
+
+### Installing Telnet
+
+On macOS:
+
+```bash
+brew install telnet
+```
 
 ## Installation
 
@@ -88,6 +97,11 @@ Use the provided Makefile commands for direct Telnet access:
 make server    # Connect to grandMA2 server (port 30000)
 make log       # Connect to grandMA2 log output (port 30001)
 ```
+
+To exit a Telnet session:
+
+1. Press `Ctrl + ]` to enter Telnet command mode
+1. Type `quit` and press Enter
 
 ## Project Structure
 
