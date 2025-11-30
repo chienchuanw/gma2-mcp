@@ -9,7 +9,7 @@ According to coding-standards.md, these functions are "thin wrappers" that
 only construct MA commands without any Telnet logic.
 """
 
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Tuple, Dict, Any
 
 # Preset type mappings to numeric IDs
 # grandMA2 uses numbers to distinguish preset types
@@ -24,6 +24,235 @@ PRESET_TYPES = {
     "shapers": 7,
     "video": 8,
 }
+
+# Store options that require no value (flag-only options)
+STORE_FLAG_OPTIONS = {
+    "merge",
+    "overwrite",
+    "remove",
+    "noconfirm",
+    "global",
+    "selective",
+    "universal",
+    "auto",
+    "trackingshield",
+    "embedded",
+}
+
+# Store options that require a boolean value
+STORE_BOOL_OPTIONS = {
+    "cueonly",
+    "tracking",
+    "keepactive",
+    "presetfilter",
+    "addnewcontent",
+    "originalcontent",
+    "effects",
+    "values",
+    "valuetimes",
+}
+
+# Store options that require a specific value
+STORE_VALUE_OPTIONS = {
+    "source",  # Prog, Output, DmxIn
+    "useselection",  # Active, Allforselected, Activeforselected, All, Look
+    "screen",  # 1..6
+    "x",  # x coordinate
+    "y",  # y coordinate
+}
+
+
+def _build_store_options(**kwargs: Any) -> str:
+    """
+    Build option string for store commands.
+
+    Handles three types of options:
+    1. Flag options (no value): /merge, /overwrite, /noconfirm
+    2. Boolean options: /cueonly=true, /tracking=false
+    3. Value options: /source=output, /screen=1
+
+    Args:
+        **kwargs: Option name-value pairs
+
+    Returns:
+        str: Formatted option string (e.g., " /merge /cueonly=true")
+    """
+    options_parts = []
+
+    for key, value in kwargs.items():
+        if value is None:
+            continue
+
+        # Normalize key (remove underscores, convert to lowercase)
+        option_key = key.replace("_", "").lower()
+
+        # Handle flag options (no value needed)
+        if option_key in STORE_FLAG_OPTIONS:
+            if value:  # Only add if True
+                options_parts.append(f"/{option_key}")
+
+        # Handle boolean options (need =true or =false)
+        elif option_key in STORE_BOOL_OPTIONS:
+            bool_value = "true" if value else "false"
+            options_parts.append(f"/{option_key}={bool_value}")
+
+        # Handle value options
+        elif option_key in STORE_VALUE_OPTIONS:
+            options_parts.append(f"/{option_key}={value}")
+
+    if options_parts:
+        return " " + " ".join(options_parts)
+    return ""
+
+
+# ============================================================
+# Store commands (general)
+# ============================================================
+
+
+def store(
+    object_type: str,
+    object_id: Union[int, str],
+    name: Optional[str] = None,
+    **options: Any,
+) -> str:
+    """
+    Construct a generic store command for any object type.
+
+    This function provides a flexible way to store any grandMA2 object type
+    with optional naming and store options.
+
+    Args:
+        object_type: The type of object to store (e.g., "macro", "effect", "view")
+        object_id: The ID or identifier of the object
+        name: Optional name for the stored object
+        **options: Store options (merge, overwrite, noconfirm, etc.)
+
+    Returns:
+        str: MA command to store the object
+
+    Examples:
+        >>> store("macro", 5)
+        'store macro 5'
+        >>> store("macro", 5, name="Reset All")
+        'store macro 5 "Reset All"'
+        >>> store("effect", 1, noconfirm=True)
+        'store effect 1 /noconfirm'
+    """
+    cmd = f"store {object_type} {object_id}"
+
+    if name:
+        cmd += f' "{name}"'
+
+    cmd += _build_store_options(**options)
+
+    return cmd
+
+
+def store_cue(
+    cue_id: Optional[int] = None,
+    end: Optional[int] = None,
+    *,
+    ranges: Optional[List[Tuple[int, int]]] = None,
+    name: Optional[str] = None,
+    # Flag options (no value)
+    merge: bool = False,
+    overwrite: bool = False,
+    remove: bool = False,
+    noconfirm: bool = False,
+    trackingshield: bool = False,
+    # Boolean options
+    cueonly: Optional[bool] = None,
+    tracking: Optional[bool] = None,
+    keepactive: Optional[bool] = None,
+    addnewcontent: Optional[bool] = None,
+    originalcontent: Optional[bool] = None,
+    effects: Optional[bool] = None,
+    values: Optional[bool] = None,
+    valuetimes: Optional[bool] = None,
+    # Value options
+    source: Optional[str] = None,
+    useselection: Optional[str] = None,
+) -> str:
+    """
+    Construct a store cue command with full option support.
+
+    The Store keyword stores functions in the show file. When no object type
+    is specified, Cue is the default for the sequence of the selected executor.
+
+    Args:
+        cue_id: The cue number to store
+        end: End cue number for range (cue_id thru end)
+        ranges: List of (start, end) tuples for multiple ranges
+        name: Optional name for the cue
+        merge: Merge new values into existing (new values have priority)
+        overwrite: Remove stored values and store new values
+        remove: Remove stored values for attributes with active programmer values
+        noconfirm: Suppress store confirmation pop-up
+        trackingshield: Use tracking shield for store
+        cueonly: Prevent changes to track forward (True/False)
+        tracking: Store with tracking (False is same as cueonly)
+        keepactive: Keep values active after store
+        addnewcontent: Add new content (False is same as originalcontent)
+        originalcontent: Store original content of preset/effect/cue
+        effects: Filter or enable effect layer
+        values: Filter or enable value layer
+        valuetimes: Filter or enable value times layer
+        source: Data source (Prog, Output, DmxIn)
+        useselection: Selection mode (Active, Allforselected, Activeforselected, All, Look)
+
+    Returns:
+        str: MA command to store cue(s)
+
+    Examples:
+        >>> store_cue(7)
+        'store cue 7'
+        >>> store_cue(1, end=10)
+        'store cue 1 thru 10'
+        >>> store_cue(ranges=[(1, 10), (20, 30)])
+        'store cue 1 thru 10 + 20 thru 30'
+        >>> store_cue(1, merge=True, noconfirm=True)
+        'store cue 1 /merge /noconfirm'
+    """
+    # Build the cue identifier part
+    if ranges:
+        # Multiple ranges: "1 thru 10 + 20 thru 30"
+        range_parts = [f"{start} thru {end}" for start, end in ranges]
+        cue_part = " + ".join(range_parts)
+    elif cue_id is not None and end is not None:
+        # Single range: "1 thru 10"
+        cue_part = f"{cue_id} thru {end}"
+    elif cue_id is not None:
+        # Single cue
+        cue_part = str(cue_id)
+    else:
+        raise ValueError("Must provide cue_id or ranges")
+
+    cmd = f"store cue {cue_part}"
+
+    if name:
+        cmd += f' "{name}"'
+
+    # Build options
+    cmd += _build_store_options(
+        merge=merge,
+        overwrite=overwrite,
+        remove=remove,
+        noconfirm=noconfirm,
+        trackingshield=trackingshield,
+        cueonly=cueonly,
+        tracking=tracking,
+        keepactive=keepactive,
+        addnewcontent=addnewcontent,
+        originalcontent=originalcontent,
+        effects=effects,
+        values=values,
+        valuetimes=valuetimes,
+        source=source,
+        useselection=useselection,
+    )
+
+    return cmd
 
 
 # ============================================================
@@ -261,19 +490,79 @@ def delete_group(group_id: int) -> str:
 # ============================================================
 
 
-def store_preset(preset_type: str, preset_id: int) -> str:
+def store_preset(
+    preset_type: str,
+    preset_id: int,
+    *,
+    # Scope options (flag-only)
+    global_scope: bool = False,
+    selective: bool = False,
+    universal: bool = False,
+    auto: bool = False,
+    # Other flag options
+    embedded: bool = False,
+    noconfirm: bool = False,
+    merge: bool = False,
+    overwrite: bool = False,
+    # Boolean options
+    presetfilter: Optional[bool] = None,
+    keepactive: Optional[bool] = None,
+    addnewcontent: Optional[bool] = None,
+    originalcontent: Optional[bool] = None,
+) -> str:
     """
-    Construct a command to store a preset.
+    Construct a command to store a preset with full option support.
+
+    Supports preset scope options (global, selective, universal) and
+    various store modifiers.
 
     Args:
         preset_type: Preset type (dimmer, position, gobo, color, beam, focus, control, shapers, video)
         preset_id: Preset number
+        global_scope: Store preset with global values
+        selective: Store preset with selective values
+        universal: Store preset with universal values
+        auto: Store preset values with default preset scope
+        embedded: Create embedded preset
+        noconfirm: Suppress store confirmation pop-up
+        merge: Merge new values into existing
+        overwrite: Remove stored values and store new
+        presetfilter: Set preset filter on or off
+        keepactive: Keep values active
+        addnewcontent: Add new content
+        originalcontent: Store original content
 
     Returns:
         str: MA command to store a preset
+
+    Examples:
+        >>> store_preset("dimmer", 3)
+        'store preset 1.3'
+        >>> store_preset("dimmer", 3, global_scope=True)
+        'store preset 1.3 /global'
+        >>> store_preset("dimmer", 3, presetfilter=False, keepactive=True)
+        'store preset 1.3 /presetfilter=false /keepactive=true'
     """
     type_num = PRESET_TYPES.get(preset_type.lower(), 1)
-    return f"store preset {type_num}.{preset_id}"
+    cmd = f"store preset {type_num}.{preset_id}"
+
+    # Build options using the helper, mapping global_scope to global
+    cmd += _build_store_options(
+        **{"global": global_scope},  # 'global' is a Python keyword, so use dict
+        selective=selective,
+        universal=universal,
+        auto=auto,
+        embedded=embedded,
+        noconfirm=noconfirm,
+        merge=merge,
+        overwrite=overwrite,
+        presetfilter=presetfilter,
+        keepactive=keepactive,
+        addnewcontent=addnewcontent,
+        originalcontent=originalcontent,
+    )
+
+    return cmd
 
 
 def label_preset(preset_type: str, preset_id: int, name: str) -> str:
