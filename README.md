@@ -12,6 +12,62 @@ GMA2 MCP provides a programmatic interface to communicate with grandMA2 consoles
 - MCP server implementation for protocol compliance
 - User authentication support
 - Configurable host and port settings
+- Comprehensive command builder following grandMA2 syntax rules
+
+## grandMA2 Keyword Classification
+
+The command builder module (`src/commands.py`) follows the official grandMA2 command line syntax rules. Keywords are organized into three categories:
+
+### General Syntax Rules
+
+- Basic syntax: `[Function] [Object]`
+- All objects have a default function which is used if no function is given
+- Most functions have a default object or object type
+- Objects are arranged in a hierarchical tree structure
+
+### 1. Helping Keywords (Prepositions/Conjunctions)
+
+Used to create relations between functions and objects.
+
+| Keyword | Description      | Example             |
+| ------- | ---------------- | ------------------- |
+| `Thru`  | Range selection  | `Fixture 1 Thru 10` |
+| `+`     | Add to selection | `Fixture 1 + 3 + 5` |
+| `At`    | Set values       | `At 50`             |
+
+### 2. Object Keywords (Nouns)
+
+Used to allocate objects in your show file. Usually used with numbers, IDs, names, and labels.
+
+| Object       | Function                      | Example                                  |
+| ------------ | ----------------------------- | ---------------------------------------- |
+| `fixture()`  | Select fixtures by Fixture ID | `fixture(34)` → `fixture 34`             |
+| `channel()`  | Select fixtures by Channel ID | `channel(11, sub_id=5)` → `channel 11.5` |
+| `group()`    | Select fixtures in a group    | `group(3)` → `group 3`                   |
+| `preset()`   | Apply a preset                | `preset("color", 5)` → `preset 2.5`      |
+| `cue()`      | Reference a cue               | `cue(5)` → `cue 5`                       |
+| `sequence()` | Reference a sequence          | `sequence(3)` → `sequence 3`             |
+
+### 3. Function Keywords (Verbs)
+
+Perform a task or function. Often followed by objects to which the function applies.
+
+| Function            | Description                | Example                                              |
+| ------------------- | -------------------------- | ---------------------------------------------------- |
+| `store()`           | Store objects in show file | `store("macro", 5)` → `store macro 5`                |
+| `store_cue()`       | Store cue with options     | `store_cue(1, merge=True)` → `store cue 1 /merge`    |
+| `store_preset()`    | Store preset with options  | `store_preset("dimmer", 3)` → `store preset 1.3`     |
+| `store_group()`     | Store a group              | `store_group(1)` → `store group 1`                   |
+| `label_group()`     | Label a group              | `label_group(1, "Front")` → `label group 1 "Front"`  |
+| `delete_group()`    | Delete a group             | `delete_group(1)` → `delete group 1`                 |
+| `select_fixture()`  | SelFix function            | `select_fixture(1, 10)` → `selfix fixture 1 thru 10` |
+| `clear()`           | Clear programmer           | `clear()` → `clear`                                  |
+| `clear_selection()` | Clear selection only       | `clear_selection()` → `clearselection`               |
+| `clear_active()`    | Clear active values        | `clear_active()` → `clearactive`                     |
+| `clear_all()`       | Clear all                  | `clear_all()` → `clearall`                           |
+| `go_sequence()`     | Start sequence playback    | `go_sequence(1)` → `go+ sequence 1`                  |
+| `pause_sequence()`  | Pause sequence             | `pause_sequence(1)` → `pause sequence 1`             |
+| `goto_cue()`        | Jump to cue                | `goto_cue(1, 5)` → `goto cue 5 sequence 1`           |
 
 ## Requirements
 
@@ -31,25 +87,25 @@ brew install telnet
 
 1. Clone the repository:
 
-```bash
-git clone <repository-url>
-cd gma2-mcp
-```
+   ```bash
+   git clone <repository-url>
+   cd gma2-mcp
+   ```
 
-1. Create and activate a virtual environment:
+2. Create and activate a virtual environment:
 
-```bash
-source .venv/bin/activate
-```
+   ```bash
+   source .venv/bin/activate
+   ```
 
 On Windows, use:
 
-```bash
-python3.12 -m venv venv
-venv\Scripts\activate
-```
+    ```bash
+    python3.12 -m venv venv
+    venv\Scripts\activate
+    ```
 
-1. Install dependencies using uv:
+3. Install dependencies using uv:
 
 ```bash
 uv sync
@@ -96,12 +152,13 @@ Use the provided Makefile commands for direct Telnet access:
 ```bash
 make server    # Connect to grandMA2 server (port 30000)
 make log       # Connect to grandMA2 log output (port 30001)
+make test      # Run all tests
 ```
 
 To exit a Telnet session:
 
 1. Press `Ctrl + ]` to enter Telnet command mode
-1. Type `quit` and press Enter
+2. Type `quit` and press Enter
 
 ## Project Structure
 
@@ -110,9 +167,14 @@ gma2-mcp/
 ├── main.py              # Entry point with login test functionality
 ├── src/
 │   ├── __init__.py
-│   ├── gma2_client.py   # grandMA2 client implementation
+│   ├── commands.py      # Command builder (Object/Function keywords)
+│   ├── telnet_client.py # Telnet connection management
 │   ├── server.py        # MCP server implementation
-│   └── tools.py         # Tool definitions for MCP
+│   └── tools.py         # MCP tool definitions
+├── tests/
+│   ├── test_commands.py # Command builder tests
+│   ├── test_telnet_client.py
+│   └── test_tools.py
 ├── pyproject.toml       # Project configuration
 ├── uv.lock              # Dependency lock file
 ├── Makefile             # Utility commands
@@ -122,13 +184,22 @@ gma2-mcp/
 ## Dependencies
 
 - `mcp>=1.21.0` - Model Context Protocol library
-- `dotenv>=0.9.9` - Environment variable management
+- `python-dotenv` - Environment variable management
+- `pytest` - Testing framework
 
 ## Development
 
 ### Running Tests
 
-Tests can be executed using the project's test suite (if configured).
+```bash
+make test
+```
+
+Or directly with pytest:
+
+```bash
+uv run pytest -v
+```
 
 ### Code Style
 

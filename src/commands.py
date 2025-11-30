@@ -1,5 +1,5 @@
 """
-Command Builder Module
+Command Builder Module for grandMA2
 
 This module provides high-level functions to construct grandMA2 command strings.
 These functions are responsible only for generating correctly formatted commands,
@@ -7,9 +7,43 @@ not for sending them.
 
 According to coding-standards.md, these functions are "thin wrappers" that
 only construct MA commands without any Telnet logic.
+
+=============================================================================
+grandMA2 Keyword Classification
+=============================================================================
+
+The grandMA2 command line syntax follows these general rules:
+- Basic syntax: [Function] [Object]
+- All objects have a default function which is used if no function is given.
+- Most functions have a default object or object type.
+- Objects are arranged in a hierarchical tree structure.
+
+Keywords are classified into three types:
+
+1. HELPING KEYWORDS (Prepositions/Conjunctions)
+   - Used to create relations between functions and objects
+   - Examples: At, Thru, +, If, While
+
+2. OBJECT KEYWORDS (Nouns)
+   - Used to allocate objects in your show file
+   - Usually used with numbers, IDs, names, and labels
+   - Examples: Fixture, Channel, Group, Preset, Cue, Sequence, Executor
+
+3. FUNCTION KEYWORDS (Verbs)
+   - Perform a task or function
+   - Often followed by objects to which the function applies
+   - Some functions are global and don't need objects (e.g., Blackout)
+   - Examples: Store, Delete, Copy, Goto, Clear, Label, SelFix
+
+=============================================================================
 """
 
-from typing import Optional, Union, List, Tuple, Dict, Any
+from typing import Optional, Union, List, Tuple, Any
+
+
+# ============================================================================
+# CONSTANTS AND CONFIGURATION
+# ============================================================================
 
 # Preset type mappings to numeric IDs
 # grandMA2 uses numbers to distinguish preset types
@@ -62,6 +96,11 @@ STORE_VALUE_OPTIONS = {
 }
 
 
+# ============================================================================
+# INTERNAL HELPERS
+# ============================================================================
+
+
 def _build_store_options(**kwargs: Any) -> str:
     """
     Build option string for store commands.
@@ -105,9 +144,326 @@ def _build_store_options(**kwargs: Any) -> str:
     return ""
 
 
-# ============================================================
-# Store commands (general)
-# ============================================================
+# ============================================================================
+# OBJECT KEYWORDS
+# ============================================================================
+# Object keywords are the "nouns" of the console. They are used to allocate
+# objects in your show file. Usually used with numbers, IDs, names, and labels.
+#
+# Examples: Fixture, Channel, Group, Preset, Cue, Sequence, Executor
+# ============================================================================
+
+
+# ----------------------------------------------------------------------------
+# Fixture Object Keyword
+# ----------------------------------------------------------------------------
+# Fixture is an object keyword to access fixtures with a fixture ID.
+# The default function is SelFix.
+# Syntax: Fixture [ID] or Fixture [ID].[Sub-ID]
+# ----------------------------------------------------------------------------
+
+
+def fixture(
+    fixture_id: Optional[Union[int, List[int]]] = None,
+    end: Optional[int] = None,
+    *,
+    sub_id: Optional[int] = None,
+    select_all: bool = False,
+) -> str:
+    """
+    Construct a Fixture command to access fixtures by Fixture ID.
+
+    Fixture is an object keyword to access fixtures with a fixture ID.
+    The default function is SelFix, meaning entering fixtures without
+    any function specified will select them.
+
+    Args:
+        fixture_id: Fixture number or list of fixture numbers
+        end: End fixture number for range selection
+        sub_id: Sub-fixture ID (e.g., fixture 11.5 for 5th subfixture of fixture 11)
+        select_all: If True, select all fixtures (fixture thru)
+
+    Returns:
+        str: MA command to select fixture(s)
+
+    Examples:
+        >>> fixture(34)
+        'fixture 34'
+        >>> fixture(11, sub_id=5)
+        'fixture 11.5'
+        >>> fixture(1, end=10)
+        'fixture 1 thru 10'
+        >>> fixture([1, 5, 10])
+        'fixture 1 + 5 + 10'
+        >>> fixture(select_all=True)
+        'fixture thru'
+    """
+    # Select all fixtures
+    if select_all:
+        return "fixture thru"
+
+    if fixture_id is None:
+        raise ValueError("Must provide fixture_id or set select_all=True")
+
+    # Handle list of fixture IDs
+    if isinstance(fixture_id, list):
+        if len(fixture_id) == 1:
+            return f"fixture {fixture_id[0]}"
+        fixtures_str = " + ".join(str(f) for f in fixture_id)
+        return f"fixture {fixtures_str}"
+
+    # Handle subfixture
+    if sub_id is not None:
+        return f"fixture {fixture_id}.{sub_id}"
+
+    # Handle range
+    if end is not None:
+        if fixture_id == end:
+            return f"fixture {fixture_id}"
+        return f"fixture {fixture_id} thru {end}"
+
+    # Single fixture
+    return f"fixture {fixture_id}"
+
+
+# ----------------------------------------------------------------------------
+# Channel Object Keyword
+# ----------------------------------------------------------------------------
+# Channel is an object type used to access fixtures with a Channel ID.
+# The default function is SelFix.
+# Syntax: Channel [ID] or Channel [ID].[Sub-ID]
+# ----------------------------------------------------------------------------
+
+
+def channel(
+    channel_id: Optional[Union[int, List[int]]] = None,
+    end: Optional[int] = None,
+    *,
+    sub_id: Optional[int] = None,
+    select_all: bool = False,
+) -> str:
+    """
+    Construct a Channel command to access fixtures by Channel ID.
+
+    Channel is an object type used to access fixtures with a Channel ID.
+    The default function is SelFix, meaning entering channels without
+    any specific function will select them in programmer.
+
+    Args:
+        channel_id: Channel number or list of channel numbers
+        end: End channel number for range selection
+        sub_id: Sub-fixture ID (e.g., channel 11.5 for 5th subfixture of channel 11)
+        select_all: If True, select all channels (channel thru)
+
+    Returns:
+        str: MA command to select channel(s)
+
+    Examples:
+        >>> channel(34)
+        'channel 34'
+        >>> channel(11, sub_id=5)
+        'channel 11.5'
+        >>> channel(1, end=10)
+        'channel 1 thru 10'
+        >>> channel([1, 5, 10])
+        'channel 1 + 5 + 10'
+        >>> channel(select_all=True)
+        'channel thru'
+    """
+    # Select all channels
+    if select_all:
+        return "channel thru"
+
+    if channel_id is None:
+        raise ValueError("Must provide channel_id or set select_all=True")
+
+    # Handle list of channel IDs
+    if isinstance(channel_id, list):
+        if len(channel_id) == 1:
+            return f"channel {channel_id[0]}"
+        channels_str = " + ".join(str(c) for c in channel_id)
+        return f"channel {channels_str}"
+
+    # Handle subfixture
+    if sub_id is not None:
+        return f"channel {channel_id}.{sub_id}"
+
+    # Handle range
+    if end is not None:
+        if channel_id == end:
+            return f"channel {channel_id}"
+        return f"channel {channel_id} thru {end}"
+
+    # Single channel
+    return f"channel {channel_id}"
+
+
+# ----------------------------------------------------------------------------
+# Group Object Keyword
+# ----------------------------------------------------------------------------
+# Group is an object type that contains a collection of fixtures and a
+# selection sequence. The default function is SelFix.
+# Syntax: Group [ID]
+# ----------------------------------------------------------------------------
+
+
+def group(
+    group_id: Optional[Union[int, List[int]]] = None,
+    end: Optional[int] = None,
+) -> str:
+    """
+    Construct a Group command to select a group.
+
+    Group is an object type that contains a collection of fixtures
+    and a selection sequence. The default function is SelFix, meaning
+    calling groups without any function selects the fixtures of the group.
+
+    Args:
+        group_id: Group number or list of group numbers
+        end: End group number for range selection
+
+    Returns:
+        str: MA command to select group(s)
+
+    Examples:
+        >>> group(3)
+        'group 3'
+        >>> group(1, end=5)
+        'group 1 thru 5'
+        >>> group([1, 3, 5])
+        'group 1 + 3 + 5'
+    """
+    if group_id is None:
+        raise ValueError("Must provide group_id")
+
+    # Handle list of group IDs
+    if isinstance(group_id, list):
+        if len(group_id) == 1:
+            return f"group {group_id[0]}"
+        groups_str = " + ".join(str(g) for g in group_id)
+        return f"group {groups_str}"
+
+    # Handle range
+    if end is not None:
+        if group_id == end:
+            return f"group {group_id}"
+        return f"group {group_id} thru {end}"
+
+    # Single group
+    return f"group {group_id}"
+
+
+# ----------------------------------------------------------------------------
+# Preset Object Keyword
+# ----------------------------------------------------------------------------
+# Preset is an object type for storing fixture attribute values.
+# Presets are organized by type (Dimmer, Position, Color, etc.)
+# Syntax: Preset [Type].[ID]
+# ----------------------------------------------------------------------------
+
+
+def preset(preset_type: str, preset_id: int) -> str:
+    """
+    Construct a Preset command to call/apply a preset.
+
+    Preset is an object keyword used to apply stored fixture values.
+    When called without a function keyword, it applies the preset to
+    the current selection.
+
+    Args:
+        preset_type: Preset type (dimmer, position, gobo, color, beam, focus, control, shapers, video)
+        preset_id: Preset number
+
+    Returns:
+        str: MA command to call a preset
+
+    Examples:
+        >>> preset("dimmer", 1)
+        'preset 1.1'
+        >>> preset("color", 5)
+        'preset 2.5'
+    """
+    type_num = PRESET_TYPES.get(preset_type.lower(), 1)
+    return f"preset {type_num}.{preset_id}"
+
+
+# ----------------------------------------------------------------------------
+# Cue Object Keyword
+# ----------------------------------------------------------------------------
+# Cue is an object type for storing lighting states in a sequence.
+# Syntax: Cue [ID]
+# ----------------------------------------------------------------------------
+
+
+def cue(cue_id: int, sequence_id: Optional[int] = None) -> str:
+    """
+    Construct a Cue command to reference a cue.
+
+    Cue is an object keyword used to reference stored lighting states.
+
+    Args:
+        cue_id: Cue number
+        sequence_id: Optional sequence number
+
+    Returns:
+        str: MA command to reference a cue
+
+    Examples:
+        >>> cue(5)
+        'cue 5'
+        >>> cue(5, sequence_id=3)
+        'cue 5 sequence 3'
+    """
+    if sequence_id is not None:
+        return f"cue {cue_id} sequence {sequence_id}"
+    return f"cue {cue_id}"
+
+
+# ----------------------------------------------------------------------------
+# Sequence Object Keyword
+# ----------------------------------------------------------------------------
+# Sequence is an object type containing a list of cues.
+# Syntax: Sequence [ID]
+# ----------------------------------------------------------------------------
+
+
+def sequence(sequence_id: int) -> str:
+    """
+    Construct a Sequence command to reference a sequence.
+
+    Sequence is an object keyword used to reference a cue list.
+
+    Args:
+        sequence_id: Sequence number
+
+    Returns:
+        str: MA command to reference a sequence
+
+    Examples:
+        >>> sequence(3)
+        'sequence 3'
+    """
+    return f"sequence {sequence_id}"
+
+
+# ============================================================================
+# FUNCTION KEYWORDS
+# ============================================================================
+# Function keywords are the "verbs" of the console. They perform a task or
+# function and are often followed by objects to which the function applies.
+# Some functions are global and do not need to be followed by objects.
+#
+# Examples: Store, Delete, Copy, Goto, Clear, Label, SelFix, Go, Pause
+# ============================================================================
+
+
+# ----------------------------------------------------------------------------
+# Store Function Keyword
+# ----------------------------------------------------------------------------
+# Store is used to store functions/data in the show file.
+# If no object-type or destination is given, Cue will be used.
+# Syntax: Store [object-list] "Name" / [option] = [option value]
+# ----------------------------------------------------------------------------
 
 
 def store(
@@ -427,145 +783,9 @@ def clear_all() -> str:
     return "clearall"
 
 
-# ============================================================
-# Fixture keyword (direct fixture access)
-# ============================================================
-
-
-def fixture(
-    fixture_id: Optional[Union[int, List[int]]] = None,
-    end: Optional[int] = None,
-    *,
-    sub_id: Optional[int] = None,
-    select_all: bool = False,
-) -> str:
-    """
-    Construct a Fixture command to access fixtures by Fixture ID.
-
-    Fixture is an object keyword to access fixtures with a fixture ID.
-    The default function is SelFix, meaning entering fixtures without
-    any function specified will select them.
-
-    Args:
-        fixture_id: Fixture number or list of fixture numbers
-        end: End fixture number for range selection
-        sub_id: Sub-fixture ID (e.g., fixture 11.5 for 5th subfixture of fixture 11)
-        select_all: If True, select all fixtures (fixture thru)
-
-    Returns:
-        str: MA command to select fixture(s)
-
-    Examples:
-        >>> fixture(34)
-        'fixture 34'
-        >>> fixture(11, sub_id=5)
-        'fixture 11.5'
-        >>> fixture(1, end=10)
-        'fixture 1 thru 10'
-        >>> fixture([1, 5, 10])
-        'fixture 1 + 5 + 10'
-        >>> fixture(select_all=True)
-        'fixture thru'
-    """
-    # Select all fixtures
-    if select_all:
-        return "fixture thru"
-
-    if fixture_id is None:
-        raise ValueError("Must provide fixture_id or set select_all=True")
-
-    # Handle list of fixture IDs
-    if isinstance(fixture_id, list):
-        if len(fixture_id) == 1:
-            return f"fixture {fixture_id[0]}"
-        fixtures_str = " + ".join(str(f) for f in fixture_id)
-        return f"fixture {fixtures_str}"
-
-    # Handle subfixture
-    if sub_id is not None:
-        return f"fixture {fixture_id}.{sub_id}"
-
-    # Handle range
-    if end is not None:
-        if fixture_id == end:
-            return f"fixture {fixture_id}"
-        return f"fixture {fixture_id} thru {end}"
-
-    # Single fixture
-    return f"fixture {fixture_id}"
-
-
-# ============================================================
-# Channel keyword (access fixtures by Channel ID)
-# ============================================================
-
-
-def channel(
-    channel_id: Optional[Union[int, List[int]]] = None,
-    end: Optional[int] = None,
-    *,
-    sub_id: Optional[int] = None,
-    select_all: bool = False,
-) -> str:
-    """
-    Construct a Channel command to access fixtures by Channel ID.
-
-    Channel is an object type used to access fixtures with a Channel ID.
-    The default function is SelFix, meaning entering channels without
-    any specific function will select them in programmer.
-
-    Args:
-        channel_id: Channel number or list of channel numbers
-        end: End channel number for range selection
-        sub_id: Sub-fixture ID (e.g., channel 11.5 for 5th subfixture of channel 11)
-        select_all: If True, select all channels (channel thru)
-
-    Returns:
-        str: MA command to select channel(s)
-
-    Examples:
-        >>> channel(34)
-        'channel 34'
-        >>> channel(11, sub_id=5)
-        'channel 11.5'
-        >>> channel(1, end=10)
-        'channel 1 thru 10'
-        >>> channel([1, 5, 10])
-        'channel 1 + 5 + 10'
-        >>> channel(select_all=True)
-        'channel thru'
-    """
-    # Select all channels
-    if select_all:
-        return "channel thru"
-
-    if channel_id is None:
-        raise ValueError("Must provide channel_id or set select_all=True")
-
-    # Handle list of channel IDs
-    if isinstance(channel_id, list):
-        if len(channel_id) == 1:
-            return f"channel {channel_id[0]}"
-        channels_str = " + ".join(str(c) for c in channel_id)
-        return f"channel {channels_str}"
-
-    # Handle subfixture
-    if sub_id is not None:
-        return f"channel {channel_id}.{sub_id}"
-
-    # Handle range
-    if end is not None:
-        if channel_id == end:
-            return f"channel {channel_id}"
-        return f"channel {channel_id} thru {end}"
-
-    # Single channel
-    return f"channel {channel_id}"
-
-
-# ============================================================
-# Group-related commands
-# ============================================================
+# ----------------------------------------------------------------------------
+# Store Group Function (Store + Group)
+# ----------------------------------------------------------------------------
 
 
 def store_group(group_id: int) -> str:
@@ -579,6 +799,14 @@ def store_group(group_id: int) -> str:
         str: MA command to store a group
     """
     return f"store group {group_id}"
+
+
+# ----------------------------------------------------------------------------
+# Label Function Keyword
+# ----------------------------------------------------------------------------
+# Label is used to assign names to objects.
+# Syntax: Label [Object] "Name"
+# ----------------------------------------------------------------------------
 
 
 def label_group(group_id: int, name: str) -> str:
@@ -595,50 +823,17 @@ def label_group(group_id: int, name: str) -> str:
     return f'label group {group_id} "{name}"'
 
 
-def select_group(
-    group_id: Optional[Union[int, List[int]]] = None,
-    end: Optional[int] = None,
-) -> str:
-    """
-    Construct a command to select a group.
+# Alias: select_group -> group (for backward compatibility)
+# The group() function is the proper Object Keyword implementation
+select_group = group
 
-    Group is an object type that contains a collection of fixtures
-    and a selection sequence. The default function is SelFix, meaning
-    calling groups without any function selects the fixtures of the group.
 
-    Args:
-        group_id: Group number or list of group numbers
-        end: End group number for range selection
-
-    Returns:
-        str: MA command to select group(s)
-
-    Examples:
-        >>> select_group(3)
-        'group 3'
-        >>> select_group(1, end=5)
-        'group 1 thru 5'
-        >>> select_group([1, 3, 5])
-        'group 1 + 3 + 5'
-    """
-    if group_id is None:
-        raise ValueError("Must provide group_id")
-
-    # Handle list of group IDs
-    if isinstance(group_id, list):
-        if len(group_id) == 1:
-            return f"group {group_id[0]}"
-        groups_str = " + ".join(str(g) for g in group_id)
-        return f"group {groups_str}"
-
-    # Handle range
-    if end is not None:
-        if group_id == end:
-            return f"group {group_id}"
-        return f"group {group_id} thru {end}"
-
-    # Single group
-    return f"group {group_id}"
+# ----------------------------------------------------------------------------
+# Delete Function Keyword
+# ----------------------------------------------------------------------------
+# Delete is used to remove objects from the show file.
+# Syntax: Delete [Object]
+# ----------------------------------------------------------------------------
 
 
 def delete_group(group_id: int) -> str:
@@ -654,9 +849,9 @@ def delete_group(group_id: int) -> str:
     return f"delete group {group_id}"
 
 
-# ============================================================
-# Preset-related commands
-# ============================================================
+# ----------------------------------------------------------------------------
+# Store Preset Function (Store + Preset)
+# ----------------------------------------------------------------------------
 
 
 def store_preset(
@@ -750,24 +945,17 @@ def label_preset(preset_type: str, preset_id: int, name: str) -> str:
     return f'label preset {type_num}.{preset_id} "{name}"'
 
 
-def call_preset(preset_type: str, preset_id: int) -> str:
-    """
-    Construct a command to call a preset.
-
-    Args:
-        preset_type: Preset type
-        preset_id: Preset number
-
-    Returns:
-        str: MA command to call a preset
-    """
-    type_num = PRESET_TYPES.get(preset_type.lower(), 1)
-    return f"preset {type_num}.{preset_id}"
+# Alias: call_preset -> preset (for backward compatibility)
+# The preset() function is the proper Object Keyword implementation
+call_preset = preset
 
 
-# ============================================================
-# Sequence-related commands
-# ============================================================
+# ----------------------------------------------------------------------------
+# Go Function Keyword
+# ----------------------------------------------------------------------------
+# Go is used to start playback of executors/sequences.
+# Syntax: Go [Object]
+# ----------------------------------------------------------------------------
 
 
 def go_sequence(sequence_id: int) -> str:
@@ -783,6 +971,14 @@ def go_sequence(sequence_id: int) -> str:
     return f"go+ sequence {sequence_id}"
 
 
+# ----------------------------------------------------------------------------
+# Pause Function Keyword
+# ----------------------------------------------------------------------------
+# Pause is used to pause playback of executors/sequences.
+# Syntax: Pause [Object]
+# ----------------------------------------------------------------------------
+
+
 def pause_sequence(sequence_id: int) -> str:
     """
     Construct a command to pause a sequence.
@@ -794,6 +990,14 @@ def pause_sequence(sequence_id: int) -> str:
         str: MA command to pause a sequence
     """
     return f"pause sequence {sequence_id}"
+
+
+# ----------------------------------------------------------------------------
+# Goto Function Keyword
+# ----------------------------------------------------------------------------
+# Goto is used to jump to a specific cue in a sequence.
+# Syntax: Goto Cue [ID] [Sequence]
+# ----------------------------------------------------------------------------
 
 
 def goto_cue(sequence_id: int, cue_id: int) -> str:
