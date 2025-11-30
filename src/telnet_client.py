@@ -133,7 +133,7 @@ class GMA2TelnetClient:
         Raises:
             RuntimeError: Connection not established
         """
-        if self._writer is None:
+        if self._writer is None or self._reader is None:
             raise RuntimeError("Connection not established, call connect() first")
 
         logger.info(f"Logging in as {self.user}...")
