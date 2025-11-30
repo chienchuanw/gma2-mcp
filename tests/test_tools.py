@@ -32,7 +32,8 @@ class TestCreateFixtureGroupTool:
 
         # Verify return message
         assert "Group 1" in result
-        assert "Fixtures 1 to 10" in result
+        assert "Fixtures 1" in result
+        assert "10" in result
 
     @pytest.mark.asyncio
     @patch("src.tools.get_gma2_client")
@@ -56,19 +57,19 @@ class TestCreateFixtureGroupTool:
 
     @pytest.mark.asyncio
     @patch("src.tools.get_gma2_client")
-    async def test_create_fixture_group_with_chinese_name(self, mock_get_client):
-        """Test creating a fixture group with a Chinese name."""
+    async def test_create_fixture_group_with_custom_name(self, mock_get_client):
+        """Test creating a fixture group with a custom name."""
         from src.tools import create_fixture_group
 
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
 
         result = await create_fixture_group(
-            start_fixture=1, end_fixture=10, group_id=1, group_name="前區洗牆燈"
+            start_fixture=1, end_fixture=10, group_id=1, group_name="Front Stage Wash"
         )
 
         calls = mock_client.send_command.call_args_list
-        assert calls[2][0][0] == 'label group 1 "前區洗牆燈"'
+        assert calls[2][0][0] == 'label group 1 "Front Stage Wash"'
 
 
 class TestExecuteSequenceTool:

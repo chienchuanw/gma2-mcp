@@ -40,90 +40,91 @@ def select_fixture(
     select_all: bool = False,
 ) -> str:
     """
-    建構選取 fixture 的 MA 指令。
+    Construct an MA command to select fixtures.
 
-    根據 grandMA2 官方文件，SelFix 關鍵字用於在 programmer 中建立 fixture 選取。
-    支援多種選取方式：單一、多個、範圍、從頭開始、到最後、全選。
+    According to grandMA2 official documentation, the SelFix keyword is used to
+    create fixture selections in the programmer. Supports multiple selection modes:
+    single, multiple, range, from beginning, to end, and select all.
 
     Args:
-        ids: Fixture 編號，可以是：
-             - 單個整數：選取單一 fixture
-             - 整數列表：選取多個不連續的 fixtures（用 + 連接）
-        end: 結束編號（用於範圍選取）
-        start: 起始編號（用於關鍵字參數形式）
-        thru_all: 若為 True，表示從 start 選取到最後（Fixture X Thru）
-        select_all: 若為 True，選取全部 fixtures（Fixture Thru）
+        ids: Fixture number(s), can be:
+             - Single integer: select a single fixture
+             - List of integers: select multiple non-contiguous fixtures (joined with +)
+        end: Ending number (for range selection)
+        start: Starting number (for keyword argument form)
+        thru_all: If True, select from start to the end (Fixture X Thru)
+        select_all: If True, select all fixtures (Fixture Thru)
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
-        單一 fixture:
+        Single fixture:
         >>> select_fixture(1)
         'selfix fixture 1'
 
-        多個 fixtures:
+        Multiple fixtures:
         >>> select_fixture([1, 3, 5])
         'selfix fixture 1 + 3 + 5'
 
-        範圍選取:
+        Range selection:
         >>> select_fixture(1, 10)
         'selfix fixture 1 thru 10'
 
-        從頭選取到 X:
+        From beginning to X:
         >>> select_fixture(end=10)
         'selfix fixture thru 10'
 
-        從 X 選取到最後:
+        From X to end:
         >>> select_fixture(start=5, thru_all=True)
         'selfix fixture 5 thru'
 
-        選取全部:
+        Select all:
         >>> select_fixture(select_all=True)
         'selfix fixture thru'
     """
-    # 情況 1：選取全部 fixtures（Fixture Thru）
+    # Case 1: Select all fixtures (Fixture Thru)
     if select_all:
         return "selfix fixture thru"
 
-    # 情況 2：從頭選取到指定編號（Fixture Thru X）
+    # Case 2: Select from beginning to specified number (Fixture Thru X)
     if ids is None and start is None and end is not None:
         return f"selfix fixture thru {end}"
 
-    # 情況 3：從指定編號選取到最後（Fixture X Thru）
+    # Case 3: Select from specified number to end (Fixture X Thru)
     if thru_all and start is not None:
         return f"selfix fixture {start} thru"
 
-    # 處理 ids 參數（可能是 int 或 list）
+    # Handle ids parameter (can be int or list)
     actual_start: Optional[int] = None
 
     if ids is not None:
-        # 如果是列表
+        # If it's a list
         if isinstance(ids, list):
             if len(ids) == 1:
-                # 單一元素列表，等同於選取單一 fixture
+                # Single element list, equivalent to selecting a single fixture
                 return f"selfix fixture {ids[0]}"
-            # 多個 fixtures，用 + 連接
+            # Multiple fixtures, joined with +
             fixtures_str = " + ".join(str(id) for id in ids)
             return f"selfix fixture {fixtures_str}"
         else:
-            # 單一整數
+            # Single integer
             actual_start = ids
     elif start is not None:
         actual_start = start
 
-    # 情況 4：範圍選取（Fixture X Thru Y）
+    # Case 4: Range selection (Fixture X Thru Y)
     if actual_start is not None and end is not None:
         if actual_start == end:
             return f"selfix fixture {actual_start}"
         return f"selfix fixture {actual_start} thru {end}"
 
-    # 情況 5：選取單一 fixture
+    # Case 5: Select a single fixture
     if actual_start is not None:
         return f"selfix fixture {actual_start}"
 
-    # 預設情況（不應該到達這裡）
-    raise ValueError("必須提供至少一個選取參數")
+    # Default case (should not reach here)
+    raise ValueError("Must provide at least one selection parameter")
 
 
 def clear_selection() -> str:

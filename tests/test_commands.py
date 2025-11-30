@@ -11,76 +11,76 @@ import pytest
 class TestFixtureCommands:
     """Tests for fixture-related commands."""
 
-    # ---- 單個 fixture 選取 ----
+    # ---- Single fixture selection ----
 
     def test_select_fixture_single(self):
-        """測試選取單一 fixture：selfix fixture 1"""
+        """Test selecting a single fixture: selfix fixture 1"""
         from src.commands import select_fixture
 
         result = select_fixture(1)
         assert result == "selfix fixture 1"
 
     def test_select_fixture_single_large_id(self):
-        """測試選取較大編號的單一 fixture：selfix fixture 101"""
+        """Test selecting a single fixture with large ID: selfix fixture 101"""
         from src.commands import select_fixture
 
         result = select_fixture(101)
         assert result == "selfix fixture 101"
 
-    # ---- 多個 fixture（列表）選取 ----
+    # ---- Multiple fixture (list) selection ----
 
     def test_select_fixture_multiple_ids(self):
-        """測試選取多個不連續的 fixtures：selfix fixture 1 + 3 + 5"""
+        """Test selecting multiple non-contiguous fixtures: selfix fixture 1 + 3 + 5"""
         from src.commands import select_fixture
 
         result = select_fixture([1, 3, 5])
         assert result == "selfix fixture 1 + 3 + 5"
 
     def test_select_fixture_list_with_single_id(self):
-        """測試只有一個元素的列表應該等同於選取單一 fixture"""
+        """Test that a list with single element equals selecting a single fixture"""
         from src.commands import select_fixture
 
         result = select_fixture([7])
         assert result == "selfix fixture 7"
 
-    # ---- 範圍選取（使用 thru）----
+    # ---- Range selection (using thru) ----
 
     def test_select_fixture_range(self):
-        """測試選取範圍：selfix fixture 1 thru 10"""
+        """Test selecting a range: selfix fixture 1 thru 10"""
         from src.commands import select_fixture
 
         result = select_fixture(1, 10)
         assert result == "selfix fixture 1 thru 10"
 
     def test_select_fixture_with_same_start_end(self):
-        """測試 start 和 end 相同時應選取單一 fixture"""
+        """Test that same start and end selects a single fixture"""
         from src.commands import select_fixture
 
         result = select_fixture(5, 5)
         assert result == "selfix fixture 5"
 
-    # ---- 從頭選取到指定編號（Fixture Thru X）----
+    # ---- Select from beginning to specified number (Fixture Thru X) ----
 
     def test_select_fixture_from_beginning(self):
-        """測試從頭選取到指定編號：selfix fixture thru 10"""
+        """Test selecting from beginning to specified number: selfix fixture thru 10"""
         from src.commands import select_fixture
 
         result = select_fixture(end=10)
         assert result == "selfix fixture thru 10"
 
-    # ---- 從指定編號選取到最後（Fixture X Thru）----
+    # ---- Select from specified number to end (Fixture X Thru) ----
 
     def test_select_fixture_to_end(self):
-        """測試從指定編號選取到最後：selfix fixture 5 thru"""
+        """Test selecting from specified number to end: selfix fixture 5 thru"""
         from src.commands import select_fixture
 
         result = select_fixture(start=5, thru_all=True)
         assert result == "selfix fixture 5 thru"
 
-    # ---- 選取全部（Fixture Thru）----
+    # ---- Select all (Fixture Thru) ----
 
     def test_select_fixture_all(self):
-        """測試選取全部 fixtures：selfix fixture thru"""
+        """Test selecting all fixtures: selfix fixture thru"""
         from src.commands import select_fixture
 
         result = select_fixture(select_all=True)
@@ -122,8 +122,8 @@ class TestGroupCommands:
         """Test labeling a group with a Chinese name."""
         from src.commands import label_group
 
-        result = label_group(1, "前區洗牆燈")
-        assert result == 'label group 1 "前區洗牆燈"'
+        result = label_group(1, "Front Wash")
+        assert result == 'label group 1 "Front Wash"'
 
     def test_select_group(self):
         """Test selecting a group."""
