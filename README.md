@@ -88,7 +88,23 @@ Perform a task or function. Often followed by objects to which the function appl
 | `executor_at()`    | Set executor fader     | `executor_at(3, 50)` → `executor 3 at 50`                         |
 | `preset_type_at()` | Set preset type values | `preset_type_at(2, 50, end_type=9)` → `presettype 2 thru 9 at 50` |
 
-### 5. Macro Placeholder (@ Character)
+### 5. Copy and Move Keywords
+
+Copy creates copies of objects. Move relocates objects (swaps if destination is taken).
+
+| Function                             | Description            | Example                     |
+| ------------------------------------ | ---------------------- | --------------------------- |
+| `copy("group", 1, 5)`                | Copy to target         | `copy group 1 at 5`         |
+| `copy("group", 1, end=3, target=11)` | Copy range             | `copy group 1 thru 3 at 11` |
+| `copy("group", 2, 6, target_end=8)`  | Copy to target range   | `copy group 2 at 6 thru 8`  |
+| `copy("cue", 5)`                     | Copy to clipboard      | `copy cue 5`                |
+| `copy_cue(2, 6)`                     | Copy cue (convenience) | `copy cue 2 at 6`           |
+| `move("group", 5, 9)`                | Move object            | `move group 5 at 9`         |
+| `move("group", 1, 10, end=3)`        | Move range             | `move group 1 thru 3 at 10` |
+
+Copy options: `overwrite`, `merge`, `status`, `cueonly`, `noconfirm`
+
+### 6. Macro Placeholder (@ Character)
 
 The `@` character is different from the `At` keyword - it's used as a placeholder for user input in macros.
 

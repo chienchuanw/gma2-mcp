@@ -442,6 +442,211 @@ def goto_cue(sequence_id: int, cue_id: int) -> str:
 
 
 # ============================================================================
+# COPY FUNCTION KEYWORD
+# ============================================================================
+
+
+def copy(
+    object_type: str,
+    object_id: Union[int, List[int]],
+    target: Optional[Union[int, List[int]]] = None,
+    *,
+    end: Optional[int] = None,
+    target_end: Optional[int] = None,
+    overwrite: bool = False,
+    merge: bool = False,
+    status: Optional[bool] = None,
+    cueonly: Optional[bool] = None,
+    noconfirm: bool = False,
+) -> str:
+    """
+    Construct a Copy command to create copies of objects.
+
+    If no target is given, the object will be exported to clipboard.xml
+    for use with the Paste keyword.
+
+    Args:
+        object_type: Type of object (e.g., "group", "macro", "cue")
+        object_id: Object ID or list of IDs to copy
+        target: Target ID or list of target IDs (None = export to clipboard)
+        end: End ID for source range (object_id thru end)
+        target_end: End ID for target range (target thru target_end)
+        overwrite: Replace existing content
+        merge: Add to existing content
+        status: Add tracking status to existing content
+        cueonly: Prevent changes to track forward
+        noconfirm: Suppress confirmation pop-up
+
+    Returns:
+        str: MA command to copy object(s)
+
+    Examples:
+        >>> copy("group", 1, 5)
+        'copy group 1 at 5'
+        >>> copy("group", 1, end=3, target=11)
+        'copy group 1 thru 3 at 11'
+        >>> copy("group", 2, target=6, target_end=8)
+        'copy group 2 at 6 thru 8'
+        >>> copy("macro", 2, 6)
+        'copy macro 2 at 6'
+        >>> copy("cue", 5)
+        'copy cue 5'
+    """
+    # Build source part
+    if isinstance(object_id, list):
+        source = " + ".join(str(i) for i in object_id)
+        cmd = f"copy {object_type} {source}"
+    elif end is not None:
+        cmd = f"copy {object_type} {object_id} thru {end}"
+    else:
+        cmd = f"copy {object_type} {object_id}"
+
+    # Build target part (if provided)
+    if target is not None:
+        if isinstance(target, list):
+            target_str = " + ".join(str(t) for t in target)
+            cmd += f" at {target_str}"
+        elif target_end is not None:
+            cmd += f" at {target} thru {target_end}"
+        else:
+            cmd += f" at {target}"
+
+    # Build options
+    options = []
+    if overwrite:
+        options.append("/overwrite")
+    if merge:
+        options.append("/merge")
+    if status is not None:
+        options.append(f"/status={'true' if status else 'false'}")
+    if cueonly is not None:
+        options.append(f"/cueonly={'true' if cueonly else 'false'}")
+    if noconfirm:
+        options.append("/noconfirm")
+
+    if options:
+        cmd += " " + " ".join(options)
+
+    return cmd
+
+
+def copy_cue(
+    cue_id: int,
+    target: Optional[int] = None,
+    *,
+    end: Optional[int] = None,
+    target_end: Optional[int] = None,
+    overwrite: bool = False,
+    merge: bool = False,
+    status: Optional[bool] = None,
+    cueonly: Optional[bool] = None,
+    noconfirm: bool = False,
+) -> str:
+    """
+    Construct a Copy command specifically for cues.
+
+    Cue is the default object type for Copy when no object type is specified.
+
+    Args:
+        cue_id: Cue ID to copy
+        target: Target cue ID (None = export to clipboard)
+        end: End ID for source range
+        target_end: End ID for target range
+        overwrite: Replace existing content
+        merge: Add to existing content
+        status: Add tracking status
+        cueonly: Prevent changes to track forward
+        noconfirm: Suppress confirmation pop-up
+
+    Returns:
+        str: MA command to copy cue(s)
+
+    Examples:
+        >>> copy_cue(2, 6)
+        'copy cue 2 at 6'
+        >>> copy_cue(5)
+        'copy cue 5'
+        >>> copy_cue(1, 10, end=5)
+        'copy cue 1 thru 5 at 10'
+    """
+    return copy(
+        "cue",
+        cue_id,
+        target,
+        end=end,
+        target_end=target_end,
+        overwrite=overwrite,
+        merge=merge,
+        status=status,
+        cueonly=cueonly,
+        noconfirm=noconfirm,
+    )
+
+
+# ============================================================================
+# MOVE FUNCTION KEYWORD
+# ============================================================================
+
+
+def move(
+    object_type: str,
+    object_id: Union[int, List[int]],
+    target: Union[int, List[int]],
+    *,
+    end: Optional[int] = None,
+    target_end: Optional[int] = None,
+) -> str:
+    """
+    Construct a Move command to move objects and give them a new ID.
+
+    If the destination is already taken, the moved object and the
+    destination object will swap positions.
+
+    Note: If the destination is a list, the number of elements in the
+    destination list must be the same as in the source list.
+
+    Args:
+        object_type: Type of object (e.g., "group", "macro", "cue")
+        object_id: Object ID or list of IDs to move
+        target: Target ID or list of target IDs
+        end: End ID for source range (object_id thru end)
+        target_end: End ID for target range (target thru target_end)
+
+    Returns:
+        str: MA command to move object(s)
+
+    Examples:
+        >>> move("group", 5, 9)
+        'move group 5 at 9'
+        >>> move("group", 1, 10, end=3)
+        'move group 1 thru 3 at 10'
+        >>> move("cue", 5, 1)
+        'move cue 5 at 1'
+        >>> move("preset", [1, 3, 5], [10, 12, 14])
+        'move preset 1 + 3 + 5 at 10 + 12 + 14'
+    """
+    # Build source part
+    if isinstance(object_id, list):
+        source = " + ".join(str(i) for i in object_id)
+        cmd = f"move {object_type} {source}"
+    elif end is not None:
+        cmd = f"move {object_type} {object_id} thru {end}"
+    else:
+        cmd = f"move {object_type} {object_id}"
+
+    # Build target part
+    if isinstance(target, list):
+        target_str = " + ".join(str(t) for t in target)
+        cmd += f" at {target_str}"
+    elif target_end is not None:
+        cmd += f" at {target} thru {target_end}"
+    else:
+        cmd += f" at {target}"
+
+    return cmd
+
+
+# ============================================================================
 # AT FUNCTION KEYWORD
 # ============================================================================
 # At is unique: it can be both a Function Keyword and a Helping Keyword.

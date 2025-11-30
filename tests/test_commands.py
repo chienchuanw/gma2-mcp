@@ -712,3 +712,204 @@ class TestMacroPlaceholder:
 
         result = macro_with_input_before("Fade 20")
         assert result == "@ Fade 20"
+
+
+class TestCopyCommands:
+    """Tests for Copy keyword commands."""
+
+    # ---- Basic Copy ----
+
+    def test_copy_single_to_target(self):
+        """Test copy single object: copy group 1 at 5"""
+        from src.commands import copy
+
+        result = copy("group", 1, 5)
+        assert result == "copy group 1 at 5"
+
+    def test_copy_cue_to_target(self):
+        """Test copy cue: copy cue 2 at 6"""
+        from src.commands import copy
+
+        result = copy("cue", 2, 6)
+        assert result == "copy cue 2 at 6"
+
+    def test_copy_macro_to_target(self):
+        """Test copy macro: copy macro 2 at 6"""
+        from src.commands import copy
+
+        result = copy("macro", 2, 6)
+        assert result == "copy macro 2 at 6"
+
+    # ---- Copy to Clipboard ----
+
+    def test_copy_to_clipboard(self):
+        """Test copy to clipboard: copy cue 5"""
+        from src.commands import copy
+
+        result = copy("cue", 5)
+        assert result == "copy cue 5"
+
+    def test_copy_cue_to_clipboard(self):
+        """Test copy_cue to clipboard: copy cue 5"""
+        from src.commands import copy_cue
+
+        result = copy_cue(5)
+        assert result == "copy cue 5"
+
+    # ---- Copy with Range (Thru) ----
+
+    def test_copy_range_to_target(self):
+        """Test copy range: copy group 1 thru 3 at 11"""
+        from src.commands import copy
+
+        result = copy("group", 1, 11, end=3)
+        assert result == "copy group 1 thru 3 at 11"
+
+    def test_copy_to_target_range(self):
+        """Test copy to target range: copy group 2 at 6 thru 8"""
+        from src.commands import copy
+
+        result = copy("group", 2, 6, target_end=8)
+        assert result == "copy group 2 at 6 thru 8"
+
+    # ---- Copy with List ----
+
+    def test_copy_list_to_target(self):
+        """Test copy list: copy group 1 + 3 + 5 at 10"""
+        from src.commands import copy
+
+        result = copy("group", [1, 3, 5], 10)
+        assert result == "copy group 1 + 3 + 5 at 10"
+
+    def test_copy_to_target_list(self):
+        """Test copy to target list: copy group 1 at 5 + 6 + 7"""
+        from src.commands import copy
+
+        result = copy("group", 1, [5, 6, 7])
+        assert result == "copy group 1 at 5 + 6 + 7"
+
+    # ---- Copy with Options ----
+
+    def test_copy_with_overwrite(self):
+        """Test copy with overwrite option."""
+        from src.commands import copy
+
+        result = copy("group", 1, 5, overwrite=True)
+        assert result == "copy group 1 at 5 /overwrite"
+
+    def test_copy_with_merge(self):
+        """Test copy with merge option."""
+        from src.commands import copy
+
+        result = copy("cue", 1, 5, merge=True)
+        assert result == "copy cue 1 at 5 /merge"
+
+    def test_copy_with_noconfirm(self):
+        """Test copy with noconfirm option."""
+        from src.commands import copy
+
+        result = copy("macro", 1, 5, noconfirm=True)
+        assert result == "copy macro 1 at 5 /noconfirm"
+
+    def test_copy_with_status(self):
+        """Test copy with status option."""
+        from src.commands import copy
+
+        result = copy("cue", 1, 5, status=True)
+        assert result == "copy cue 1 at 5 /status=true"
+
+    def test_copy_with_cueonly(self):
+        """Test copy with cueonly option."""
+        from src.commands import copy
+
+        result = copy("cue", 1, 5, cueonly=True)
+        assert result == "copy cue 1 at 5 /cueonly=true"
+
+    def test_copy_with_multiple_options(self):
+        """Test copy with multiple options."""
+        from src.commands import copy
+
+        result = copy("cue", 1, 5, merge=True, noconfirm=True)
+        assert result == "copy cue 1 at 5 /merge /noconfirm"
+
+    # ---- copy_cue Convenience Function ----
+
+    def test_copy_cue_basic(self):
+        """Test copy_cue convenience function."""
+        from src.commands import copy_cue
+
+        result = copy_cue(2, 6)
+        assert result == "copy cue 2 at 6"
+
+    def test_copy_cue_with_range(self):
+        """Test copy_cue with range."""
+        from src.commands import copy_cue
+
+        result = copy_cue(1, 10, end=5)
+        assert result == "copy cue 1 thru 5 at 10"
+
+    def test_copy_cue_with_options(self):
+        """Test copy_cue with options."""
+        from src.commands import copy_cue
+
+        result = copy_cue(1, 10, overwrite=True, noconfirm=True)
+        assert result == "copy cue 1 at 10 /overwrite /noconfirm"
+
+
+class TestMoveCommands:
+    """Tests for Move keyword commands."""
+
+    # ---- Basic Move ----
+
+    def test_move_single(self):
+        """Test move single object: move group 5 at 9"""
+        from src.commands import move
+
+        result = move("group", 5, 9)
+        assert result == "move group 5 at 9"
+
+    def test_move_cue(self):
+        """Test move cue: move cue 5 at 1"""
+        from src.commands import move
+
+        result = move("cue", 5, 1)
+        assert result == "move cue 5 at 1"
+
+    def test_move_preset(self):
+        """Test move preset: move preset 3 at 10"""
+        from src.commands import move
+
+        result = move("preset", 3, 10)
+        assert result == "move preset 3 at 10"
+
+    # ---- Move with Range (Thru) ----
+
+    def test_move_range(self):
+        """Test move range: move group 1 thru 3 at 10"""
+        from src.commands import move
+
+        result = move("group", 1, 10, end=3)
+        assert result == "move group 1 thru 3 at 10"
+
+    def test_move_to_target_range(self):
+        """Test move to target range: move group 1 at 10 thru 12"""
+        from src.commands import move
+
+        result = move("group", 1, 10, target_end=12)
+        assert result == "move group 1 at 10 thru 12"
+
+    # ---- Move with List ----
+
+    def test_move_list_to_list(self):
+        """Test move list to list: move preset 1 + 3 + 5 at 10 + 12 + 14"""
+        from src.commands import move
+
+        result = move("preset", [1, 3, 5], [10, 12, 14])
+        assert result == "move preset 1 + 3 + 5 at 10 + 12 + 14"
+
+    def test_move_list_to_single(self):
+        """Test move list to single target: move group 1 + 2 + 3 at 10"""
+        from src.commands import move
+
+        result = move("group", [1, 2, 3], 10)
+        assert result == "move group 1 + 2 + 3 at 10"

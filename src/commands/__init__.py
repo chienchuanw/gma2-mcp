@@ -68,6 +68,11 @@ from .functions import (
     fixture_at,
     group_at,
     preset_type_at,
+    # Copy Function Keyword
+    copy,
+    copy_cue,
+    # Move Function Keyword
+    move,
     # Macro Placeholder
     macro_with_input_after,
     macro_with_input_before,
@@ -114,6 +119,11 @@ __all__ = [
     "group_at",
     "executor_at",
     "preset_type_at",
+    # Copy Function Keyword
+    "copy",
+    "copy_cue",
+    # Move Function Keyword
+    "move",
     # Macro Placeholder (@ Character)
     "macro_with_input_after",
     "macro_with_input_before",
