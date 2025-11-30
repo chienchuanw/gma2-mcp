@@ -86,11 +86,34 @@ class TestFixtureCommands:
         result = select_fixture(select_all=True)
         assert result == "selfix fixture thru"
 
+    # ---- Clear commands ----
+
+    def test_clear(self):
+        """Test clear command - sequentially clears selection, active values, or programmer."""
+        from src.commands import clear
+
+        result = clear()
+        assert result == "clear"
+
     def test_clear_selection(self):
-        """Test clearing selection."""
+        """Test clearing selection - deselects all fixtures."""
         from src.commands import clear_selection
 
         result = clear_selection()
+        assert result == "clearselection"
+
+    def test_clear_active(self):
+        """Test clearing active values - inactivates all values in programmer."""
+        from src.commands import clear_active
+
+        result = clear_active()
+        assert result == "clearactive"
+
+    def test_clear_all(self):
+        """Test clearing all - empties the entire programmer."""
+        from src.commands import clear_all
+
+        result = clear_all()
         assert result == "clearall"
 
 

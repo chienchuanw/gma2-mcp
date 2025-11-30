@@ -127,12 +127,73 @@ def select_fixture(
     raise ValueError("Must provide at least one selection parameter")
 
 
+def clear() -> str:
+    """
+    Construct a Clear command.
+
+    The Clear command has three sequential functions depending on programmer status:
+    1. Clear selection (deselects all fixtures)
+    2. Clear active values (deactivates all values)
+    3. Clear all (empties programmer)
+
+    Returns:
+        str: MA command to clear
+
+    Example:
+        >>> clear()
+        'clear'
+    """
+    return "clear"
+
+
 def clear_selection() -> str:
     """
-    Construct a command to clear the current selection.
+    Construct a ClearSelection command to deselect all fixtures.
+
+    This function clears the selection without affecting active values
+    or other programmer content. Equivalent to pressing Clear once.
 
     Returns:
         str: MA command to clear selection
+
+    Example:
+        >>> clear_selection()
+        'clearselection'
+    """
+    return "clearselection"
+
+
+def clear_active() -> str:
+    """
+    Construct a ClearActive command to inactivate all values in programmer.
+
+    This function deactivates any active values in the programmer without
+    clearing the selection or emptying the programmer.
+    Equivalent to pressing Clear twice.
+
+    Returns:
+        str: MA command to clear active values
+
+    Example:
+        >>> clear_active()
+        'clearactive'
+    """
+    return "clearactive"
+
+
+def clear_all() -> str:
+    """
+    Construct a ClearAll command to empty the entire programmer.
+
+    This function clears the selection and discards all values in the programmer.
+    Equivalent to pressing Clear for slightly over two seconds.
+
+    Returns:
+        str: MA command to clear all
+
+    Example:
+        >>> clear_all()
+        'clearall'
     """
     return "clearall"
 
