@@ -82,6 +82,19 @@ from .functions import (
     copy_cue,
     # Move Function Keyword
     move,
+    # Delete Function Keyword
+    delete,
+    delete_cue,
+    delete_fixture,
+    delete_group,
+    delete_messages,
+    delete_preset,
+    # Remove Function Keyword
+    remove,
+    remove_effect,
+    remove_fixture,
+    remove_preset_type,
+    remove_selection,
     # Macro Placeholder
     macro_with_input_after,
     macro_with_input_before,
@@ -91,7 +104,6 @@ from .functions import (
     clear_active,
     clear_all,
     clear_selection,
-    delete_group,
     go_sequence,
     goto_cue,
     label_group,
@@ -157,7 +169,20 @@ __all__ = [
     "clear_all",
     "label_group",
     "label_preset",
+    # Delete Function Keyword
+    "delete",
+    "delete_cue",
+    "delete_fixture",
     "delete_group",
+    "delete_messages",
+    "delete_preset",
+    # Remove Function Keyword
+    "remove",
+    "remove_effect",
+    "remove_fixture",
+    "remove_preset_type",
+    "remove_selection",
+    # Go/Pause/Goto
     "go_sequence",
     "pause_sequence",
     "goto_cue",

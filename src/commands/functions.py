@@ -383,17 +383,417 @@ def label_preset(preset_type: str, preset_id: int, name: str) -> str:
 # ============================================================================
 
 
-def delete_group(group_id: int) -> str:
+def delete(
+    object_type: str,
+    object_id: int | str | list[int],
+    *,
+    end: int | None = None,
+    selection_filter: str | None = None,
+    deletevalues: bool = False,
+    cueonly: bool = False,
+    noconfirm: bool = False,
+    region: bool = False,
+    element: bool = False,
+) -> str:
+    """
+    Construct a command to delete objects from the show file.
+
+    Delete 用於從 show file 中刪除資料。如果物件本身無法被刪除，
+    則會移除與該物件的關聯（如 Fixture 會被 unpatch）。
+
+    Args:
+        object_type: 物件類型 (e.g., "cue", "group", "fixture", "world", "preset")
+        object_id: 物件 ID（單一、字串或列表）
+        end: 範圍結束 ID（使用 thru 語法）
+        selection_filter: 選擇過濾器（僅刪除指定 fixture 的資料）
+        deletevalues: 刪除 cue part 時同時刪除值
+        cueonly: 防止變更追蹤到後續 cue
+        noconfirm: 抑制確認對話框
+        region: 刪除 layout view 中的區域
+        element: 刪除 layout view 中的特定元素
+
+    Returns:
+        str: MA command to delete objects
+
+    Examples:
+        >>> delete("cue", 7)
+        'delete cue 7'
+        >>> delete("group", 3)
+        'delete group 3'
+        >>> delete("fixture", 4)
+        'delete fixture 4'
+        >>> delete("cue", 1, end=5, noconfirm=True)
+        'delete cue 1 thru 5 /noconfirm'
+    """
+    # 處理 object_id（支援單一、範圍、列表）
+    if isinstance(object_id, list):
+        id_part = " + ".join(str(i) for i in object_id)
+    elif end is not None:
+        id_part = f"{object_id} thru {end}"
+    else:
+        id_part = str(object_id)
+
+    cmd = f"delete {object_type} {id_part}"
+
+    # 添加選擇過濾器
+    if selection_filter:
+        cmd = f"{cmd} {selection_filter}"
+
+    # 添加選項
+    options = []
+    if deletevalues:
+        options.append("/deletevalues")
+    if cueonly:
+        options.append("/cueonly")
+    if noconfirm:
+        options.append("/noconfirm")
+    if region:
+        options.append("/region")
+    if element:
+        options.append("/element")
+
+    if options:
+        cmd = f"{cmd} {' '.join(options)}"
+
+    return cmd
+
+
+def delete_cue(
+    cue_id: int | float | str,
+    *,
+    sequence_id: int | None = None,
+    end: int | float | str | None = None,
+    deletevalues: bool = False,
+    cueonly: bool = False,
+    noconfirm: bool = False,
+) -> str:
+    """
+    Construct a command to delete cue(s).
+
+    Args:
+        cue_id: Cue ID
+        sequence_id: Sequence number（如果不指定，使用當前選擇的 executor）
+        end: 範圍結束 Cue ID
+        deletevalues: 刪除 cue part 時同時刪除值
+        cueonly: 防止變更追蹤到後續 cue
+        noconfirm: 抑制確認對話框
+
+    Returns:
+        str: MA command to delete cue(s)
+
+    Examples:
+        >>> delete_cue(7)
+        'delete cue 7'
+        >>> delete_cue(1, sequence_id=2)
+        'delete cue 1 sequence 2'
+        >>> delete_cue(1, end=5, noconfirm=True)
+        'delete cue 1 thru 5 /noconfirm'
+    """
+    if end is not None:
+        id_part = f"{cue_id} thru {end}"
+    else:
+        id_part = str(cue_id)
+
+    cmd = f"delete cue {id_part}"
+
+    if sequence_id is not None:
+        cmd = f"{cmd} sequence {sequence_id}"
+
+    # 添加選項
+    options = []
+    if deletevalues:
+        options.append("/deletevalues")
+    if cueonly:
+        options.append("/cueonly")
+    if noconfirm:
+        options.append("/noconfirm")
+
+    if options:
+        cmd = f"{cmd} {' '.join(options)}"
+
+    return cmd
+
+
+def delete_group(
+    group_id: int, *, end: int | None = None, noconfirm: bool = False
+) -> str:
     """
     Construct a command to delete a group.
 
     Args:
         group_id: Group number
+        end: 範圍結束 Group ID
+        noconfirm: 抑制確認對話框
 
     Returns:
         str: MA command to delete a group
+
+    Examples:
+        >>> delete_group(3)
+        'delete group 3'
+        >>> delete_group(1, end=5)
+        'delete group 1 thru 5'
     """
-    return f"delete group {group_id}"
+    if end is not None:
+        cmd = f"delete group {group_id} thru {end}"
+    else:
+        cmd = f"delete group {group_id}"
+
+    if noconfirm:
+        cmd = f"{cmd} /noconfirm"
+
+    return cmd
+
+
+def delete_preset(
+    preset_type: str | int,
+    preset_id: int,
+    *,
+    end: int | None = None,
+    noconfirm: bool = False,
+) -> str:
+    """
+    Construct a command to delete a preset.
+
+    Args:
+        preset_type: Preset type (e.g., "dimmer", "color", "position") or type number
+        preset_id: Preset ID
+        end: 範圍結束 Preset ID
+        noconfirm: 抑制確認對話框
+
+    Returns:
+        str: MA command to delete a preset
+
+    Examples:
+        >>> delete_preset("color", 5)
+        'delete preset 4.5'
+        >>> delete_preset(1, 1, end=10)
+        'delete preset 1.1 thru 10'
+    """
+    if isinstance(preset_type, str):
+        type_num = PRESET_TYPES.get(preset_type.lower(), 1)
+    else:
+        type_num = preset_type
+
+    if end is not None:
+        cmd = f"delete preset {type_num}.{preset_id} thru {end}"
+    else:
+        cmd = f"delete preset {type_num}.{preset_id}"
+
+    if noconfirm:
+        cmd = f"{cmd} /noconfirm"
+
+    return cmd
+
+
+def delete_fixture(
+    fixture_id: int | list[int],
+    *,
+    end: int | None = None,
+    noconfirm: bool = False,
+) -> str:
+    """
+    Construct a command to delete (unpatch) fixture(s).
+
+    注意：Delete Fixture 會 unpatch fixture（移除 DMX 指派），而不是從 show 中移除。
+
+    Args:
+        fixture_id: Fixture ID（單一或列表）
+        end: 範圍結束 Fixture ID
+        noconfirm: 抑制確認對話框
+
+    Returns:
+        str: MA command to unpatch fixture(s)
+
+    Examples:
+        >>> delete_fixture(4)
+        'delete fixture 4'
+        >>> delete_fixture(1, end=10)
+        'delete fixture 1 thru 10'
+    """
+    if isinstance(fixture_id, list):
+        id_part = " + ".join(str(i) for i in fixture_id)
+    elif end is not None:
+        id_part = f"{fixture_id} thru {end}"
+    else:
+        id_part = str(fixture_id)
+
+    cmd = f"delete fixture {id_part}"
+
+    if noconfirm:
+        cmd = f"{cmd} /noconfirm"
+
+    return cmd
+
+
+def delete_messages() -> str:
+    """
+    Construct a command to delete all messages in the message center.
+
+    Returns:
+        str: MA command to delete messages
+
+    Example:
+        >>> delete_messages()
+        'delete messages'
+    """
+    return "delete messages"
+
+
+# ============================================================================
+# REMOVE FUNCTION KEYWORD
+# ============================================================================
+
+
+def remove(
+    object_type: str | None = None,
+    object_id: int | str | None = None,
+    *,
+    end: int | None = None,
+    if_filter: str | None = None,
+) -> str:
+    """
+    Construct a command to enter remove values in the programmer.
+
+    Remove 用於在 programmer 中輸入 remove values。當與 store merge 一起使用時，
+    可以移除先前儲存的值，讓前一個 cue 的值重新 track。
+
+    Args:
+        object_type: 物件類型 (e.g., "selection", "fixture", "presettype")
+        object_id: 物件 ID（可選，取決於物件類型）
+        end: 範圍結束 ID
+        if_filter: If 過濾條件 (e.g., "PresetType 1")
+
+    Returns:
+        str: MA command to enter remove values
+
+    Examples:
+        >>> remove("selection")
+        'remove selection'
+        >>> remove("presettype", '"position"')
+        'remove presettype "position"'
+        >>> remove("fixture", 1, if_filter="PresetType 1")
+        'remove fixture 1 if PresetType 1'
+    """
+    if object_type is None:
+        return "remove"
+
+    if object_id is not None:
+        if end is not None:
+            cmd = f"remove {object_type} {object_id} thru {end}"
+        else:
+            cmd = f"remove {object_type} {object_id}"
+    else:
+        cmd = f"remove {object_type}"
+
+    if if_filter:
+        cmd = f"{cmd} if {if_filter}"
+
+    return cmd
+
+
+def remove_selection() -> str:
+    """
+    Construct a command to enter remove values for all attributes of current selection.
+
+    這會為目前選擇的 fixture 的所有屬性輸入 remove values。
+
+    Returns:
+        str: MA command to remove selection values
+
+    Example:
+        >>> remove_selection()
+        'remove selection'
+    """
+    return "remove selection"
+
+
+def remove_preset_type(preset_type: str | int, *, if_filter: str | None = None) -> str:
+    """
+    Construct a command to enter remove values for a specific preset type.
+
+    Args:
+        preset_type: Preset type name (e.g., "position", "color") or type number
+        if_filter: If 過濾條件
+
+    Returns:
+        str: MA command to remove preset type values
+
+    Examples:
+        >>> remove_preset_type("position")
+        'remove presettype "position"'
+        >>> remove_preset_type(1)
+        'remove presettype 1'
+    """
+    if isinstance(preset_type, str):
+        cmd = f'remove presettype "{preset_type}"'
+    else:
+        cmd = f"remove presettype {preset_type}"
+
+    if if_filter:
+        cmd = f"{cmd} if {if_filter}"
+
+    return cmd
+
+
+def remove_fixture(
+    fixture_id: int | list[int],
+    *,
+    end: int | None = None,
+    if_filter: str | None = None,
+) -> str:
+    """
+    Construct a command to enter remove values for specific fixture(s).
+
+    Args:
+        fixture_id: Fixture ID（單一或列表）
+        end: 範圍結束 Fixture ID
+        if_filter: If 過濾條件 (e.g., "PresetType 1")
+
+    Returns:
+        str: MA command to remove fixture values
+
+    Examples:
+        >>> remove_fixture(1, if_filter="PresetType 1")
+        'remove fixture 1 if PresetType 1'
+        >>> remove_fixture(1, end=10)
+        'remove fixture 1 thru 10'
+    """
+    if isinstance(fixture_id, list):
+        id_part = " + ".join(str(i) for i in fixture_id)
+    elif end is not None:
+        id_part = f"{fixture_id} thru {end}"
+    else:
+        id_part = str(fixture_id)
+
+    cmd = f"remove fixture {id_part}"
+
+    if if_filter:
+        cmd = f"{cmd} if {if_filter}"
+
+    return cmd
+
+
+def remove_effect(effect_id: int | str, *, end: int | None = None) -> str:
+    """
+    Construct a command to enter remove values for effect(s).
+
+    Args:
+        effect_id: Effect ID
+        end: 範圍結束 Effect ID
+
+    Returns:
+        str: MA command to remove effect values
+
+    Examples:
+        >>> remove_effect(1)
+        'remove effect 1'
+        >>> remove_effect(1, end=5)
+        'remove effect 1 thru 5'
+    """
+    if end is not None:
+        return f"remove effect {effect_id} thru {end}"
+    return f"remove effect {effect_id}"
 
 
 # ============================================================================
