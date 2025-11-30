@@ -113,12 +113,13 @@ class GMA2TelnetClient:
 
         return True
 
-    def send_command(self, command: str) -> None:
+    def send_command(self, command: str, delay: float = 0.3) -> None:
         """
         發送指令到 grandMA2
 
         Args:
             command: 要發送的 MA 指令
+            delay: 發送指令後的等待時間（秒），讓 grandMA2 有時間處理
 
         Raises:
             RuntimeError: 尚未建立連線
@@ -131,6 +132,10 @@ class GMA2TelnetClient:
         # 發送指令（自動加上換行符號）
         full_command = f"{command}\r\n"
         self._connection.write(full_command.encode("utf-8"))
+
+        # 等待 grandMA2 處理指令
+        time.sleep(delay)
+        logger.debug(f"指令已發送，等待 {delay} 秒")
 
     def disconnect(self) -> None:
         """斷開 Telnet 連線"""
@@ -149,4 +154,3 @@ class GMA2TelnetClient:
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """Context manager 離開點：斷開連線"""
         self.disconnect()
-
