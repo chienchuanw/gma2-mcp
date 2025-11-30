@@ -61,20 +61,26 @@ mcp = FastMCP(
 
 # Global telnet client instance
 _client: GMA2TelnetClient | None = None
+_connected: bool = False
 
 
-def get_client() -> GMA2TelnetClient:
-    """Get or create a telnet client instance."""
-    global _client
-    if _client is None:
+async def get_client() -> GMA2TelnetClient:
+    """
+    Get or create a telnet client instance (async).
+
+    首次呼叫時會建立連線並登入，後續呼叫會回傳已連線的 client。
+    """
+    global _client, _connected
+    if _client is None or not _connected:
         _client = GMA2TelnetClient(
             host=GMA_HOST,
             port=GMA_PORT,
             user=GMA_USER,
             password=GMA_PASSWORD,
         )
-        _client.connect()
-        _client.login()
+        await _client.connect()
+        await _client.login()
+        _connected = True
         set_gma2_client(_client)
         logger.info(f"Connected to grandMA2: {GMA_HOST}:{GMA_PORT}")
     return _client
@@ -86,7 +92,7 @@ def get_client() -> GMA2TelnetClient:
 
 
 @mcp.tool()
-def create_fixture_group(
+async def create_fixture_group(
     start_fixture: int,
     end_fixture: int,
     group_id: int,
@@ -111,20 +117,20 @@ def create_fixture_group(
         - Save fixtures 1 to 10 as group 1
         - Save fixtures 1 to 10 as group 1 with name "Front Wash"
     """
-    client = get_client()
+    client = await get_client()
 
     # Select fixtures
     select_cmd = select_fixture(start_fixture, end_fixture)
-    client.send_command(select_cmd)
+    await client.send_command(select_cmd)
 
     # Save as group
     store_cmd = store_group(group_id)
-    client.send_command(store_cmd)
+    await client.send_command(store_cmd)
 
     # Add label if name is provided
     if group_name:
         label_cmd = label_group(group_id, group_name)
-        client.send_command(label_cmd)
+        await client.send_command(label_cmd)
         return f'Created Group {group_id} "{group_name}" containing Fixtures {start_fixture} to {end_fixture}'
 
     return (
@@ -133,7 +139,7 @@ def create_fixture_group(
 
 
 @mcp.tool()
-def execute_sequence(
+async def execute_sequence(
     sequence_id: int,
     action: str,
     cue_id: int | None = None,
@@ -154,30 +160,30 @@ def execute_sequence(
         - Pause sequence 2
         - Jump to cue 5 of sequence 1
     """
-    client = get_client()
+    client = await get_client()
 
     if action == "go":
         cmd = go_sequence(sequence_id)
-        client.send_command(cmd)
+        await client.send_command(cmd)
         return f"Executed Sequence {sequence_id}"
 
     elif action == "pause":
         cmd = pause_sequence(sequence_id)
-        client.send_command(cmd)
+        await client.send_command(cmd)
         return f"Paused Sequence {sequence_id}"
 
     elif action == "goto":
         if cue_id is None:
             return "Error: goto action requires cue_id to be specified"
         cmd = goto_cue(sequence_id, cue_id)
-        client.send_command(cmd)
+        await client.send_command(cmd)
         return f"Jumped to Cue {cue_id} of Sequence {sequence_id}"
 
     return f"Unknown action: {action}, use go, pause, or goto"
 
 
 @mcp.tool()
-def send_raw_command(command: str) -> str:
+async def send_raw_command(command: str) -> str:
     """
     Send a raw MA command to grandMA2.
 
@@ -196,8 +202,8 @@ def send_raw_command(command: str) -> str:
         - go+ executor 1.1
         - store sequence 1 cue 1
     """
-    client = get_client()
-    client.send_command(command)
+    client = await get_client()
+    await client.send_command(command)
     return f"Sent command: {command}"
 
 
