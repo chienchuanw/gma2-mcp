@@ -16,7 +16,7 @@ GMA2 MCP provides a programmatic interface to communicate with grandMA2 consoles
 
 ## grandMA2 Keyword Classification
 
-The command builder module (`src/commands.py`) follows the official grandMA2 command line syntax rules. Keywords are organized into three categories:
+The command builder module (`src/commands/`) follows the official grandMA2 command line syntax rules. Keywords are organized into three categories:
 
 ### General Syntax Rules
 
@@ -98,13 +98,6 @@ brew install telnet
    source .venv/bin/activate
    ```
 
-On Windows, use:
-
-    ```bash
-    python3.12 -m venv venv
-    venv\Scripts\activate
-    ```
-
 3. Install dependencies using uv:
 
 ```bash
@@ -132,6 +125,76 @@ Default values:
 - `GMA_USER`: administrator
 - `GMA_PASSWORD`: admin
 - `GMA_PORT`: 30000 (standard port, 30001 for read-only)
+
+## MCP Registration
+
+To use this MCP server with Claude Desktop or other MCP-compatible clients, you need to register it in your MCP settings.
+
+### Claude Desktop Configuration
+
+Add the following to your Claude Desktop configuration file:
+
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "gma2": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/path/to/gma2-mcp",
+        "run",
+        "python",
+        "-m",
+        "src.server"
+      ],
+      "env": {
+        "GMA_HOST": "2.0.0.1",
+        "GMA_USER": "administrator",
+        "GMA_PASSWORD": "admin"
+      }
+    }
+  }
+}
+```
+
+Replace `/path/to/gma2-mcp` with the actual path to your project directory.
+
+### Alternative: Using Python Directly
+
+If you prefer not to use `uv`, you can configure the server with Python directly:
+
+```json
+{
+  "mcpServers": {
+    "gma2": {
+      "command": "/path/to/gma2-mcp/.venv/bin/python",
+      "args": ["-m", "src.server"],
+      "cwd": "/path/to/gma2-mcp",
+      "env": {
+        "GMA_HOST": "2.0.0.1",
+        "GMA_USER": "administrator",
+        "GMA_PASSWORD": "admin"
+      }
+    }
+  }
+}
+```
+
+### Running the MCP Server Manually
+
+For testing or development, you can run the MCP server directly:
+
+```bash
+# Using uv
+uv run python -m src.server
+
+# Or using the virtual environment
+.venv/bin/python -m src.server
+```
 
 ## Usage
 
@@ -167,7 +230,12 @@ gma2-mcp/
 ├── main.py              # Entry point with login test functionality
 ├── src/
 │   ├── __init__.py
-│   ├── commands.py      # Command builder (Object/Function keywords)
+│   ├── commands/        # Command builder module
+│   │   ├── __init__.py  # Public API exports
+│   │   ├── constants.py # PRESET_TYPES, STORE_*_OPTIONS
+│   │   ├── helpers.py   # Internal helper functions
+│   │   ├── objects.py   # Object Keywords (fixture, channel, group, etc.)
+│   │   └── functions.py # Function Keywords (store, clear, go, etc.)
 │   ├── telnet_client.py # Telnet connection management
 │   ├── server.py        # MCP server implementation
 │   └── tools.py         # MCP tool definitions
