@@ -183,6 +183,67 @@ class GMA2TelnetClient:
         await asyncio.sleep(delay)
         logger.debug(f"Command sent, waiting {delay} seconds")
 
+    async def send_command_with_response(
+        self, command: str, timeout: float = 2.0, delay: float = 0.3
+    ) -> str:
+        """
+        Send a command to grandMA2 and read the response (async).
+
+        發送指令並讀取 grandMA2 的回應。適用於 list、info 等會產生輸出的指令。
+
+        Args:
+            command: MA command to send
+            timeout: Maximum wait time for response in seconds
+            delay: Initial delay after sending command
+
+        Returns:
+            str: Response from grandMA2
+
+        Raises:
+            RuntimeError: Connection not established
+        """
+        if self._writer is None or self._reader is None:
+            raise RuntimeError("Connection not established, call connect() first")
+
+        logger.debug(f"Sending command with response: {command}")
+
+        # 清空任何待處理的資料
+        try:
+            await asyncio.wait_for(self._reader.read(4096), timeout=0.1)
+        except asyncio.TimeoutError:
+            pass
+
+        # Send command
+        full_command = f"{command}\r\n"
+        self._writer.write(full_command)
+
+        # Wait for grandMA2 to process
+        await asyncio.sleep(delay)
+
+        # Read response
+        response_parts = []
+        try:
+            # 持續讀取直到沒有更多資料
+            while True:
+                try:
+                    chunk = await asyncio.wait_for(
+                        self._reader.read(4096), timeout=timeout
+                    )
+                    if chunk:
+                        response_parts.append(chunk)
+                        # 縮短後續讀取的 timeout
+                        timeout = 0.3
+                    else:
+                        break
+                except asyncio.TimeoutError:
+                    break
+        except Exception as e:
+            logger.warning(f"Error reading response: {e}")
+
+        response = "".join(response_parts)
+        logger.debug(f"Response received: {len(response)} characters")
+        return response
+
     async def disconnect(self) -> None:
         """Close the Telnet connection (async)."""
         if self._writer is not None:
