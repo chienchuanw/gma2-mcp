@@ -32,8 +32,7 @@ class TestCreateFixtureGroupTool:
 
         # Verify return message
         assert "Group 1" in result
-        assert "Fixture 1" in result
-        assert "10" in result
+        assert "Fixtures 1 to 10" in result
 
     @pytest.mark.asyncio
     @patch("src.tools.get_gma2_client")

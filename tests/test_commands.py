@@ -11,26 +11,80 @@ import pytest
 class TestFixtureCommands:
     """Tests for fixture-related commands."""
 
+    # ---- 單個 fixture 選取 ----
+
     def test_select_fixture_single(self):
-        """Test selecting a single fixture."""
+        """測試選取單一 fixture：selfix fixture 1"""
         from src.commands import select_fixture
 
         result = select_fixture(1)
         assert result == "selfix fixture 1"
 
+    def test_select_fixture_single_large_id(self):
+        """測試選取較大編號的單一 fixture：selfix fixture 101"""
+        from src.commands import select_fixture
+
+        result = select_fixture(101)
+        assert result == "selfix fixture 101"
+
+    # ---- 多個 fixture（列表）選取 ----
+
+    def test_select_fixture_multiple_ids(self):
+        """測試選取多個不連續的 fixtures：selfix fixture 1 + 3 + 5"""
+        from src.commands import select_fixture
+
+        result = select_fixture([1, 3, 5])
+        assert result == "selfix fixture 1 + 3 + 5"
+
+    def test_select_fixture_list_with_single_id(self):
+        """測試只有一個元素的列表應該等同於選取單一 fixture"""
+        from src.commands import select_fixture
+
+        result = select_fixture([7])
+        assert result == "selfix fixture 7"
+
+    # ---- 範圍選取（使用 thru）----
+
     def test_select_fixture_range(self):
-        """Test selecting a range of fixtures."""
+        """測試選取範圍：selfix fixture 1 thru 10"""
         from src.commands import select_fixture
 
         result = select_fixture(1, 10)
         assert result == "selfix fixture 1 thru 10"
 
     def test_select_fixture_with_same_start_end(self):
-        """Test that same start and end selects a single fixture."""
+        """測試 start 和 end 相同時應選取單一 fixture"""
         from src.commands import select_fixture
 
         result = select_fixture(5, 5)
         assert result == "selfix fixture 5"
+
+    # ---- 從頭選取到指定編號（Fixture Thru X）----
+
+    def test_select_fixture_from_beginning(self):
+        """測試從頭選取到指定編號：selfix fixture thru 10"""
+        from src.commands import select_fixture
+
+        result = select_fixture(end=10)
+        assert result == "selfix fixture thru 10"
+
+    # ---- 從指定編號選取到最後（Fixture X Thru）----
+
+    def test_select_fixture_to_end(self):
+        """測試從指定編號選取到最後：selfix fixture 5 thru"""
+        from src.commands import select_fixture
+
+        result = select_fixture(start=5, thru_all=True)
+        assert result == "selfix fixture 5 thru"
+
+    # ---- 選取全部（Fixture Thru）----
+
+    def test_select_fixture_all(self):
+        """測試選取全部 fixtures：selfix fixture thru"""
+        from src.commands import select_fixture
+
+        result = select_fixture(select_all=True)
+        assert result == "selfix fixture thru"
 
     def test_clear_selection(self):
         """Test clearing selection."""
