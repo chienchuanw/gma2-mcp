@@ -3,3 +3,6 @@ server:
 
 log:
 	telnet 2.0.0.166 30001
+
+test:
+	uv run pytest -v
