@@ -69,6 +69,34 @@ Perform a task or function. Often followed by objects to which the function appl
 | `pause_sequence()`  | Pause sequence             | `pause_sequence(1)` → `pause sequence 1`             |
 | `goto_cue()`        | Jump to cue                | `goto_cue(1, 5)` → `goto cue 5 sequence 1`           |
 
+### 4. At Keyword (Special)
+
+`At` is unique - it can function as both a **Function Keyword** and a **Helping Keyword**.
+
+| Function           | Description            | Example                                                           |
+| ------------------ | ---------------------- | ----------------------------------------------------------------- |
+| `at(75)`           | Set dimmer to value    | `at(75)` → `at 75`                                                |
+| `at(cue=3)`        | Apply cue values       | `at(cue=3)` → `at cue 3`                                          |
+| `at(fade=2)`       | Set fade time          | `at(fade=2)` → `at fade 2`                                        |
+| `at_full()`        | Set to 100%            | `at_full()` → `at full`                                           |
+| `at_zero()`        | Set to 0%              | `at_zero()` → `at 0`                                              |
+| `attribute_at()`   | Set attribute value    | `attribute_at("Pan", 20)` → `attribute "Pan" at 20`               |
+| `fixture_at()`     | Set fixture to value   | `fixture_at(2, 50)` → `fixture 2 at 50`                           |
+| `fixture_at()`     | Copy from fixture      | `fixture_at(2, source_fixture=3)` → `fixture 2 at fixture 3`      |
+| `channel_at()`     | Set channel to value   | `channel_at(1, 75)` → `channel 1 at 75`                           |
+| `group_at()`       | Set group to value     | `group_at(3, 50)` → `group 3 at 50`                               |
+| `executor_at()`    | Set executor fader     | `executor_at(3, 50)` → `executor 3 at 50`                         |
+| `preset_type_at()` | Set preset type values | `preset_type_at(2, 50, end_type=9)` → `presettype 2 thru 9 at 50` |
+
+### 5. Macro Placeholder (@ Character)
+
+The `@` character is different from the `At` keyword - it's used as a placeholder for user input in macros.
+
+| Function                    | Description              | Example                                            |
+| --------------------------- | ------------------------ | -------------------------------------------------- |
+| `macro_with_input_after()`  | @ at end of macro line   | `macro_with_input_after("Load")` → `Load @`        |
+| `macro_with_input_before()` | @ at start of macro line | `macro_with_input_before("Fade 20")` → `@ Fade 20` |
+
 ## Requirements
 
 - Python 3.12 or higher
