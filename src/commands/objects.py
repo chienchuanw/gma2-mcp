@@ -275,6 +275,81 @@ def preset(
 
 
 # ----------------------------------------------------------------------------
+# PresetType Object Keyword
+# ----------------------------------------------------------------------------
+
+
+def preset_type(
+    type_id: Optional[Union[int, str]] = None,
+    *,
+    name: Optional[str] = None,
+    feature: Optional[int] = None,
+    attribute: Optional[int] = None,
+) -> str:
+    """
+    Construct a PresetType command to call or select a preset type.
+
+    PresetType 可用於：
+    - 在 fixture sheet 和 preset type bar 中呼叫 PresetType
+    - 選擇 PresetType 中的 Feature 和 Attribute
+    - 為選定的 fixtures 啟用 PresetType
+
+    Preset types 包含 features 和 attributes，可以使用點分隔數字來呼叫。
+
+    Args:
+        type_id: PresetType 編號（整數）或變數（如 "$preset"）
+        name: PresetType 名稱（如 "Dimmer", "Color"）
+        feature: Feature 編號（可選）
+        attribute: Attribute 編號（可選，需搭配 feature）
+
+    Returns:
+        str: MA 指令字串
+
+    Raises:
+        ValueError: 未提供 type_id 或 name 時
+        ValueError: 提供 attribute 但未提供 feature 時
+
+    Examples:
+        >>> preset_type(3)
+        'presettype 3'
+        >>> preset_type(name="Dimmer")
+        'presettype "Dimmer"'
+        >>> preset_type(3, feature=1)
+        'presettype 3.1'
+        >>> preset_type(name="Color", feature=2)
+        'presettype "Color".2'
+        >>> preset_type(3, feature=2, attribute=1)
+        'presettype 3.2.1'
+        >>> preset_type("$preset", feature=2)
+        'presettype $preset.2'
+    """
+    # 驗證：不能只有 attribute 沒有 feature
+    if attribute is not None and feature is None:
+        raise ValueError("Cannot specify attribute without feature")
+
+    # 驗證：必須提供 type_id 或 name
+    if type_id is None and name is None:
+        raise ValueError("Must provide type_id or name")
+
+    # 情況 1: 使用名稱
+    if name is not None:
+        base = f'presettype "{name}"'
+        if feature is not None:
+            base = f"{base}.{feature}"
+            if attribute is not None:
+                base = f"{base}.{attribute}"
+        return base
+
+    # 情況 2: 使用數字或變數
+    base = f"presettype {type_id}"
+    if feature is not None:
+        base = f"{base}.{feature}"
+        if attribute is not None:
+            base = f"{base}.{attribute}"
+    return base
+
+
+# ----------------------------------------------------------------------------
 # Cue Object Keyword
 # ----------------------------------------------------------------------------
 

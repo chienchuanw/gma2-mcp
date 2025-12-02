@@ -54,6 +54,7 @@ from .objects import (
     group,
     layout,
     preset,
+    preset_type,
     sequence,
 )
 
@@ -142,6 +143,7 @@ __all__ = [
     "group",
     "layout",
     "preset",
+    "preset_type",
     "cue",
     "sequence",
     # Assign Function Keyword

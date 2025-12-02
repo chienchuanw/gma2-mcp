@@ -346,6 +346,85 @@ class TestPresetCommands:
         assert result == "preset 1.1 + 1.3 + 1.5"
 
 
+class TestPresetTypeCommands:
+    """Tests for PresetType Object Keyword."""
+
+    # ---- 基本語法測試 ----
+
+    def test_preset_type_by_number(self):
+        """Test calling preset type by number: PresetType 3"""
+        from src.commands import preset_type
+
+        result = preset_type(3)
+        assert result == "presettype 3"
+
+    def test_preset_type_by_name(self):
+        """Test calling preset type by name: PresetType "Dimmer" """
+        from src.commands import preset_type
+
+        result = preset_type(name="Dimmer")
+        assert result == 'presettype "Dimmer"'
+
+    def test_preset_type_by_name_color(self):
+        """Test calling preset type by name: PresetType "Color" """
+        from src.commands import preset_type
+
+        result = preset_type(name="Color")
+        assert result == 'presettype "Color"'
+
+    # ---- Feature 語法測試 ----
+
+    def test_preset_type_with_feature(self):
+        """Test preset type with feature: PresetType 3.1"""
+        from src.commands import preset_type
+
+        result = preset_type(3, feature=1)
+        assert result == "presettype 3.1"
+
+    def test_preset_type_name_with_feature(self):
+        """Test preset type name with feature: PresetType "Color".2"""
+        from src.commands import preset_type
+
+        result = preset_type(name="Color", feature=2)
+        assert result == 'presettype "Color".2'
+
+    # ---- Attribute 語法測試 ----
+
+    def test_preset_type_with_feature_and_attribute(self):
+        """Test preset type with feature and attribute: PresetType 3.2.1"""
+        from src.commands import preset_type
+
+        result = preset_type(3, feature=2, attribute=1)
+        assert result == "presettype 3.2.1"
+
+    # ---- 變數語法測試 ----
+
+    def test_preset_type_variable(self):
+        """Test preset type variable: PresetType $preset.2"""
+        from src.commands import preset_type
+
+        result = preset_type("$preset", feature=2)
+        assert result == "presettype $preset.2"
+
+    # ---- 錯誤處理測試 ----
+
+    def test_preset_type_no_args_raises_error(self):
+        """Test that calling preset_type() without args raises ValueError."""
+        from src.commands import preset_type
+        import pytest
+
+        with pytest.raises(ValueError):
+            preset_type()
+
+    def test_preset_type_attribute_without_feature_raises_error(self):
+        """Test that providing attribute without feature raises ValueError."""
+        from src.commands import preset_type
+        import pytest
+
+        with pytest.raises(ValueError):
+            preset_type(3, attribute=1)
+
+
 class TestSequenceCommands:
     """Tests for sequence-related commands."""
 
