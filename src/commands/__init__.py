@@ -52,6 +52,7 @@ from .objects import (
     cue,
     fixture,
     group,
+    layout,
     preset,
     sequence,
 )
@@ -139,6 +140,7 @@ __all__ = [
     "fixture",
     "channel",
     "group",
+    "layout",
     "preset",
     "cue",
     "sequence",

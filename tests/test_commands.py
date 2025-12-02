@@ -1719,3 +1719,72 @@ class TestInfoCommands:
 
         result = info_preset(4, 5, text="deep blue")
         assert result == 'info preset 4.5 "deep blue"'
+
+
+class TestLayoutCommands:
+    """
+    Tests for Layout keyword commands.
+
+    Layout 是一個物件類型，代表 fixtures 和其他物件的佈局。
+    Layout 的預設功能是 Select，表示呼叫 Layout 時會選擇該 Layout，
+    並在任何啟用 Link Selected 的 Layout View 中顯示。
+    """
+
+    # ---- 基本 Layout 選擇 ----
+
+    def test_layout_single(self):
+        """Test selecting a single layout: layout 3"""
+        from src.commands import layout
+
+        result = layout(3)
+        assert result == "layout 3"
+
+    def test_layout_with_large_id(self):
+        """Test selecting layout with large ID: layout 101"""
+        from src.commands import layout
+
+        result = layout(101)
+        assert result == "layout 101"
+
+    # ---- Layout 範圍選擇 (使用 thru) ----
+
+    def test_layout_range(self):
+        """Test selecting layout range: layout 1 thru 5"""
+        from src.commands import layout
+
+        result = layout(1, end=5)
+        assert result == "layout 1 thru 5"
+
+    def test_layout_same_start_end(self):
+        """Test that same start and end selects a single layout."""
+        from src.commands import layout
+
+        result = layout(3, end=3)
+        assert result == "layout 3"
+
+    # ---- Layout 多選 (使用 +) ----
+
+    def test_layout_multiple(self):
+        """Test selecting multiple layouts: layout 1 + 3 + 5"""
+        from src.commands import layout
+
+        result = layout([1, 3, 5])
+        assert result == "layout 1 + 3 + 5"
+
+    def test_layout_list_single_item(self):
+        """Test that list with single element equals selecting a single layout."""
+        from src.commands import layout
+
+        result = layout([7])
+        assert result == "layout 7"
+
+    # ---- 錯誤處理 ----
+
+    def test_layout_no_id_raises_error(self):
+        """Test that calling layout without ID raises ValueError."""
+        from src.commands import layout
+
+        import pytest
+
+        with pytest.raises(ValueError, match="Must provide layout_id"):
+            layout()
