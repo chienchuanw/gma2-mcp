@@ -183,25 +183,95 @@ def group(
 # ----------------------------------------------------------------------------
 
 
-def preset(preset_type: str, preset_id: int) -> str:
+def preset(
+    preset_type_or_id: Optional[Union[int, str]] = None,
+    preset_id: Optional[Union[int, List[int]]] = None,
+    *,
+    name: Optional[str] = None,
+    end: Optional[int] = None,
+    wildcard: bool = False,
+) -> str:
     """
-    Construct a Preset command to call/apply a preset.
+    Construct a Preset command to select or apply a preset.
+
+    Preset 可用於：
+    - 選擇存儲在 preset 中的 fixtures
+    - 將 preset 套用到當前選擇的 fixture 或 channel
+
+    如果沒有選擇 fixture/channel，預設功能是 SelFix。
+    如果已選擇 fixture/channel，預設功能是 At。
 
     Args:
-        preset_type: Preset type (dimmer, position, gobo, color, beam, etc.)
-        preset_id: Preset number
+        preset_type_or_id: Preset type（字串如 "dimmer"）或 type number（整數）
+                           或當只提供一個參數時作為 preset ID
+        preset_id: Preset 編號或編號列表（用於多選）
+        name: Preset 名稱（使用名稱選擇時）
+        end: 結束編號（用於範圍選擇）
+        wildcard: 是否使用萬用字元 *（搭配 name 使用）
 
     Returns:
-        str: MA command to call a preset
+        str: MA 指令字串
 
     Examples:
+        >>> preset(5)
+        'preset 5'
         >>> preset("dimmer", 1)
         'preset 1.1'
-        >>> preset("color", 5)
-        'preset 2.5'
+        >>> preset(3, 2)
+        'preset 3.2'
+        >>> preset(name="DarkRed")
+        'preset "DarkRed"'
+        >>> preset(name="DarkRed", wildcard=True)
+        'preset *."DarkRed"'
+        >>> preset("color", name="Red")
+        'preset "color"."Red"'
+        >>> preset(1, 1, end=5)
+        'preset 1.1 thru 5'
+        >>> preset(1, [1, 3, 5])
+        'preset 1.1 + 1.3 + 1.5'
     """
-    type_num = PRESET_TYPES.get(preset_type.lower(), 1)
-    return f"preset {type_num}.{preset_id}"
+    # 情況 1: 只使用名稱（可選萬用字元）
+    if name is not None and preset_type_or_id is None:
+        if wildcard:
+            return f'preset *."{name}"'
+        return f'preset "{name}"'
+
+    # 情況 2: 類型 + 名稱（如 preset "color"."Red"）
+    if name is not None and preset_type_or_id is not None:
+        # 將類型轉為字串表示
+        if isinstance(preset_type_or_id, str):
+            type_str = f'"{preset_type_or_id}"'
+        else:
+            type_str = str(preset_type_or_id)
+        return f'preset {type_str}."{name}"'
+
+    # 情況 3: 只有 preset ID（如 preset 5）
+    if preset_type_or_id is not None and preset_id is None:
+        return f"preset {preset_type_or_id}"
+
+    # 情況 4: Type + ID（如 preset 3.2 或 preset "dimmer".1）
+    if preset_type_or_id is not None and preset_id is not None:
+        # 取得 type 數字
+        if isinstance(preset_type_or_id, str):
+            type_num = PRESET_TYPES.get(preset_type_or_id.lower(), 1)
+        else:
+            type_num = preset_type_or_id
+
+        # 處理多選（列表）
+        if isinstance(preset_id, list):
+            if len(preset_id) == 1:
+                return f"preset {type_num}.{preset_id[0]}"
+            presets_str = " + ".join(f"{type_num}.{pid}" for pid in preset_id)
+            return f"preset {presets_str}"
+
+        # 處理範圍選擇
+        if end is not None:
+            return f"preset {type_num}.{preset_id} thru {end}"
+
+        # 單一選擇
+        return f"preset {type_num}.{preset_id}"
+
+    raise ValueError("Must provide preset_type_or_id, preset_id, or name")
 
 
 # ----------------------------------------------------------------------------

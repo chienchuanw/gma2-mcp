@@ -286,6 +286,65 @@ class TestPresetCommands:
         result = call_preset("dimmer", 1)
         assert result == "preset 1.1"
 
+    # ---- Preset Object Keyword 擴充測試 ----
+    # 根據 grandMA2 官方文件，Preset 支援多種語法
+
+    def test_preset_with_type_and_id(self):
+        """Test preset with type name and ID: preset 3.2 (gobo type)"""
+        from src.commands import preset
+
+        result = preset("gobo", 2)
+        assert result == "preset 3.2"
+
+    def test_preset_id_only(self):
+        """Test preset with ID only: preset 5"""
+        from src.commands import preset
+
+        result = preset(5)
+        assert result == "preset 5"
+
+    def test_preset_type_number_and_id(self):
+        """Test preset with type number and ID: preset 3.2"""
+        from src.commands import preset
+
+        result = preset(3, 2)
+        assert result == "preset 3.2"
+
+    def test_preset_by_name(self):
+        """Test preset by name: preset "DarkRed" """
+        from src.commands import preset
+
+        result = preset(name="DarkRed")
+        assert result == 'preset "DarkRed"'
+
+    def test_preset_wildcard_with_name(self):
+        """Test preset with wildcard and name: preset *."DarkRed" """
+        from src.commands import preset
+
+        result = preset(name="DarkRed", wildcard=True)
+        assert result == 'preset *."DarkRed"'
+
+    def test_preset_type_with_name(self):
+        """Test preset type with name: preset "color"."Red" """
+        from src.commands import preset
+
+        result = preset("color", name="Red")
+        assert result == 'preset "color"."Red"'
+
+    def test_preset_range(self):
+        """Test preset range: preset 1.1 thru 5"""
+        from src.commands import preset
+
+        result = preset(1, 1, end=5)
+        assert result == "preset 1.1 thru 5"
+
+    def test_preset_multiple(self):
+        """Test selecting multiple presets: preset 1.1 + 1.3 + 1.5"""
+        from src.commands import preset
+
+        result = preset(1, [1, 3, 5])
+        assert result == "preset 1.1 + 1.3 + 1.5"
+
 
 class TestSequenceCommands:
     """Tests for sequence-related commands."""
