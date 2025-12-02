@@ -450,6 +450,70 @@ class TestSequenceCommands:
         assert result == "goto cue 5 sequence 1"
 
 
+class TestGoFastCommands:
+    """Tests for <<< (GoFastBack) and >>> (GoFastForward) keywords."""
+
+    # ---- GoFastBack (<<<) 測試 ----
+
+    def test_go_fast_back_executor(self):
+        """Test <<< Executor 3 - jumps to previous cue on executor 3."""
+        from src.commands import go_fast_back
+
+        result = go_fast_back(executor=3)
+        assert result == "<<< executor 3"
+
+    def test_go_fast_back_executor_list(self):
+        """Test <<< with multiple executors."""
+        from src.commands import go_fast_back
+
+        result = go_fast_back(executor=[1, 2, 3])
+        assert result == "<<< executor 1 + 2 + 3"
+
+    def test_go_fast_back_sequence(self):
+        """Test <<< Sequence 5 - jumps to previous cue on sequence 5."""
+        from src.commands import go_fast_back
+
+        result = go_fast_back(sequence=5)
+        assert result == "<<< sequence 5"
+
+    def test_go_fast_back_no_target(self):
+        """Test <<< without target - applies to current executor/sequence."""
+        from src.commands import go_fast_back
+
+        result = go_fast_back()
+        assert result == "<<<"
+
+    # ---- GoFastForward (>>>) 測試 ----
+
+    def test_go_fast_forward_executor(self):
+        """Test >>> Executor 3 - jumps to next cue on executor 3."""
+        from src.commands import go_fast_forward
+
+        result = go_fast_forward(executor=3)
+        assert result == ">>> executor 3"
+
+    def test_go_fast_forward_executor_list(self):
+        """Test >>> with multiple executors."""
+        from src.commands import go_fast_forward
+
+        result = go_fast_forward(executor=[1, 2, 3])
+        assert result == ">>> executor 1 + 2 + 3"
+
+    def test_go_fast_forward_sequence(self):
+        """Test >>> Sequence 5 - jumps to next cue on sequence 5."""
+        from src.commands import go_fast_forward
+
+        result = go_fast_forward(sequence=5)
+        assert result == ">>> sequence 5"
+
+    def test_go_fast_forward_no_target(self):
+        """Test >>> without target - applies to current executor/sequence."""
+        from src.commands import go_fast_forward
+
+        result = go_fast_forward()
+        assert result == ">>>"
+
+
 class TestStoreCommands:
     """Tests for the Store keyword and its various options."""
 

@@ -118,6 +118,8 @@ from .functions import (
     clear_active,
     clear_all,
     clear_selection,
+    go_fast_back,
+    go_fast_forward,
     go_sequence,
     goto_cue,
     label_group,
@@ -214,6 +216,9 @@ __all__ = [
     "go_sequence",
     "pause_sequence",
     "goto_cue",
+    # GoFast (<<< and >>>)
+    "go_fast_back",
+    "go_fast_forward",
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",
