@@ -1,16 +1,16 @@
 """
 Function Keywords for grandMA2 Command Builder
 
-此模組將 Function Keywords 按照功能分類拆解為多個子模組：
-- store.py: Store 相關函數
-- selection.py: 選擇與清除相關函數
-- playback.py: 播放控制相關函數
-- edit.py: 編輯操作（Copy, Move, Delete, Remove）
-- assignment.py: 指派相關函數
-- labeling.py: 標籤與外觀相關函數
-- values.py: 數值設定相關函數（At keyword）
-- info.py: 資訊查詢相關函數（List, Info）
-- macro.py: 巨集佔位符相關函數
+This module organizes Function Keywords by functionality into multiple submodules:
+- store.py: Store-related functions
+- selection.py: Selection and clear-related functions
+- playback.py: Playback control-related functions
+- edit.py: Edit operations (Copy, Move, Delete, Remove)
+- assignment.py: Assignment-related functions
+- labeling.py: Label and appearance-related functions
+- values.py: Value setting functions (At keyword)
+- info.py: Information query functions (List, Info)
+- macro.py: Macro placeholder-related functions
 
 Function keywords are the "verbs" of the console. They perform a task or
 function and are often followed by objects to which the function applies.

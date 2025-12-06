@@ -1,25 +1,25 @@
 """
 Playback Function Keywords for grandMA2 Command Builder
 
-這個模組包含與播放控制相關的函數。
+This module contains functions related to playback control.
 
-包含的函數：
-- go: 執行物件的下一個步驟（支援 Executor、Macro、Sequence 等）
-- go_back: 執行物件的前一個步驟
-- goto: 跳轉到指定的 Cue
-- go_sequence (Go+): 執行 Sequence（簡化版）
-- pause_sequence: 暫停 Sequence
-- goto_cue: 跳轉到指定的 Cue（簡化版）
-- go_fast_back (<<<): 快速跳到前一個步驟
-- go_fast_forward (>>>): 快速跳到下一個步驟
-- def_go_back: 選定 Executor 的前一個 Cue
-- def_go_forward: 選定 Executor 的下一個 Cue
-- def_go_pause: 暫停選定 Executor
+Included functions:
+- go: Execute next step of object (supports Executor, Macro, Sequence, etc.)
+- go_back: Execute previous step of object
+- goto: Jump to specified cue
+- go_sequence (Go+): Execute sequence (simplified version)
+- pause_sequence: Pause sequence
+- goto_cue: Jump to specified cue (simplified version)
+- go_fast_back (<<<): Fast jump to previous step
+- go_fast_forward (>>>): Fast jump to next step
+- def_go_back: Previous cue of selected executor
+- def_go_forward: Next cue of selected executor
+- def_go_pause: Pause selected executor
 """
 
 from typing import List, Literal, Optional, Union
 
-# Cue Mode 類型定義
+# Cue mode type definition
 CueMode = Literal["normal", "assert", "xassert", "release"]
 
 
@@ -43,18 +43,18 @@ def go(
     """
     Construct a Go command to activate the next step of an executing object.
 
-    Go 用於啟動執行物件的下一個步驟。如果目標物件有步驟，會跳到下一步。
-    如果物件沒有步驟，會開始向前執行。
+    Go is used to activate the next step of an executing object. If the target object has steps,
+    it will jump to the next step. If the object has no steps, it will start running forward.
 
     Args:
-        object_type: 物件類型 (executor, macro, sequence 等)
-        object_id: 物件 ID 或 ID 列表
-        end: 範圍結束 ID（用於 thru）
-        cue_mode: Cue 模式 (normal, assert, xassert, release)
-        userprofile: 使用者設定檔名稱
+        object_type: Object type (executor, macro, sequence, etc.)
+        object_id: Object ID or list of IDs
+        end: End ID for range (used for thru)
+        cue_mode: Cue mode (normal, assert, xassert, release)
+        userprofile: User profile name
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> go("executor", 3)
@@ -70,7 +70,7 @@ def go(
     """
     parts = ["go"]
 
-    # 物件類型和 ID
+    # Object type and ID
     if object_type:
         parts.append(object_type)
         if object_id is not None:
@@ -82,7 +82,7 @@ def go(
                 if end is not None:
                     parts.append(f"thru {end}")
 
-    # 選項
+    # Options
     if cue_mode:
         parts.append(f"/cue_mode={cue_mode}")
     if userprofile:
@@ -101,16 +101,16 @@ def go_executor(
     """
     Construct a Go command for an executor.
 
-    便利函式，用於執行指定 Executor 的下一個步驟。
+    Convenience function to execute the next step of a specified executor.
 
     Args:
-        executor_id: Executor ID 或 ID 列表
-        end: 範圍結束 ID
-        cue_mode: Cue 模式
-        userprofile: 使用者設定檔名稱
+        executor_id: Executor ID or list of IDs
+        end: End ID for range
+        cue_mode: Cue mode
+        userprofile: User profile name
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> go_executor(3)
@@ -127,13 +127,13 @@ def go_macro(macro_id: int) -> str:
     """
     Construct a Go command to start a macro.
 
-    便利函式，用於啟動指定的 Macro。
+    Convenience function to start a specified macro.
 
     Args:
         macro_id: Macro ID
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> go_macro(2)
@@ -161,19 +161,19 @@ def go_back(
     """
     Construct a GoBack command to activate the previous step of an object.
 
-    GoBack 用於啟動執行物件的前一個步驟。如果目標物件有步驟，會跳到前一步。
-    如果物件沒有步驟，會開始向後執行。
-    預設 fade 時間可在 Setup -> Show -> Playback & MIB Timing -> GoBack 中設定。
+    GoBack is used to activate the previous step of an executing object. If the target object has steps,
+    it will jump to the previous step. If the object has no steps, it will start running backward.
+    Default fade time can be set in Setup -> Show -> Playback & MIB Timing -> GoBack.
 
     Args:
-        object_type: 物件類型 (executor, sequence 等)
-        object_id: 物件 ID 或 ID 列表
-        end: 範圍結束 ID（用於 thru）
-        cue_mode: Cue 模式 (normal, assert, xassert, release)
-        userprofile: 使用者設定檔名稱
+        object_type: Object type (executor, sequence, etc.)
+        object_id: Object ID or list of IDs
+        end: End ID for range (used for thru)
+        cue_mode: Cue mode (normal, assert, xassert, release)
+        userprofile: User profile name
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> go_back("executor", 3)
@@ -183,7 +183,7 @@ def go_back(
     """
     parts = ["goback"]
 
-    # 物件類型和 ID
+    # Object type and ID
     if object_type:
         parts.append(object_type)
         if object_id is not None:
@@ -195,7 +195,7 @@ def go_back(
                 if end is not None:
                     parts.append(f"thru {end}")
 
-    # 選項
+    # Options
     if cue_mode:
         parts.append(f"/cue_mode={cue_mode}")
     if userprofile:
@@ -214,16 +214,16 @@ def go_back_executor(
     """
     Construct a GoBack command for an executor.
 
-    便利函式，用於執行指定 Executor 的前一個步驟。
+    Convenience function to execute the previous step of a specified executor.
 
     Args:
-        executor_id: Executor ID 或 ID 列表
-        end: 範圍結束 ID
-        cue_mode: Cue 模式
-        userprofile: 使用者設定檔名稱
+        executor_id: Executor ID or list of IDs
+        end: End ID for range
+        cue_mode: Cue mode
+        userprofile: User profile name
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> go_back_executor(3)
@@ -253,18 +253,18 @@ def goto(
     """
     Construct a Goto command to jump to a specific cue.
 
-    Goto 用於跳轉到指定的 Cue。
-    預設 fade 時間可在 Setup -> Show -> Playback & MIB Timing -> Goto 中設定。
+    Goto is used to jump to a specified cue.
+    Default fade time can be set in Setup -> Show -> Playback & MIB Timing -> Goto.
 
     Args:
-        cue_id: Cue 編號
-        executor: Executor 編號（可選）
-        sequence: Sequence 編號（可選）
-        cue_mode: Cue 模式 (normal, assert, xassert, release)
-        userprofile: 使用者設定檔名稱
+        cue_id: Cue number
+        executor: Executor number (optional)
+        sequence: Sequence number (optional)
+        cue_mode: Cue mode (normal, assert, xassert, release)
+        userprofile: User profile name
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> goto(3)
@@ -278,13 +278,13 @@ def goto(
     """
     parts = ["goto", "cue", str(cue_id)]
 
-    # Executor 或 Sequence
+    # Executor or Sequence
     if executor is not None:
         parts.append(f"executor {executor}")
     elif sequence is not None:
         parts.append(f"sequence {sequence}")
 
-    # 選項
+    # Options
     if cue_mode:
         parts.append(f"/cue_mode={cue_mode}")
     if userprofile:
@@ -294,7 +294,7 @@ def goto(
 
 
 # ============================================================================
-# LEGACY CONVENIENCE FUNCTIONS (保持向後相容)
+# LEGACY CONVENIENCE FUNCTIONS (maintain backward compatibility)
 # ============================================================================
 
 
@@ -302,7 +302,7 @@ def go_sequence(sequence_id: int) -> str:
     """
     Construct a command to execute a sequence (legacy).
 
-    這是舊版便利函式，建議使用 go("sequence", id) 代替。
+    This is a legacy convenience function. It is recommended to use go("sequence", id) instead.
 
     Args:
         sequence_id: Sequence number
@@ -330,7 +330,7 @@ def goto_cue(sequence_id: int, cue_id: int) -> str:
     """
     Construct a command to jump to a specific cue (legacy).
 
-    這是舊版便利函式，建議使用 goto(cue_id, sequence=sequence_id) 代替。
+    This is a legacy convenience function. It is recommended to use goto(cue_id, sequence=sequence_id) instead.
 
     Args:
         sequence_id: Sequence number
@@ -358,15 +358,15 @@ def go_fast_back(
     """
     Construct a GoFastBack (<<<) command to jump quickly to the previous step.
 
-    <<< 用於快速跳轉到前一個步驟（預設不使用時間，可在 setup 中調整）。
-    時間可透過 Setup -> Show -> Playback + MIB Timing 的 GoFast 屬性調整。
+    <<< is used to quickly jump to the previous step (no time by default, can be adjusted in setup).
+    Timing can be adjusted via Setup -> Show -> Playback + MIB Timing GoFast property.
 
     Args:
-        executor: Executor 編號或編號列表
-        sequence: Sequence 編號
+        executor: Executor number or list of numbers
+        sequence: Sequence number
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> go_fast_back()
@@ -398,15 +398,15 @@ def go_fast_forward(
     """
     Construct a GoFastForward (>>>) command to jump quickly to the next step.
 
-    >>> 用於快速跳轉到下一個步驟（預設不使用時間，可在 setup 中調整）。
-    時間可透過 Setup -> Show -> Playback + MIB Timing 的 GoFast 屬性調整。
+    >>> is used to quickly jump to the next step (no time by default, can be adjusted in setup).
+    Timing can be adjusted via Setup -> Show -> Playback + MIB Timing GoFast property.
 
     Args:
-        executor: Executor 編號或編號列表
-        sequence: Sequence 編號
+        executor: Executor number or list of numbers
+        sequence: Sequence number
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> go_fast_forward()
@@ -442,11 +442,11 @@ def def_go_back() -> str:
     """
     Construct a DefGoBack command to call the previous cue in the selected executor.
 
-    DefGoBack 用於在選定的 Executor 上呼叫前一個 Cue。
-    等同於按下控台上的大型 Go- 按鈕。
+    DefGoBack is used to call the previous cue on the selected executor.
+    Equivalent to pressing the large Go- button on the console.
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> def_go_back()
@@ -459,11 +459,11 @@ def def_go_forward() -> str:
     """
     Construct a DefGoForward command to call the next cue in the selected executor.
 
-    DefGoForward 用於在選定的 Executor 上呼叫下一個 Cue。
-    等同於按下控台上的大型 Go+ 按鈕。
+    DefGoForward is used to call the next cue on the selected executor.
+    Equivalent to pressing the large Go+ button on the console.
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> def_go_forward()
@@ -476,12 +476,12 @@ def def_go_pause() -> str:
     """
     Construct a DefGoPause command to pause the current fade in the selected executor.
 
-    DefGoPause 用於暫停選定 Executor 上當前的 fade 和 effect。
-    如果 assign menu 中的 "Link effect to rate" 選項開啟，也會暫停 effects。
-    等同於按下控台上的大型 Pause 按鈕。
+    DefGoPause is used to pause the current fade and effects on the selected executor.
+    If the "Link effect to rate" option in the assign menu is enabled, it will also pause effects.
+    Equivalent to pressing the large Pause button on the console.
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> def_go_pause()

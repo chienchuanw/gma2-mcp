@@ -1,15 +1,15 @@
 """
 Macro Placeholder Function Keywords for grandMA2 Command Builder
 
-「@」字元用於 Macro 中作為使用者輸入的佔位符。
-這與「At」keyword 完全不同。
+The "@" character is used in macros as a placeholder for user input.
+This is completely different from the "At" keyword.
 
-- @ 在結尾：使用者輸入會在命令之後
-- @ 在開頭：使用者輸入會在命令之前（CLI 必須被禁用）
+- @ at the end: User input will come after the command
+- @ at the beginning: User input will come before the command (CLI must be disabled)
 
-包含的函數：
-- macro_with_input_after: 在命令結尾加入使用者輸入佔位符
-- macro_with_input_before: 在命令開頭加入使用者輸入佔位符
+Included functions:
+- macro_with_input_after: Add user input placeholder at the end of command
+- macro_with_input_before: Add user input placeholder at the beginning of command
 """
 
 

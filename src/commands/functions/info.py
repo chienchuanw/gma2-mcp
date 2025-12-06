@@ -1,22 +1,22 @@
 """
 List and Info Function Keywords for grandMA2 Command Builder
 
-這個模組包含與列表和資訊相關的函數。
+This module contains functions related to list and info operations.
 
-List 用於在命令行反饋視窗中顯示 show 資料。
-Info 用於為物件添加或顯示用戶資訊。
+List is used to display show data in the command line feedback window.
+Info is used to add or display user information for objects.
 
-包含的函數：
-- list_objects: 通用的列表命令
-- list_cue: 列出 Cues
-- list_group: 列出 Groups
-- list_preset: 列出 Presets
-- list_attribute: 列出 Attributes
-- list_messages: 列出 Messages
-- info: 通用的資訊命令
-- info_group: Group 資訊
-- info_cue: Cue 資訊
-- info_preset: Preset 資訊
+Included functions:
+- list_objects: Generic list command
+- list_cue: List cues
+- list_group: List groups
+- list_preset: List presets
+- list_attribute: List attributes
+- list_messages: List messages
+- info: Generic info command
+- info_group: Group info
+- info_cue: Cue info
+- info_preset: Preset info
 """
 
 from ..constants import PRESET_TYPES
@@ -38,15 +38,15 @@ def list_objects(
     """
     Construct a List command to display show data in the command line feedback window.
 
-    List 用於在命令行反饋視窗中顯示 show 資料，例如 Cues、Groups、Presets、Messages 等。
-    如果未指定物件類型，會顯示當前目的地的資料。
+    List is used to display show data in the command line feedback window, such as Cues, Groups,
+    Presets, Messages, etc. If no object type is specified, it displays data for the current destination.
 
     Args:
-        object_type: 物件類型（如 "cue", "group", "preset", "attribute", "messages"）
-        object_id: 物件 ID 或識別符（可選）
-        end: 範圍結束 ID（使用 Thru）
-        filename: 輸出 CSV 檔案名稱（存至 reports 資料夾）
-        condition: 條件過濾（僅用於 Messages）
+        object_type: Object type (e.g., "cue", "group", "preset", "attribute", "messages")
+        object_id: Object ID or identifier (optional)
+        end: End ID for range (uses Thru)
+        filename: Output CSV filename (saved to reports folder)
+        condition: Condition filter (only for Messages)
 
     Returns:
         str: MA List command
@@ -63,23 +63,23 @@ def list_objects(
         >>> list_objects("group", filename="my_groups")
         'list group /filename=my_groups'
     """
-    # 基礎命令
+    # Base command
     if object_type is None:
         cmd = "list"
     else:
         cmd = f"list {object_type}"
 
-    # 處理物件 ID 或範圍
+    # Handle object ID or range
     if object_id is not None:
         if end is not None:
             cmd = f"{cmd} {object_id} thru {end}"
         else:
             cmd = f"{cmd} {object_id}"
     elif end is not None:
-        # 只有 end，表示 "thru N"
+        # Only end, means "thru N"
         cmd = f"{cmd} thru {end}"
 
-    # 選項處理
+    # Option handling
     if filename:
         cmd = f"{cmd} /filename={filename}"
 
@@ -99,13 +99,13 @@ def list_cue(
     """
     Construct a List command for cues.
 
-    列出選定 Executor 或指定 Sequence 的 Cues。
+    List cues from the selected Executor or specified Sequence.
 
     Args:
-        cue_id: Cue ID（可選）
-        end: 範圍結束 Cue ID
-        sequence_id: Sequence ID（可選，指定特定 sequence）
-        filename: 輸出 CSV 檔案名稱
+        cue_id: Cue ID (optional)
+        end: End cue ID for range
+        sequence_id: Sequence ID (optional, specifies specific sequence)
+        filename: Output CSV filename
 
     Returns:
         str: MA List command for cues
@@ -146,12 +146,12 @@ def list_group(
     """
     Construct a List command for groups.
 
-    列出 Group Pool 中的 Groups。
+    List groups in the Group Pool.
 
     Args:
-        group_id: Group ID（可選，指定起始）
-        end: 範圍結束 Group ID
-        filename: 輸出 CSV 檔案名稱
+        group_id: Group ID (optional, specifies starting point)
+        end: End group ID for range
+        filename: Output CSV filename
 
     Returns:
         str: MA List command for groups

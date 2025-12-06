@@ -1,23 +1,23 @@
 """
 At Function Keywords for grandMA2 Command Builder
 
-At 是一個特殊的 keyword，它可以同時作為 Function Keyword 和 Helping Keyword：
-- 作為 Function Keyword：將值應用到當前選擇
-- 作為 Helping Keyword：為其他功能指示目標
+At is a special keyword that can function as both a Function Keyword and a Helping Keyword:
+- As a Function Keyword: Apply values to current selection
+- As a Helping Keyword: Indicate target for other functions
 
-注意：「@」字元與「At」keyword 不同。
-「@」用於 Macro 中作為使用者輸入的佔位符。
+Note: The "@" character is different from the "At" keyword.
+"@" is used in macros as a placeholder for user input.
 
-包含的函數：
-- at: 通用的 At 命令
-- at_full: 設定為 100%
-- at_zero: 設定為 0%
-- attribute_at: 設定特定屬性值
-- fixture_at: 設定 Fixture 值
-- channel_at: 設定 Channel 值
-- group_at: 設定 Group 值
-- executor_at: 設定 Executor 值
-- preset_type_at: 設定 Preset Type 值
+Included functions:
+- at: Generic At command
+- at_full: Set to 100%
+- at_zero: Set to 0%
+- attribute_at: Set specific attribute value
+- fixture_at: Set fixture value
+- channel_at: Set channel value
+- group_at: Set group value
+- executor_at: Set executor value
+- preset_type_at: Set preset type value
 """
 
 from typing import Optional, Union

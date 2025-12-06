@@ -1,14 +1,14 @@
 """
 Store Function Keywords for grandMA2 Command Builder
 
-Store 用於將 Programmer 或當前狀態儲存到指定的物件中。
-這是 grandMA2 中最常用的 Function Keyword 之一。
+Store is used to save the programmer or current state to a specified object.
+This is one of the most commonly used function keywords in grandMA2.
 
-包含的函數：
-- store: 通用的 store 命令
-- store_cue: 儲存 Cue
-- store_group: 儲存 Group
-- store_preset: 儲存 Preset
+Included functions:
+- store: Generic store command
+- store_cue: Store cue
+- store_group: Store group
+- store_preset: Store preset
 """
 
 from typing import Any, List, Optional, Tuple, Union

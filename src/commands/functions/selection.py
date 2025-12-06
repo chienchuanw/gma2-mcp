@@ -1,14 +1,14 @@
 """
 Selection & Clear Function Keywords for grandMA2 Command Builder
 
-這個模組包含與 Fixture 選擇和 Programmer 清除相關的函數。
+This module contains functions related to fixture selection and programmer clearing.
 
-包含的函數：
-- select_fixture (SelFix): 選擇 Fixture
-- clear: 清除（依序執行 selection -> active -> all）
-- clear_selection: 取消選擇所有 Fixture
-- clear_active: 取消所有 Active 值
-- clear_all: 清空整個 Programmer
+Included functions:
+- select_fixture (SelFix): Select fixtures
+- clear: Clear (sequentially executes selection -> active -> all)
+- clear_selection: Deselect all fixtures
+- clear_active: Deactivate all active values
+- clear_all: Empty entire programmer
 """
 
 from typing import List, Optional, Union

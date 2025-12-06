@@ -1,9 +1,9 @@
 """
 Edit Function Keywords for grandMA2 Command Builder
 
-這個模組包含與編輯操作相關的函數。
+This module contains functions related to edit operations.
 
-包含的函數：
+Included functions:
 - Copy: copy, copy_cue
 - Move: move
 - Delete: delete, delete_cue, delete_group, delete_preset, delete_fixture, delete_messages
@@ -240,19 +240,19 @@ def delete(
     """
     Construct a command to delete objects from the show file.
 
-    Delete 用於從 show file 中刪除資料。如果物件本身無法被刪除，
-    則會移除與該物件的關聯（如 Fixture 會被 unpatch）。
+    Delete is used to remove data from the show file. If an object cannot be
+    deleted directly, its associations will be removed (e.g., Fixture will be unpatched).
 
     Args:
-        object_type: 物件類型 (e.g., "cue", "group", "fixture", "world", "preset")
-        object_id: 物件 ID（單一、字串或列表）
-        end: 範圍結束 ID（使用 thru 語法）
-        selection_filter: 選擇過濾器（僅刪除指定 fixture 的資料）
-        deletevalues: 刪除 cue part 時同時刪除值
-        cueonly: 防止變更追蹤到後續 cue
-        noconfirm: 抑制確認對話框
-        region: 刪除 layout view 中的區域
-        element: 刪除 layout view 中的特定元素
+        object_type: Object type (e.g., "cue", "group", "fixture", "world", "preset")
+        object_id: Object ID (single, string, or list)
+        end: End ID for range (uses thru syntax)
+        selection_filter: Selection filter (delete data only for specified fixtures)
+        deletevalues: Delete values when deleting cue part
+        cueonly: Prevent changes from tracking to subsequent cues
+        noconfirm: Suppress confirmation dialog
+        region: Delete region in layout view
+        element: Delete specific element in layout view
 
     Returns:
         str: MA command to delete objects
@@ -267,7 +267,7 @@ def delete(
         >>> delete("cue", 1, end=5, noconfirm=True)
         'delete cue 1 thru 5 /noconfirm'
     """
-    # 處理 object_id（支援單一、範圍、列表）
+    # Handle object_id (supports single, range, list)
     if isinstance(object_id, list):
         id_part = " + ".join(str(i) for i in object_id)
     elif end is not None:
@@ -277,11 +277,11 @@ def delete(
 
     cmd = f"delete {object_type} {id_part}"
 
-    # 添加選擇過濾器
+    # Add selection filter
     if selection_filter:
         cmd = f"{cmd} {selection_filter}"
 
-    # 添加選項
+    # Add options
     options = []
     if deletevalues:
         options.append("/deletevalues")
@@ -314,11 +314,11 @@ def delete_cue(
 
     Args:
         cue_id: Cue ID
-        sequence_id: Sequence number（如果不指定，使用當前選擇的 executor）
-        end: 範圍結束 Cue ID
-        deletevalues: 刪除 cue part 時同時刪除值
-        cueonly: 防止變更追蹤到後續 cue
-        noconfirm: 抑制確認對話框
+        sequence_id: Sequence number (if not specified, uses currently selected executor)
+        end: End cue ID for range
+        deletevalues: Delete values when deleting cue part
+        cueonly: Prevent changes from tracking to subsequent cues
+        noconfirm: Suppress confirmation dialog
 
     Returns:
         str: MA command to delete cue(s)
@@ -341,7 +341,7 @@ def delete_cue(
     if sequence_id is not None:
         cmd = f"{cmd} sequence {sequence_id}"
 
-    # 添加選項
+    # Add options
     options = []
     if deletevalues:
         options.append("/deletevalues")
@@ -364,8 +364,8 @@ def delete_group(
 
     Args:
         group_id: Group number
-        end: 範圍結束 Group ID
-        noconfirm: 抑制確認對話框
+        end: End group ID for range
+        noconfirm: Suppress confirmation dialog
 
     Returns:
         str: MA command to delete a group
@@ -400,8 +400,8 @@ def delete_preset(
     Args:
         preset_type: Preset type (e.g., "dimmer", "color", "position") or type number
         preset_id: Preset ID
-        end: 範圍結束 Preset ID
-        noconfirm: 抑制確認對話框
+        end: End preset ID for range
+        noconfirm: Suppress confirmation dialog
 
     Returns:
         str: MA command to delete a preset
@@ -437,12 +437,12 @@ def delete_fixture(
     """
     Construct a command to delete (unpatch) fixture(s).
 
-    注意：Delete Fixture 會 unpatch fixture（移除 DMX 指派），而不是從 show 中移除。
+    Note: Delete Fixture will unpatch the fixture (remove DMX assignment), not remove it from the show.
 
     Args:
-        fixture_id: Fixture ID（單一或列表）
-        end: 範圍結束 Fixture ID
-        noconfirm: 抑制確認對話框
+        fixture_id: Fixture ID (single or list)
+        end: End fixture ID for range
+        noconfirm: Suppress confirmation dialog
 
     Returns:
         str: MA command to unpatch fixture(s)
@@ -497,14 +497,14 @@ def remove(
     """
     Construct a command to enter remove values in the programmer.
 
-    Remove 用於在 programmer 中輸入 remove values。當與 store merge 一起使用時，
-    可以移除先前儲存的值，讓前一個 cue 的值重新 track。
+    Remove is used to enter remove values in the programmer. When used with store merge,
+    it can remove previously stored values and allow the previous cue's values to track again.
 
     Args:
-        object_type: 物件類型 (e.g., "selection", "fixture", "presettype")
-        object_id: 物件 ID（可選，取決於物件類型）
-        end: 範圍結束 ID
-        if_filter: If 過濾條件 (e.g., "PresetType 1")
+        object_type: Object type (e.g., "selection", "fixture", "presettype")
+        object_id: Object ID (optional, depends on object type)
+        end: End ID for range
+        if_filter: If filter condition (e.g., "PresetType 1")
 
     Returns:
         str: MA command to enter remove values
@@ -538,7 +538,7 @@ def remove_selection() -> str:
     """
     Construct a command to enter remove values for all attributes of current selection.
 
-    這會為目前選擇的 fixture 的所有屬性輸入 remove values。
+    This will enter remove values for all attributes of the currently selected fixtures.
 
     Returns:
         str: MA command to remove selection values
@@ -556,7 +556,7 @@ def remove_preset_type(preset_type: str | int, *, if_filter: str | None = None) 
 
     Args:
         preset_type: Preset type name (e.g., "position", "color") or type number
-        if_filter: If 過濾條件
+        if_filter: If filter condition
 
     Returns:
         str: MA command to remove preset type values
@@ -588,9 +588,9 @@ def remove_fixture(
     Construct a command to enter remove values for specific fixture(s).
 
     Args:
-        fixture_id: Fixture ID（單一或列表）
-        end: 範圍結束 Fixture ID
-        if_filter: If 過濾條件 (e.g., "PresetType 1")
+        fixture_id: Fixture ID (single or list)
+        end: End fixture ID for range
+        if_filter: If filter condition (e.g., "PresetType 1")
 
     Returns:
         str: MA command to remove fixture values
@@ -622,7 +622,7 @@ def remove_effect(effect_id: int | str, *, end: int | None = None) -> str:
 
     Args:
         effect_id: Effect ID
-        end: 範圍結束 Effect ID
+        end: End effect ID for range
 
     Returns:
         str: MA command to remove effect values

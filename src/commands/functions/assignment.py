@@ -1,18 +1,18 @@
 """
 Assign Function Keywords for grandMA2 Command Builder
 
-Assign 用於定義物件之間的關係或給屬性賦值。
-這是一個用途廣泛的 keyword，有許多使用情境：
-- 將物件指派到 Executor、Layout
-- 將 DMX 地址指派到 Fixture/Channel
-- 將功能（Go、Toggle 等）指派到 Executor 按鈕
-- 將屬性指派到物件
+Assign is used to define relationships between objects or assign values to properties.
+This is a versatile keyword with many use cases:
+- Assign objects to Executor, Layout
+- Assign DMX addresses to Fixture/Channel
+- Assign functions (Go, Toggle, etc.) to Executor buttons
+- Assign properties to objects
 
-包含的函數：
-- assign: 通用的指派命令
-- assign_function: 指派功能到物件
-- assign_fade: 指派 Fade 時間到 Cue
-- assign_to_layout: 指派物件到 Layout
+Included functions:
+- assign: Generic assign command
+- assign_function: Assign function to object
+- assign_fade: Assign fade time to cue
+- assign_to_layout: Assign object to layout
 """
 
 from typing import List, Optional, Union
@@ -67,7 +67,7 @@ def assign(
         >>> assign("group", 1, "layout", 1, x=5, y=2)
         'assign group 1 at layout 1 /x=5 /y=2'
     """
-    # 建立 source 部分
+    # Build source part
     if isinstance(source_id, list):
         source = " + ".join(str(i) for i in source_id)
         cmd = f"assign {source_type} {source}"
@@ -76,7 +76,7 @@ def assign(
     else:
         cmd = f"assign {source_type} {source_id}"
 
-    # 建立 target 部分（如果有）
+    # Build target part (if provided)
     if target_type is not None and target_id is not None:
         if isinstance(target_id, list):
             target_str = " + ".join(str(t) for t in target_id)
@@ -88,7 +88,7 @@ def assign(
     elif target_type is not None:
         cmd += f" {target_type}"
 
-    # 建立選項
+    # Build options
     options = []
     if break_ is not None:
         options.append(f"/break={break_}")

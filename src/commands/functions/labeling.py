@@ -1,16 +1,16 @@
 """
 Label and Appearance Function Keywords for grandMA2 Command Builder
 
-這個模組包含與標籤和外觀相關的函數。
+This module contains functions related to labeling and appearance.
 
-Label 用於給物件命名。
-Appearance 用於改變 Pool 物件的框架顏色和 Cue 的背景顏色。
+Label is used to name objects.
+Appearance is used to change frame colors of pool objects and background colors of cues.
 
-包含的函數：
-- label: 通用的標籤命令
-- label_group: 標籤 Group
-- label_preset: 標籤 Preset
-- appearance: 改變物件外觀
+Included functions:
+- label: Generic label command
+- label_group: Label group
+- label_preset: Label preset
+- appearance: Change object appearance
 """
 
 from typing import List, Optional, Union
@@ -83,7 +83,7 @@ def label(
         >>> label("preset", '"color"."Red"', "Dark Red")
         'label preset "color"."Red" "Dark Red"'
     """
-    # 建立物件參照
+    # Build object reference
     if isinstance(object_id, list):
         obj_str = " + ".join(str(i) for i in object_id)
         cmd = f"label {object_type} {obj_str}"
@@ -92,7 +92,7 @@ def label(
     else:
         cmd = f"label {object_type} {object_id}"
 
-    # 加入名稱（確保有引號）
+    # Add name (ensure it has quotes)
     if name.startswith('"') and name.endswith('"'):
         cmd += f" {name}"
     else:
@@ -160,7 +160,7 @@ def appearance(
         >>> appearance("group", 1, end=5, color="FF0000")
         'appearance group 1 thru 5 /color=FF0000'
     """
-    # 建立物件參照
+    # Build object reference
     if isinstance(object_id, list):
         obj_str = " + ".join(str(i) for i in object_id)
         cmd = f"appearance {object_type} {obj_str}"
@@ -169,12 +169,12 @@ def appearance(
     else:
         cmd = f"appearance {object_type} {object_id}"
 
-    # 從來源物件複製外觀
+    # Copy appearance from source object
     if source_type is not None and source_id is not None:
         cmd += f" at {source_type} {source_id}"
         return cmd
 
-    # 建立選項
+    # Build options
     options = []
     if reset:
         options.append("/reset")
