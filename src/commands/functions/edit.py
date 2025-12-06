@@ -83,6 +83,100 @@ def edit(
 
 
 # ============================================================================
+# CUT FUNCTION KEYWORD
+# ============================================================================
+
+
+def cut(
+    object_type: str,
+    object_id: Union[int, str, List[Union[int, str]]],
+    *,
+    end: Optional[Union[int, str]] = None,
+) -> str:
+    """
+    Construct a Cut command to specify source objects for a two-step move action.
+
+    Cut prepares objects to be moved via the Paste command. The object list is
+    temporarily stored for later use. Note: Cut & Paste does not work with cue
+    objects. To move cues, use the Move keyword instead.
+
+    Args:
+        object_type: Type of object (e.g., "group", "preset", "sequence", "macro")
+        object_id: Object ID (int, string like "4.1", or list)
+        end: End ID for range selection (thru)
+
+    Returns:
+        str: MA command to cut object(s)
+
+    Examples:
+        >>> cut("preset", "4.1")
+        'cut preset 4.1'
+        >>> cut("group", 1)
+        'cut group 1'
+        >>> cut("group", 1, end=5)
+        'cut group 1 thru 5'
+        >>> cut("preset", ["4.1", "4.2", "4.3"])
+        'cut preset 4.1 + 4.2 + 4.3'
+    """
+    # Handle list selection
+    if isinstance(object_id, list):
+        ids_str = " + ".join(str(i) for i in object_id)
+        return f"cut {object_type} {ids_str}"
+
+    # Handle range selection (using thru)
+    if end is not None:
+        return f"cut {object_type} {object_id} thru {end}"
+
+    # Single object
+    return f"cut {object_type} {object_id}"
+
+
+# ============================================================================
+# PASTE FUNCTION KEYWORD
+# ============================================================================
+
+
+def paste(
+    object_type_or_id: Optional[Union[str, int]] = None,
+    target_id: Optional[Union[int, str]] = None,
+) -> str:
+    """
+    Construct a Paste command to paste copied content or move cut objects.
+
+    Paste will paste previous copied content from clipboard.xml, or move
+    previous Cut object-lists. If no object type is given and command line
+    destination is root, the default object is Cue.
+
+    Args:
+        object_type_or_id: Type of object (str) or target ID (int) if no type given
+        target_id: Target ID to paste to (used when object_type_or_id is a string)
+
+    Returns:
+        str: MA command to paste object(s)
+
+    Examples:
+        >>> paste()
+        'paste'
+        >>> paste(15)
+        'paste 15'
+        >>> paste("group", 5)
+        'paste group 5'
+        >>> paste("preset", "4.5")
+        'paste preset 4.5'
+    """
+    # No arguments - basic paste
+    if object_type_or_id is None:
+        return "paste"
+
+    # Single argument - could be just target ID (for cues)
+    if target_id is None:
+        return f"paste {object_type_or_id}"
+
+    # Object type and target ID
+    return f"paste {object_type_or_id} {target_id}"
+
+
+# ============================================================================
 # COPY FUNCTION KEYWORD
 # ============================================================================
 

@@ -88,6 +88,10 @@ from .functions import (
     preset_type_at,
     # Edit Function Keyword
     edit,
+    # Cut Function Keyword
+    cut,
+    # Paste Function Keyword
+    paste,
     # Copy Function Keyword
     copy,
     copy_cue,
@@ -194,6 +198,10 @@ __all__ = [
     "preset_type_at",
     # Edit Function Keyword
     "edit",
+    # Cut Function Keyword
+    "cut",
+    # Paste Function Keyword
+    "paste",
     # Copy Function Keyword
     "copy",
     "copy_cue",

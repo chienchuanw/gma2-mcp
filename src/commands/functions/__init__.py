@@ -54,9 +54,11 @@ from .playback import (
     def_go_pause,
 )
 
-# Edit Function Keywords (Edit, Copy, Move, Delete, Remove)
+# Edit Function Keywords (Edit, Cut, Paste, Copy, Move, Delete, Remove)
 from .edit import (
     edit,
+    cut,
+    paste,
     copy,
     copy_cue,
     move,
@@ -180,6 +182,10 @@ __all__ = [
     "def_go_pause",
     # Edit
     "edit",
+    # Cut
+    "cut",
+    # Paste
+    "paste",
     # Copy
     "copy",
     "copy_cue",

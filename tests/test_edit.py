@@ -116,6 +116,108 @@ class TestEditCommands:
         assert result == "edit cue 1 thru 5 /noconfirm"
 
 
+class TestCutCommands:
+    """
+    Tests for Cut keyword commands.
+
+    Cut is a function used to specify the source objects for a two-step move action.
+    The object list is temporarily stored for later use with Paste command.
+    """
+
+    # ---- Basic Cut ----
+
+    def test_cut_preset(self):
+        """Test cut preset: cut preset 4.1"""
+        from src.commands import cut
+
+        result = cut("preset", "4.1")
+        assert result == "cut preset 4.1"
+
+    def test_cut_group(self):
+        """Test cut group: cut group 1"""
+        from src.commands import cut
+
+        result = cut("group", 1)
+        assert result == "cut group 1"
+
+    def test_cut_sequence(self):
+        """Test cut sequence: cut sequence 5"""
+        from src.commands import cut
+
+        result = cut("sequence", 5)
+        assert result == "cut sequence 5"
+
+    def test_cut_macro(self):
+        """Test cut macro: cut macro 10"""
+        from src.commands import cut
+
+        result = cut("macro", 10)
+        assert result == "cut macro 10"
+
+    # ---- Cut with Range ----
+
+    def test_cut_range(self):
+        """Test cut with range: cut group 1 thru 5"""
+        from src.commands import cut
+
+        result = cut("group", 1, end=5)
+        assert result == "cut group 1 thru 5"
+
+    # ---- Cut with List ----
+
+    def test_cut_list(self):
+        """Test cut with list: cut preset 4.1 + 4.2 + 4.3"""
+        from src.commands import cut
+
+        result = cut("preset", ["4.1", "4.2", "4.3"])
+        assert result == "cut preset 4.1 + 4.2 + 4.3"
+
+
+class TestPasteCommands:
+    """
+    Tests for Paste keyword commands.
+
+    Paste is used to paste copied content from clipboard or move cut objects.
+    """
+
+    # ---- Basic Paste ----
+
+    def test_paste_no_args(self):
+        """Test paste without arguments: paste"""
+        from src.commands import paste
+
+        result = paste()
+        assert result == "paste"
+
+    def test_paste_cue(self):
+        """Test paste to cue: paste 15"""
+        from src.commands import paste
+
+        result = paste(15)
+        assert result == "paste 15"
+
+    def test_paste_group(self):
+        """Test paste to group: paste group 5"""
+        from src.commands import paste
+
+        result = paste("group", 5)
+        assert result == "paste group 5"
+
+    def test_paste_preset(self):
+        """Test paste to preset: paste preset 4.5"""
+        from src.commands import paste
+
+        result = paste("preset", "4.5")
+        assert result == "paste preset 4.5"
+
+    def test_paste_sequence(self):
+        """Test paste to sequence: paste sequence 10"""
+        from src.commands import paste
+
+        result = paste("sequence", 10)
+        assert result == "paste sequence 10"
+
+
 class TestCopyCommands:
     """Tests for Copy keyword commands."""
 
