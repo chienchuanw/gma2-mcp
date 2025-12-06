@@ -308,37 +308,70 @@ To exit a Telnet session:
 
 ```text
 gma2-mcp/
-├── main.py              # Entry point with login test functionality
+├── main.py                  # Entry point with login test functionality
+├── connect.sh               # Telnet connection script with auto-login
 ├── src/
 │   ├── __init__.py
-│   ├── commands/        # Command builder module
-│   │   ├── __init__.py  # Public API exports
-│   │   ├── constants.py # PRESET_TYPES, STORE_*_OPTIONS
-│   │   ├── helpers.py   # Internal helper functions
-│   │   ├── objects.py   # Object Keywords (fixture, channel, group, etc.)
-│   │   └── functions.py # Function Keywords (store, clear, go, etc.)
-│   ├── telnet_client.py # Telnet connection management
-│   ├── server.py        # MCP server implementation
-│   └── tools.py         # MCP tool definitions
+│   ├── commands/            # Command builder module
+│   │   ├── __init__.py      # Public API exports
+│   │   ├── constants.py     # PRESET_TYPES, STORE_*_OPTIONS
+│   │   ├── helpers.py       # Internal helper functions
+│   │   ├── objects.py       # Object Keywords (fixture, channel, group, etc.)
+│   │   └── functions/       # Function Keywords organized by category
+│   │       ├── __init__.py
+│   │       ├── assignment.py    # Assign keyword functions
+│   │       ├── edit.py          # Copy, Move, Delete, Remove functions
+│   │       ├── info.py          # List and Info query functions
+│   │       ├── labeling.py      # Label and Appearance functions
+│   │       ├── macro.py         # Macro placeholder functions
+│   │       ├── playback.py      # Go, GoBack, Goto, GoFast, DefGo functions
+│   │       ├── selection.py     # SelFix and Clear functions
+│   │       ├── store.py         # Store functions
+│   │       └── values.py        # At and value setting functions
+│   ├── gma2_client.py       # High-level grandMA2 client interface
+│   ├── telnet_client.py     # Telnet connection management
+│   ├── server.py            # MCP server implementation
+│   └── tools.py             # MCP tool definitions
 ├── tests/
-│   ├── test_commands.py # Command builder tests
-│   ├── test_telnet_client.py
-│   └── test_tools.py
-├── pyproject.toml       # Project configuration
-├── uv.lock              # Dependency lock file
-├── Makefile             # Utility commands
-└── README.md            # This file
+│   ├── conftest.py          # Pytest configuration and fixtures
+│   ├── test_assignment.py   # Assign keyword tests
+│   ├── test_edit.py         # Copy, Move, Delete tests
+│   ├── test_info.py         # List and Info query tests
+│   ├── test_labeling.py     # Label and Appearance tests
+│   ├── test_macro.py        # Macro placeholder tests
+│   ├── test_objects.py      # Object Keywords tests
+│   ├── test_playback.py     # Playback control tests
+│   ├── test_selection.py    # Selection and Clear tests
+│   ├── test_store.py        # Store function tests
+│   ├── test_telnet_client.py # Telnet client tests
+│   ├── test_tools.py        # MCP tool tests
+│   └── test_values.py       # Value setting tests
+├── doc/                     # Documentation files
+├── pyproject.toml           # Project configuration
+├── pytest.ini               # Pytest configuration
+├── uv.lock                  # Dependency lock file
+├── Makefile                 # Utility commands
+└── README.md                # This file
 ```
 
 ## Dependencies
 
+### Core Dependencies
+
 - `mcp>=1.21.0` - Model Context Protocol library
-- `python-dotenv` - Environment variable management
-- `pytest` - Testing framework
+- `python-dotenv>=1.0.0` - Environment variable management
+- `telnetlib3>=2.0.8` - Async Telnet client library
+
+### Development Dependencies
+
+- `pytest>=9.0.1` - Testing framework
+- `pytest-asyncio>=1.3.0` - Async test support
 
 ## Development
 
 ### Running Tests
+
+Run all tests using the Makefile:
 
 ```bash
 make test
@@ -350,9 +383,39 @@ Or directly with pytest:
 uv run pytest -v
 ```
 
-### Code Style
+Run specific test file:
 
-This project follows Python best practices and PEP 8 conventions.
+```bash
+uv run pytest tests/test_playback.py -v
+```
+
+Run tests with coverage:
+
+```bash
+uv run pytest --cov=src tests/
+```
+
+### Code Style and Standards
+
+This project follows Python best practices and PEP 8 conventions. See `.augment/rules/coding-standards.md` for detailed coding standards including:
+
+- Naming conventions (snake_case for functions, PascalCase for classes)
+- Import organization and explicit imports
+- Error handling and logging practices
+- Telnet interaction rules
+- Documentation standards with docstrings
+- Testing standards with mocked Telnet layer
+- Security practices (no hardcoded credentials)
+
+### Project Architecture
+
+The project is organized into three main layers:
+
+1. **Telnet Client Layer** (`src/telnet_client.py`): Low-level Telnet communication
+2. **Command Builder Layer** (`src/commands/`): High-level command construction following grandMA2 syntax
+3. **MCP Server Layer** (`src/server.py`, `src/tools.py`): Model Context Protocol interface
+
+All communication with grandMA2 must go through the Telnet Client module to ensure consistency and proper error handling.
 
 ## Troubleshooting
 
@@ -361,12 +424,49 @@ This project follows Python best practices and PEP 8 conventions.
 - Verify the grandMA2 console IP address and port are correct
 - Ensure the console has Telnet access enabled
 - Check firewall rules allow connections to the specified port
+- Try connecting manually using the `make server` command to test connectivity
+- Check that the console is powered on and network is accessible
 
 ### Authentication Errors
 
 - Confirm the username and password are correct
 - Verify the user account exists on the grandMA2 console
 - Check user permissions for the required operations
+- Ensure credentials in `.env` file are properly formatted (no extra spaces)
+
+### Command Execution Issues
+
+- Verify the command syntax follows grandMA2 command line rules
+- Check that referenced objects (fixtures, groups, presets) exist in the show file
+- Ensure the console is in a state that allows the command (e.g., not in a dialog)
+- Review the grandMA2 User Manual for command-specific requirements
+
+### Testing Issues
+
+- Ensure all dependencies are installed: `uv sync`
+- Check that pytest is properly configured: `uv run pytest --version`
+- Run tests with verbose output for more details: `uv run pytest -vv`
+
+## Quick Start Example
+
+```python
+from src.commands import fixture, at_full, store_group
+
+# Build a command to select fixtures 1-10 and set them to full
+cmd1 = fixture(1, end=10)  # "fixture 1 thru 10"
+cmd2 = at_full()            # "at full"
+
+# Store the current selection as group 5
+cmd3 = store_group(5)       # "store group 5"
+
+# These commands can be sent to grandMA2 via the Telnet client
+```
+
+## Documentation
+
+- See `.augment/rules/project-overview.md` for detailed project architecture and design principles
+- See `.augment/rules/coding-standards.md` for coding standards and conventions
+- See `doc/` directory for additional documentation and references
 
 ## License
 
