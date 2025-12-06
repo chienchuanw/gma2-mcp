@@ -355,26 +355,125 @@ def preset_type(
 # ----------------------------------------------------------------------------
 
 
-def cue(cue_id: int, sequence_id: Optional[int] = None) -> str:
+def cue(
+    cue_id: Optional[Union[int, float, List[Union[int, float]]]] = None,
+    *,
+    end: Optional[Union[int, float]] = None,
+    part: Optional[int] = None,
+    executor: Optional[int] = None,
+    sequence: Optional[int] = None,
+) -> str:
     """
     Construct a Cue command to reference a cue.
 
+    Cue is the only object type that accepts numerical ID as decimal fractions.
+    The ID allowed for cues ranges from 0.001 to 9999.999.
+    The default function for cue objects is SelFix.
+
     Args:
-        cue_id: Cue number
-        sequence_id: Optional sequence number
+        cue_id: Cue number (int or float) or list of cue numbers
+        end: End cue number (for range selection)
+        part: Part number within the cue
+        executor: Executor number to specify which executor
+        sequence: Sequence number to specify which sequence
 
     Returns:
         str: MA command to reference a cue
 
+    Raises:
+        ValueError: When cue_id is not provided
+
     Examples:
         >>> cue(5)
         'cue 5'
-        >>> cue(5, sequence_id=3)
+        >>> cue(3.5)
+        'cue 3.5'
+        >>> cue(1, end=10)
+        'cue 1 thru 10'
+        >>> cue([1, 3, 5])
+        'cue 1 + 3 + 5'
+        >>> cue(3, part=2)
+        'cue 3 part 2'
+        >>> cue(3, executor=1)
+        'cue 3 executor 1'
+        >>> cue(5, sequence=3)
         'cue 5 sequence 3'
     """
-    if sequence_id is not None:
-        return f"cue {cue_id} sequence {sequence_id}"
-    return f"cue {cue_id}"
+    if cue_id is None:
+        raise ValueError("Must provide cue_id")
+
+    # Helper to format cue ID (preserve decimal precision)
+    def format_cue_id(cid: Union[int, float]) -> str:
+        if isinstance(cid, float):
+            # Format float to remove trailing zeros but keep precision
+            formatted = f"{cid:.3f}".rstrip("0").rstrip(".")
+            return formatted
+        return str(cid)
+
+    # Handle list selection (using + to connect)
+    if isinstance(cue_id, list):
+        if len(cue_id) == 1:
+            return f"cue {format_cue_id(cue_id[0])}"
+        cues_str = " + ".join(format_cue_id(cid) for cid in cue_id)
+        return f"cue {cues_str}"
+
+    # Build base command
+    base = f"cue {format_cue_id(cue_id)}"
+
+    # Handle range selection (using thru)
+    if end is not None:
+        if cue_id == end:
+            pass  # Same start and end, just use single cue
+        else:
+            base = f"cue {format_cue_id(cue_id)} thru {format_cue_id(end)}"
+
+    # Add part if specified
+    if part is not None:
+        base = f"{base} part {part}"
+
+    # Add executor if specified
+    if executor is not None:
+        base = f"{base} executor {executor}"
+
+    # Add sequence if specified
+    if sequence is not None:
+        base = f"{base} sequence {sequence}"
+
+    return base
+
+
+def cue_part(
+    cue_id: Union[int, float],
+    part_id: int,
+    *,
+    executor: Optional[int] = None,
+    sequence: Optional[int] = None,
+) -> str:
+    """
+    Convenience function to reference a cue part.
+
+    Parts segment cues to assign different timings for groups of fixture parameters.
+
+    Args:
+        cue_id: Cue number (int or float)
+        part_id: Part number within the cue
+        executor: Executor number to specify which executor
+        sequence: Sequence number to specify which sequence
+
+    Returns:
+        str: MA command to reference a cue part
+
+    Examples:
+        >>> cue_part(3, 2)
+        'cue 3 part 2'
+        >>> cue_part(2.5, 1)
+        'cue 2.5 part 1'
+        >>> cue_part(3, 2, executor=1)
+        'cue 3 part 2 executor 1'
+        >>> cue_part(3, 2, sequence=5)
+        'cue 3 part 2 sequence 5'
+    """
+    return cue(cue_id, part=part_id, executor=executor, sequence=sequence)
 
 
 # ----------------------------------------------------------------------------
@@ -382,21 +481,129 @@ def cue(cue_id: int, sequence_id: Optional[int] = None) -> str:
 # ----------------------------------------------------------------------------
 
 
-def sequence(sequence_id: int) -> str:
+def sequence(
+    sequence_id: Optional[Union[int, List[int]]] = None,
+    *,
+    end: Optional[int] = None,
+    pool: Optional[int] = None,
+) -> str:
     """
     Construct a Sequence command to reference a sequence.
 
+    The default function of the sequence keyword is SelFix.
+    If the Sequence keyword is used with an ID, all fixtures in the sequence
+    will be selected.
+
     Args:
-        sequence_id: Sequence number
+        sequence_id: Sequence number or list of sequence numbers
+        end: End sequence number (for range selection)
+        pool: Sequence pool number (for pool.id syntax)
 
     Returns:
         str: MA command to reference a sequence
 
+    Raises:
+        ValueError: When sequence_id is not provided
+        ValueError: When pool is used with multiple sequences
+
     Examples:
         >>> sequence(3)
         'sequence 3'
+        >>> sequence(1, end=5)
+        'sequence 1 thru 5'
+        >>> sequence([1, 3, 5])
+        'sequence 1 + 3 + 5'
+        >>> sequence(5, pool=2)
+        'sequence 2.5'
     """
+    if sequence_id is None:
+        raise ValueError("Must provide sequence_id")
+
+    # Handle pool syntax (pool.id)
+    if pool is not None:
+        if isinstance(sequence_id, list):
+            raise ValueError("Cannot use pool with multiple sequences")
+        return f"sequence {pool}.{sequence_id}"
+
+    # Handle list selection (using + to connect)
+    if isinstance(sequence_id, list):
+        if len(sequence_id) == 1:
+            return f"sequence {sequence_id[0]}"
+        seqs_str = " + ".join(str(sid) for sid in sequence_id)
+        return f"sequence {seqs_str}"
+
+    # Handle range selection (using thru)
+    if end is not None:
+        if sequence_id == end:
+            return f"sequence {sequence_id}"
+        return f"sequence {sequence_id} thru {end}"
+
+    # Single selection
     return f"sequence {sequence_id}"
+
+
+# ----------------------------------------------------------------------------
+# Executor Object Keyword
+# ----------------------------------------------------------------------------
+
+
+def executor(
+    executor_id: Optional[Union[int, List[int]]] = None,
+    *,
+    end: Optional[int] = None,
+    page: Optional[int] = None,
+) -> str:
+    """
+    Construct an Executor command to reference an executor.
+
+    Executor is an object type that can hold sequences, chasers, or other objects.
+
+    Args:
+        executor_id: Executor number or list of executor numbers
+        end: End executor number (for range selection)
+        page: Executor page number (for page.id syntax)
+
+    Returns:
+        str: MA command to reference an executor
+
+    Raises:
+        ValueError: When executor_id is not provided
+        ValueError: When page is used with multiple executors
+
+    Examples:
+        >>> executor(3)
+        'executor 3'
+        >>> executor(1, end=5)
+        'executor 1 thru 5'
+        >>> executor([1, 3, 5])
+        'executor 1 + 3 + 5'
+        >>> executor(5, page=2)
+        'executor 2.5'
+    """
+    if executor_id is None:
+        raise ValueError("Must provide executor_id")
+
+    # Handle page syntax (page.id)
+    if page is not None:
+        if isinstance(executor_id, list):
+            raise ValueError("Cannot use page with multiple executors")
+        return f"executor {page}.{executor_id}"
+
+    # Handle list selection (using + to connect)
+    if isinstance(executor_id, list):
+        if len(executor_id) == 1:
+            return f"executor {executor_id[0]}"
+        execs_str = " + ".join(str(eid) for eid in executor_id)
+        return f"executor {execs_str}"
+
+    # Handle range selection (using thru)
+    if end is not None:
+        if executor_id == end:
+            return f"executor {executor_id}"
+        return f"executor {executor_id} thru {end}"
+
+    # Single selection
+    return f"executor {executor_id}"
 
 
 # ----------------------------------------------------------------------------

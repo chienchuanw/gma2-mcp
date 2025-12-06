@@ -50,6 +50,8 @@ from .constants import (
 from .objects import (
     channel,
     cue,
+    cue_part,
+    executor,
     fixture,
     group,
     layout,
@@ -156,7 +158,9 @@ __all__ = [
     "preset",
     "preset_type",
     "cue",
+    "cue_part",
     "sequence",
+    "executor",
     # Assign Function Keyword
     "assign",
     "assign_fade",

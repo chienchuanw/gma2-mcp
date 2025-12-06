@@ -326,3 +326,325 @@ class TestLayoutCommands:
 
         with pytest.raises(ValueError, match="Must provide layout_id"):
             layout()
+
+
+class TestCueCommands:
+    """
+    Tests for Cue keyword commands.
+
+    Cue is an object type holding a look on stage. It is the only object type
+    that accepts numerical ID as decimal fractions (0.001 to 9999.999).
+    The default function is SelFix.
+    """
+
+    # ---- Basic Cue Selection ----
+
+    def test_cue_single(self):
+        """Test selecting a single cue: cue 3"""
+        from src.commands import cue
+
+        result = cue(3)
+        assert result == "cue 3"
+
+    def test_cue_decimal(self):
+        """Test selecting a decimal cue: cue 3.5"""
+        from src.commands import cue
+
+        result = cue(3.5)
+        assert result == "cue 3.5"
+
+    def test_cue_precise_decimal(self):
+        """Test selecting a precise decimal cue: cue 3.001"""
+        from src.commands import cue
+
+        result = cue(3.001)
+        assert result == "cue 3.001"
+
+    # ---- Cue Range Selection ----
+
+    def test_cue_range(self):
+        """Test selecting cue range: cue 1 thru 10"""
+        from src.commands import cue
+
+        result = cue(1, end=10)
+        assert result == "cue 1 thru 10"
+
+    def test_cue_range_decimal(self):
+        """Test selecting decimal cue range: cue 1.5 thru 3.5"""
+        from src.commands import cue
+
+        result = cue(1.5, end=3.5)
+        assert result == "cue 1.5 thru 3.5"
+
+    def test_cue_same_start_end(self):
+        """Test that same start and end selects a single cue."""
+        from src.commands import cue
+
+        result = cue(3, end=3)
+        assert result == "cue 3"
+
+    # ---- Cue Multiple Selection ----
+
+    def test_cue_multiple(self):
+        """Test selecting multiple cues: cue 1 + 3 + 5"""
+        from src.commands import cue
+
+        result = cue([1, 3, 5])
+        assert result == "cue 1 + 3 + 5"
+
+    def test_cue_multiple_decimal(self):
+        """Test selecting multiple decimal cues: cue 1.5 + 3.5"""
+        from src.commands import cue
+
+        result = cue([1.5, 3.5])
+        assert result == "cue 1.5 + 3.5"
+
+    def test_cue_list_single_item(self):
+        """Test that list with single element returns single cue."""
+        from src.commands import cue
+
+        result = cue([7])
+        assert result == "cue 7"
+
+    # ---- Cue with Part ----
+
+    def test_cue_with_part(self):
+        """Test selecting cue with part: cue 3 part 2"""
+        from src.commands import cue
+
+        result = cue(3, part=2)
+        assert result == "cue 3 part 2"
+
+    def test_cue_decimal_with_part(self):
+        """Test selecting decimal cue with part: cue 3.5 part 1"""
+        from src.commands import cue
+
+        result = cue(3.5, part=1)
+        assert result == "cue 3.5 part 1"
+
+    # ---- Cue with Executor ----
+
+    def test_cue_with_executor(self):
+        """Test selecting cue on executor: cue 3 executor 1"""
+        from src.commands import cue
+
+        result = cue(3, executor=1)
+        assert result == "cue 3 executor 1"
+
+    def test_cue_decimal_with_executor(self):
+        """Test selecting decimal cue on executor: cue 3.999 executor 1"""
+        from src.commands import cue
+
+        result = cue(3.999, executor=1)
+        assert result == "cue 3.999 executor 1"
+
+    # ---- Cue with Sequence ----
+
+    def test_cue_with_sequence(self):
+        """Test selecting cue in sequence: cue 3 sequence 5"""
+        from src.commands import cue
+
+        result = cue(3, sequence=5)
+        assert result == "cue 3 sequence 5"
+
+    # ---- Complex Cue Selection ----
+
+    def test_cue_with_part_and_executor(self):
+        """Test cue with part and executor: cue 3 part 2 executor 1"""
+        from src.commands import cue
+
+        result = cue(3, part=2, executor=1)
+        assert result == "cue 3 part 2 executor 1"
+
+    # ---- Error Handling ----
+
+    def test_cue_no_id_raises_error(self):
+        """Test that calling cue without ID raises ValueError."""
+        from src.commands import cue
+
+        with pytest.raises(ValueError, match="Must provide cue_id"):
+            cue()
+
+
+class TestCuePartCommands:
+    """
+    Tests for cue_part convenience function.
+
+    Parts segment cues to assign different timings for groups of fixture parameters.
+    """
+
+    def test_cue_part_basic(self):
+        """Test basic cue part: cue 3 part 2"""
+        from src.commands import cue_part
+
+        result = cue_part(3, 2)
+        assert result == "cue 3 part 2"
+
+    def test_cue_part_decimal_cue(self):
+        """Test cue part with decimal cue: cue 2.5 part 1"""
+        from src.commands import cue_part
+
+        result = cue_part(2.5, 1)
+        assert result == "cue 2.5 part 1"
+
+    def test_cue_part_with_executor(self):
+        """Test cue part with executor: cue 3 part 2 executor 1"""
+        from src.commands import cue_part
+
+        result = cue_part(3, 2, executor=1)
+        assert result == "cue 3 part 2 executor 1"
+
+    def test_cue_part_with_sequence(self):
+        """Test cue part with sequence: cue 3 part 2 sequence 5"""
+        from src.commands import cue_part
+
+        result = cue_part(3, 2, sequence=5)
+        assert result == "cue 3 part 2 sequence 5"
+
+
+class TestSequenceCommands:
+    """
+    Tests for Sequence keyword commands.
+
+    Sequence is an object type containing cues. The default function is SelFix.
+    """
+
+    # ---- Basic Sequence Selection ----
+
+    def test_sequence_single(self):
+        """Test selecting a single sequence: sequence 3"""
+        from src.commands import sequence
+
+        result = sequence(3)
+        assert result == "sequence 3"
+
+    # ---- Sequence Range Selection ----
+
+    def test_sequence_range(self):
+        """Test selecting sequence range: sequence 1 thru 5"""
+        from src.commands import sequence
+
+        result = sequence(1, end=5)
+        assert result == "sequence 1 thru 5"
+
+    def test_sequence_same_start_end(self):
+        """Test that same start and end selects a single sequence."""
+        from src.commands import sequence
+
+        result = sequence(3, end=3)
+        assert result == "sequence 3"
+
+    # ---- Sequence Multiple Selection ----
+
+    def test_sequence_multiple(self):
+        """Test selecting multiple sequences: sequence 1 + 3 + 5"""
+        from src.commands import sequence
+
+        result = sequence([1, 3, 5])
+        assert result == "sequence 1 + 3 + 5"
+
+    def test_sequence_list_single_item(self):
+        """Test that list with single element returns single sequence."""
+        from src.commands import sequence
+
+        result = sequence([7])
+        assert result == "sequence 7"
+
+    # ---- Sequence with Pool ----
+
+    def test_sequence_with_pool(self):
+        """Test selecting sequence in pool: sequence 2.5"""
+        from src.commands import sequence
+
+        result = sequence(5, pool=2)
+        assert result == "sequence 2.5"
+
+    # ---- Error Handling ----
+
+    def test_sequence_no_id_raises_error(self):
+        """Test that calling sequence without ID raises ValueError."""
+        from src.commands import sequence
+
+        with pytest.raises(ValueError, match="Must provide sequence_id"):
+            sequence()
+
+    def test_sequence_pool_with_list_raises_error(self):
+        """Test that using pool with list raises ValueError."""
+        from src.commands import sequence
+
+        with pytest.raises(ValueError, match="Cannot use pool with multiple"):
+            sequence([1, 2], pool=2)
+
+
+class TestExecutorCommands:
+    """
+    Tests for Executor keyword commands.
+
+    Executor is an object type that can hold sequences, chasers, or other objects.
+    """
+
+    # ---- Basic Executor Selection ----
+
+    def test_executor_single(self):
+        """Test selecting a single executor: executor 3"""
+        from src.commands import executor
+
+        result = executor(3)
+        assert result == "executor 3"
+
+    # ---- Executor Range Selection ----
+
+    def test_executor_range(self):
+        """Test selecting executor range: executor 1 thru 5"""
+        from src.commands import executor
+
+        result = executor(1, end=5)
+        assert result == "executor 1 thru 5"
+
+    def test_executor_same_start_end(self):
+        """Test that same start and end selects a single executor."""
+        from src.commands import executor
+
+        result = executor(3, end=3)
+        assert result == "executor 3"
+
+    # ---- Executor Multiple Selection ----
+
+    def test_executor_multiple(self):
+        """Test selecting multiple executors: executor 1 + 3 + 5"""
+        from src.commands import executor
+
+        result = executor([1, 3, 5])
+        assert result == "executor 1 + 3 + 5"
+
+    def test_executor_list_single_item(self):
+        """Test that list with single element returns single executor."""
+        from src.commands import executor
+
+        result = executor([7])
+        assert result == "executor 7"
+
+    # ---- Executor with Page ----
+
+    def test_executor_with_page(self):
+        """Test selecting executor on page: executor 2.5"""
+        from src.commands import executor
+
+        result = executor(5, page=2)
+        assert result == "executor 2.5"
+
+    # ---- Error Handling ----
+
+    def test_executor_no_id_raises_error(self):
+        """Test that calling executor without ID raises ValueError."""
+        from src.commands import executor
+
+        with pytest.raises(ValueError, match="Must provide executor_id"):
+            executor()
+
+    def test_executor_page_with_list_raises_error(self):
+        """Test that using page with list raises ValueError."""
+        from src.commands import executor
+
+        with pytest.raises(ValueError, match="Cannot use page with multiple"):
+            executor([1, 2], page=2)
