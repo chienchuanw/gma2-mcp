@@ -655,3 +655,137 @@ def layout(
 
     # Single selection
     return f"layout {layout_id}"
+
+
+# ----------------------------------------------------------------------------
+# Dmx Object Keyword
+# ----------------------------------------------------------------------------
+
+
+def dmx(
+    address: Optional[Union[int, List[int]]] = None,
+    *,
+    end: Optional[int] = None,
+    universe: Optional[int] = None,
+    select_all: bool = False,
+) -> str:
+    """
+    Construct a Dmx command to access DMX outputs.
+
+    Dmx is an object type representing the DMX outputs of the console.
+    Can be used for DMX tester or patching fixtures.
+
+    Args:
+        address: DMX address (1-512 per universe) or list of addresses
+        end: End address for range selection
+        universe: Universe number (optional, uses Universe.Address syntax)
+        select_all: If True, select all DMX addresses (dmx thru)
+
+    Returns:
+        str: MA command to access DMX address(es)
+
+    Raises:
+        ValueError: When address is not provided and select_all is False
+
+    Examples:
+        >>> dmx(101)
+        'dmx 101'
+        >>> dmx(101, universe=2)
+        'dmx 2.101'
+        >>> dmx(1, end=10)
+        'dmx 1 thru 10'
+        >>> dmx(1, end=10, universe=2)
+        'dmx 2.1 thru 10'
+        >>> dmx([1, 5, 10])
+        'dmx 1 + 5 + 10'
+        >>> dmx([1, 5, 10], universe=2)
+        'dmx 2.1 + 2.5 + 2.10'
+        >>> dmx(select_all=True)
+        'dmx thru'
+    """
+    if select_all:
+        return "dmx thru"
+
+    if address is None:
+        raise ValueError("Must provide address or set select_all=True")
+
+    # Handle list selection (using + to connect)
+    if isinstance(address, list):
+        if len(address) == 1:
+            if universe is not None:
+                return f"dmx {universe}.{address[0]}"
+            return f"dmx {address[0]}"
+        if universe is not None:
+            addrs_str = " + ".join(f"{universe}.{a}" for a in address)
+        else:
+            addrs_str = " + ".join(str(a) for a in address)
+        return f"dmx {addrs_str}"
+
+    # Handle range selection (using thru)
+    if end is not None:
+        if address == end:
+            if universe is not None:
+                return f"dmx {universe}.{address}"
+            return f"dmx {address}"
+        if universe is not None:
+            return f"dmx {universe}.{address} thru {end}"
+        return f"dmx {address} thru {end}"
+
+    # Single address
+    if universe is not None:
+        return f"dmx {universe}.{address}"
+    return f"dmx {address}"
+
+
+# ----------------------------------------------------------------------------
+# DmxUniverse Object Keyword
+# ----------------------------------------------------------------------------
+
+
+def dmx_universe(
+    universe_id: Optional[Union[int, List[int]]] = None,
+    *,
+    end: Optional[int] = None,
+) -> str:
+    """
+    Construct a DmxUniverse command to access DMX universes.
+
+    DmxUniverse is an object type representing the DMX universes of the console.
+    Used to access all DMX channels of a universe.
+
+    Args:
+        universe_id: Universe number or list of universe numbers
+        end: End universe number for range selection
+
+    Returns:
+        str: MA command to access DMX universe(s)
+
+    Raises:
+        ValueError: When universe_id is not provided
+
+    Examples:
+        >>> dmx_universe(1)
+        'dmxuniverse 1'
+        >>> dmx_universe(1, end=4)
+        'dmxuniverse 1 thru 4'
+        >>> dmx_universe([1, 3, 5])
+        'dmxuniverse 1 + 3 + 5'
+    """
+    if universe_id is None:
+        raise ValueError("Must provide universe_id")
+
+    # Handle list selection (using + to connect)
+    if isinstance(universe_id, list):
+        if len(universe_id) == 1:
+            return f"dmxuniverse {universe_id[0]}"
+        universes_str = " + ".join(str(u) for u in universe_id)
+        return f"dmxuniverse {universes_str}"
+
+    # Handle range selection (using thru)
+    if end is not None:
+        if universe_id == end:
+            return f"dmxuniverse {universe_id}"
+        return f"dmxuniverse {universe_id} thru {end}"
+
+    # Single universe
+    return f"dmxuniverse {universe_id}"

@@ -51,6 +51,8 @@ from .objects import (
     channel,
     cue,
     cue_part,
+    dmx,
+    dmx_universe,
     executor,
     fixture,
     group,
@@ -161,6 +163,8 @@ __all__ = [
     "cue_part",
     "sequence",
     "executor",
+    "dmx",
+    "dmx_universe",
     # Assign Function Keyword
     "assign",
     "assign_fade",

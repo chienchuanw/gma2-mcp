@@ -648,3 +648,165 @@ class TestExecutorCommands:
 
         with pytest.raises(ValueError, match="Cannot use page with multiple"):
             executor([1, 2], page=2)
+
+
+class TestDmxCommands:
+    """
+    Tests for Dmx keyword commands.
+
+    Dmx is an object type representing the DMX outputs of the console.
+    Can be used for DMX tester or patching fixtures.
+    """
+
+    # ---- Basic Dmx Address Selection ----
+
+    def test_dmx_single_address(self):
+        """Test selecting a single DMX address: dmx 101"""
+        from src.commands import dmx
+
+        result = dmx(101)
+        assert result == "dmx 101"
+
+    def test_dmx_address_with_universe(self):
+        """Test selecting DMX address with universe: dmx 2.101"""
+        from src.commands import dmx
+
+        result = dmx(101, universe=2)
+        assert result == "dmx 2.101"
+
+    def test_dmx_first_address_second_universe(self):
+        """Test address 513 which is first address on second universe: dmx 513"""
+        from src.commands import dmx
+
+        result = dmx(513)
+        assert result == "dmx 513"
+
+    # ---- Dmx Range Selection ----
+
+    def test_dmx_range(self):
+        """Test selecting DMX address range: dmx 1 thru 10"""
+        from src.commands import dmx
+
+        result = dmx(1, end=10)
+        assert result == "dmx 1 thru 10"
+
+    def test_dmx_range_with_universe(self):
+        """Test selecting DMX address range with universe: dmx 2.1 thru 10"""
+        from src.commands import dmx
+
+        result = dmx(1, end=10, universe=2)
+        assert result == "dmx 2.1 thru 10"
+
+    def test_dmx_same_start_end(self):
+        """Test that same start and end selects a single address."""
+        from src.commands import dmx
+
+        result = dmx(100, end=100)
+        assert result == "dmx 100"
+
+    # ---- Dmx Multiple Selection ----
+
+    def test_dmx_multiple(self):
+        """Test selecting multiple DMX addresses: dmx 1 + 5 + 10"""
+        from src.commands import dmx
+
+        result = dmx([1, 5, 10])
+        assert result == "dmx 1 + 5 + 10"
+
+    def test_dmx_multiple_with_universe(self):
+        """Test selecting multiple DMX addresses with universe: dmx 2.1 + 2.5 + 2.10"""
+        from src.commands import dmx
+
+        result = dmx([1, 5, 10], universe=2)
+        assert result == "dmx 2.1 + 2.5 + 2.10"
+
+    def test_dmx_list_single_item(self):
+        """Test that list with single element returns single address."""
+        from src.commands import dmx
+
+        result = dmx([50])
+        assert result == "dmx 50"
+
+    # ---- Dmx Thru All ----
+
+    def test_dmx_thru_all(self):
+        """Test selecting all DMX addresses: dmx thru"""
+        from src.commands import dmx
+
+        result = dmx(select_all=True)
+        assert result == "dmx thru"
+
+    # ---- Error Handling ----
+
+    def test_dmx_no_address_raises_error(self):
+        """Test that calling dmx without address raises ValueError."""
+        from src.commands import dmx
+
+        with pytest.raises(ValueError, match="Must provide address"):
+            dmx()
+
+
+class TestDmxUniverseCommands:
+    """
+    Tests for DmxUniverse keyword commands.
+
+    DmxUniverse is an object type representing the DMX universes of the console.
+    Used to access all DMX channels of a universe.
+    """
+
+    # ---- Basic DmxUniverse Selection ----
+
+    def test_dmx_universe_single(self):
+        """Test selecting a single universe: dmxuniverse 1"""
+        from src.commands import dmx_universe
+
+        result = dmx_universe(1)
+        assert result == "dmxuniverse 1"
+
+    def test_dmx_universe_large_id(self):
+        """Test selecting universe with large ID: dmxuniverse 256"""
+        from src.commands import dmx_universe
+
+        result = dmx_universe(256)
+        assert result == "dmxuniverse 256"
+
+    # ---- DmxUniverse Range Selection ----
+
+    def test_dmx_universe_range(self):
+        """Test selecting universe range: dmxuniverse 1 thru 4"""
+        from src.commands import dmx_universe
+
+        result = dmx_universe(1, end=4)
+        assert result == "dmxuniverse 1 thru 4"
+
+    def test_dmx_universe_same_start_end(self):
+        """Test that same start and end selects a single universe."""
+        from src.commands import dmx_universe
+
+        result = dmx_universe(2, end=2)
+        assert result == "dmxuniverse 2"
+
+    # ---- DmxUniverse Multiple Selection ----
+
+    def test_dmx_universe_multiple(self):
+        """Test selecting multiple universes: dmxuniverse 1 + 3 + 5"""
+        from src.commands import dmx_universe
+
+        result = dmx_universe([1, 3, 5])
+        assert result == "dmxuniverse 1 + 3 + 5"
+
+    def test_dmx_universe_list_single_item(self):
+        """Test that list with single element returns single universe."""
+        from src.commands import dmx_universe
+
+        result = dmx_universe([2])
+        assert result == "dmxuniverse 2"
+
+    # ---- Error Handling ----
+
+    def test_dmx_universe_no_id_raises_error(self):
+        """Test that calling dmx_universe without ID raises ValueError."""
+        from src.commands import dmx_universe
+
+        with pytest.raises(ValueError, match="Must provide universe_id"):
+            dmx_universe()
