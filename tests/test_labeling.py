@@ -1,12 +1,12 @@
 """
 Labeling Commands Tests
 
-測試 grandMA2 標籤與外觀相關命令的生成。
-包含 Label 和 Appearance 命令。
+Tests for grandMA2 label and appearance command generation.
+Includes Label and Appearance commands.
 
-測試類別：
-- TestLabelCommands: label, label_group, label_preset 測試
-- TestAppearanceCommands: appearance 測試
+Test Classes:
+- TestLabelCommands: Tests for label, label_group, label_preset
+- TestAppearanceCommands: Tests for appearance
 """
 
 import pytest
@@ -137,4 +137,3 @@ class TestAppearanceCommands:
 
         result = appearance("macro", [1, 3, 5], color="00FF00")
         assert result == "appearance macro 1 + 3 + 5 /color=00FF00"
-

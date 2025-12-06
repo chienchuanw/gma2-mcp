@@ -1,11 +1,11 @@
 """
 Macro Commands Tests
 
-測試 grandMA2 巨集佔位符相關命令的生成。
-@ 字元在巨集中用作使用者輸入的佔位符。
+Tests for grandMA2 macro placeholder command generation.
+The @ character is used as a placeholder for user input in macros.
 
-測試類別：
-- TestMacroPlaceholder: macro_with_input_after, macro_with_input_before 測試
+Test Classes:
+- TestMacroPlaceholder: Tests for macro_with_input_after, macro_with_input_before
 """
 
 import pytest
@@ -34,4 +34,3 @@ class TestMacroPlaceholder:
 
         result = macro_with_input_before("Fade 20")
         assert result == "@ Fade 20"
-

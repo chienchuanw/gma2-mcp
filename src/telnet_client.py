@@ -189,7 +189,8 @@ class GMA2TelnetClient:
         """
         Send a command to grandMA2 and read the response (async).
 
-        發送指令並讀取 grandMA2 的回應。適用於 list、info 等會產生輸出的指令。
+        Sends a command and reads the response from grandMA2. Suitable for
+        commands that produce output such as list and info.
 
         Args:
             command: MA command to send
@@ -207,7 +208,7 @@ class GMA2TelnetClient:
 
         logger.debug(f"Sending command with response: {command}")
 
-        # 清空任何待處理的資料
+        # Clear any pending data
         try:
             await asyncio.wait_for(self._reader.read(4096), timeout=0.1)
         except asyncio.TimeoutError:
@@ -223,7 +224,7 @@ class GMA2TelnetClient:
         # Read response
         response_parts = []
         try:
-            # 持續讀取直到沒有更多資料
+            # Continue reading until no more data
             while True:
                 try:
                     chunk = await asyncio.wait_for(
@@ -231,7 +232,7 @@ class GMA2TelnetClient:
                     )
                     if chunk:
                         response_parts.append(chunk)
-                        # 縮短後續讀取的 timeout
+                        # Shorten timeout for subsequent reads
                         timeout = 0.3
                     else:
                         break

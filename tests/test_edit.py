@@ -1,14 +1,14 @@
 """
 Edit Commands Tests
 
-測試 grandMA2 編輯操作相關命令的生成。
-包含 Copy、Move、Delete、Remove 系列命令。
+Tests for grandMA2 edit operation command generation.
+Includes Copy, Move, Delete, and Remove command series.
 
-測試類別：
-- TestCopyCommands: copy, copy_cue 測試
-- TestMoveCommands: move 測試
-- TestDeleteCommands: delete 系列測試
-- TestRemoveCommands: remove 系列測試
+Test Classes:
+- TestCopyCommands: Tests for copy, copy_cue
+- TestMoveCommands: Tests for move
+- TestDeleteCommands: Tests for delete series
+- TestRemoveCommands: Tests for remove series
 """
 
 import pytest

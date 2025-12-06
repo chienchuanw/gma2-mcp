@@ -68,7 +68,8 @@ async def get_client() -> GMA2TelnetClient:
     """
     Get or create a telnet client instance (async).
 
-    首次呼叫時會建立連線並登入，後續呼叫會回傳已連線的 client。
+    On first call, establishes connection and login. Subsequent calls return
+    the already connected client.
     """
     global _client, _connected
     if _client is None or not _connected:

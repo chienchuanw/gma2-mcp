@@ -1,12 +1,12 @@
 """
 Store Commands Tests
 
-測試 grandMA2 Store 相關命令的生成。
-Store 命令用於儲存資料到 show file 中的各種物件。
+Tests for grandMA2 Store command generation.
+Store commands are used to save data to various objects in the show file.
 
-測試類別：
-- TestGroupCommands: group 相關儲存/選擇測試
-- TestStoreCommands: Store keyword 完整測試
+Test Classes:
+- TestGroupCommands: Tests for group-related store/select operations
+- TestStoreCommands: Complete tests for Store keyword
 """
 
 import pytest

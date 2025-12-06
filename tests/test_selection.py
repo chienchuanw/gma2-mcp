@@ -1,11 +1,11 @@
 """
 Selection Commands Tests
 
-測試 grandMA2 選擇與清除相關命令的生成。
-包含 SelFix（選擇燈具）和 Clear（清除）系列命令。
+Tests for grandMA2 selection and clear command generation.
+Includes SelFix (select fixtures) and Clear command series.
 
-測試類別：
-- TestFixtureCommands: select_fixture, clear 系列測試
+Test Classes:
+- TestFixtureCommands: Tests for select_fixture, clear series
 """
 
 import pytest
@@ -118,4 +118,3 @@ class TestFixtureCommands:
 
         result = clear_all()
         assert result == "clearall"
-

@@ -1,11 +1,11 @@
 """
 Assignment Commands Tests
 
-測試 grandMA2 Assign 相關命令的生成。
-Assign 命令用於將物件指派到執行器、佈局或其他目標。
+Tests for grandMA2 Assign command generation.
+Assign commands are used to assign objects to executors, layouts, or other targets.
 
-測試類別：
-- TestAssignCommands: assign, assign_function, assign_fade, assign_to_layout 測試
+Test Classes:
+- TestAssignCommands: Tests for assign, assign_function, assign_fade, assign_to_layout
 """
 
 import pytest
@@ -119,4 +119,3 @@ class TestAssignCommands:
 
         result = assign_to_layout("macro", 1, 2, x=0, y=0, end=5)
         assert result == "assign macro 1 thru 5 at layout 2 /x=0 /y=0"
-

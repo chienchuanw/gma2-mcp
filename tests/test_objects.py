@@ -1,15 +1,15 @@
 """
 Object Keywords Tests
 
-測試 grandMA2 Object Keywords 的命令生成。
-Object keywords 是控制台的「名詞」，用於參照 show file 中的物件。
+Tests for grandMA2 Object Keywords command generation.
+Object keywords are the "nouns" of the console, used to reference objects in the show file.
 
-測試類別：
-- TestFixtureCommands_Advanced: fixture keyword 測試
-- TestChannelCommands: channel keyword 測試
-- TestPresetCommands: preset keyword 測試
-- TestPresetTypeCommands: presettype keyword 測試
-- TestLayoutCommands: layout keyword 測試
+Test Classes:
+- TestFixtureCommands_Advanced: Tests for fixture keyword
+- TestChannelCommands: Tests for channel keyword
+- TestPresetCommands: Tests for preset keyword
+- TestPresetTypeCommands: Tests for presettype keyword
+- TestLayoutCommands: Tests for layout keyword
 """
 
 import pytest
@@ -124,8 +124,8 @@ class TestPresetCommands:
         result = call_preset("dimmer", 1)
         assert result == "preset 1.1"
 
-    # ---- Preset Object Keyword 擴充測試 ----
-    # 根據 grandMA2 官方文件，Preset 支援多種語法
+    # ---- Preset Object Keyword Extended Tests ----
+    # According to grandMA2 official documentation, Preset supports multiple syntax variations
 
     def test_preset_with_type_and_id(self):
         """Test preset with type name and ID: preset 3.2 (gobo type)"""
@@ -187,7 +187,7 @@ class TestPresetCommands:
 class TestPresetTypeCommands:
     """Tests for PresetType Object Keyword."""
 
-    # ---- 基本語法測試 ----
+    # ---- Basic Syntax Tests ----
 
     def test_preset_type_by_number(self):
         """Test calling preset type by number: PresetType 3"""
@@ -210,7 +210,7 @@ class TestPresetTypeCommands:
         result = preset_type(name="Color")
         assert result == 'presettype "Color"'
 
-    # ---- Feature 語法測試 ----
+    # ---- Feature Syntax Tests ----
 
     def test_preset_type_with_feature(self):
         """Test preset type with feature: PresetType 3.1"""
@@ -226,7 +226,7 @@ class TestPresetTypeCommands:
         result = preset_type(name="Color", feature=2)
         assert result == 'presettype "Color".2'
 
-    # ---- Attribute 語法測試 ----
+    # ---- Attribute Syntax Tests ----
 
     def test_preset_type_with_feature_and_attribute(self):
         """Test preset type with feature and attribute: PresetType 3.2.1"""
@@ -235,7 +235,7 @@ class TestPresetTypeCommands:
         result = preset_type(3, feature=2, attribute=1)
         assert result == "presettype 3.2.1"
 
-    # ---- 變數語法測試 ----
+    # ---- Variable Syntax Tests ----
 
     def test_preset_type_variable(self):
         """Test preset type variable: PresetType $preset.2"""
@@ -244,7 +244,7 @@ class TestPresetTypeCommands:
         result = preset_type("$preset", feature=2)
         assert result == "presettype $preset.2"
 
-    # ---- 錯誤處理測試 ----
+    # ---- Error Handling Tests ----
 
     def test_preset_type_no_args_raises_error(self):
         """Test that calling preset_type() without args raises ValueError."""
@@ -265,12 +265,12 @@ class TestLayoutCommands:
     """
     Tests for Layout keyword commands.
 
-    Layout 是一個物件類型，代表 fixtures 和其他物件的佈局。
-    Layout 的預設功能是 Select，表示呼叫 Layout 時會選擇該 Layout，
-    並在任何啟用 Link Selected 的 Layout View 中顯示。
+    Layout is an object type representing the layout of fixtures and other objects.
+    The default function of Layout is Select, meaning when Layout is called,
+    it selects that Layout and displays it in any Layout View with Link Selected enabled.
     """
 
-    # ---- 基本 Layout 選擇 ----
+    # ---- Basic Layout Selection ----
 
     def test_layout_single(self):
         """Test selecting a single layout: layout 3"""
@@ -286,7 +286,7 @@ class TestLayoutCommands:
         result = layout(101)
         assert result == "layout 101"
 
-    # ---- Layout 範圍選擇 (使用 thru) ----
+    # ---- Layout Range Selection (using thru) ----
 
     def test_layout_range(self):
         """Test selecting layout range: layout 1 thru 5"""
@@ -302,7 +302,7 @@ class TestLayoutCommands:
         result = layout(3, end=3)
         assert result == "layout 3"
 
-    # ---- Layout 多選 (使用 +) ----
+    # ---- Layout Multiple Selection (using +) ----
 
     def test_layout_multiple(self):
         """Test selecting multiple layouts: layout 1 + 3 + 5"""
@@ -318,7 +318,7 @@ class TestLayoutCommands:
         result = layout([7])
         assert result == "layout 7"
 
-    # ---- 錯誤處理 ----
+    # ---- Error Handling ----
 
     def test_layout_no_id_raises_error(self):
         """Test that calling layout without ID raises ValueError."""

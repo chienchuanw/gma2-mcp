@@ -1,12 +1,12 @@
 """
 Values Commands Tests
 
-測試 grandMA2 數值設定相關命令的生成。
-包含 At 系列命令，用於設定燈具屬性值。
+Tests for grandMA2 value setting command generation.
+Includes At command series for setting fixture attribute values.
 
-測試類別：
-- TestAtCommands: at, at_full, at_zero, fixture_at, channel_at, group_at,
-                  executor_at, preset_type_at, attribute_at 測試
+Test Classes:
+- TestAtCommands: Tests for at, at_full, at_zero, fixture_at, channel_at, group_at,
+                  executor_at, preset_type_at, attribute_at
 """
 
 import pytest

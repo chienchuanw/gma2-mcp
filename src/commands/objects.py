@@ -194,23 +194,23 @@ def preset(
     """
     Construct a Preset command to select or apply a preset.
 
-    Preset 可用於：
-    - 選擇存儲在 preset 中的 fixtures
-    - 將 preset 套用到當前選擇的 fixture 或 channel
+    Preset can be used for:
+    - Selecting fixtures stored in a preset
+    - Applying a preset to currently selected fixtures or channels
 
-    如果沒有選擇 fixture/channel，預設功能是 SelFix。
-    如果已選擇 fixture/channel，預設功能是 At。
+    If no fixtures/channels are selected, the default function is SelFix.
+    If fixtures/channels are already selected, the default function is At.
 
     Args:
-        preset_type_or_id: Preset type（字串如 "dimmer"）或 type number（整數）
-                           或當只提供一個參數時作為 preset ID
-        preset_id: Preset 編號或編號列表（用於多選）
-        name: Preset 名稱（使用名稱選擇時）
-        end: 結束編號（用於範圍選擇）
-        wildcard: 是否使用萬用字元 *（搭配 name 使用）
+        preset_type_or_id: Preset type (string like "dimmer") or type number (integer)
+                           or preset ID when only one parameter is provided
+        preset_id: Preset number or list of numbers (for multiple selection)
+        name: Preset name (when selecting by name)
+        end: End number (for range selection)
+        wildcard: Whether to use wildcard * (used with name)
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> preset(5)
@@ -230,45 +230,45 @@ def preset(
         >>> preset(1, [1, 3, 5])
         'preset 1.1 + 1.3 + 1.5'
     """
-    # 情況 1: 只使用名稱（可選萬用字元）
+    # Case 1: Name only (optional wildcard)
     if name is not None and preset_type_or_id is None:
         if wildcard:
             return f'preset *."{name}"'
         return f'preset "{name}"'
 
-    # 情況 2: 類型 + 名稱（如 preset "color"."Red"）
+    # Case 2: Type + name (e.g., preset "color"."Red")
     if name is not None and preset_type_or_id is not None:
-        # 將類型轉為字串表示
+        # Convert type to string representation
         if isinstance(preset_type_or_id, str):
             type_str = f'"{preset_type_or_id}"'
         else:
             type_str = str(preset_type_or_id)
         return f'preset {type_str}."{name}"'
 
-    # 情況 3: 只有 preset ID（如 preset 5）
+    # Case 3: Preset ID only (e.g., preset 5)
     if preset_type_or_id is not None and preset_id is None:
         return f"preset {preset_type_or_id}"
 
-    # 情況 4: Type + ID（如 preset 3.2 或 preset "dimmer".1）
+    # Case 4: Type + ID (e.g., preset 3.2 or preset "dimmer".1)
     if preset_type_or_id is not None and preset_id is not None:
-        # 取得 type 數字
+        # Get type number
         if isinstance(preset_type_or_id, str):
             type_num = PRESET_TYPES.get(preset_type_or_id.lower(), 1)
         else:
             type_num = preset_type_or_id
 
-        # 處理多選（列表）
+        # Handle multiple selection (list)
         if isinstance(preset_id, list):
             if len(preset_id) == 1:
                 return f"preset {type_num}.{preset_id[0]}"
             presets_str = " + ".join(f"{type_num}.{pid}" for pid in preset_id)
             return f"preset {presets_str}"
 
-        # 處理範圍選擇
+        # Handle range selection
         if end is not None:
             return f"preset {type_num}.{preset_id} thru {end}"
 
-        # 單一選擇
+        # Single selection
         return f"preset {type_num}.{preset_id}"
 
     raise ValueError("Must provide preset_type_or_id, preset_id, or name")
@@ -289,25 +289,26 @@ def preset_type(
     """
     Construct a PresetType command to call or select a preset type.
 
-    PresetType 可用於：
-    - 在 fixture sheet 和 preset type bar 中呼叫 PresetType
-    - 選擇 PresetType 中的 Feature 和 Attribute
-    - 為選定的 fixtures 啟用 PresetType
+    PresetType can be used for:
+    - Calling PresetType in fixture sheet and preset type bar
+    - Selecting Features and Attributes in PresetType
+    - Enabling PresetType for selected fixtures
 
-    Preset types 包含 features 和 attributes，可以使用點分隔數字來呼叫。
+    Preset types contain features and attributes, which can be called
+    using dot-separated numbers.
 
     Args:
-        type_id: PresetType 編號（整數）或變數（如 "$preset"）
-        name: PresetType 名稱（如 "Dimmer", "Color"）
-        feature: Feature 編號（可選）
-        attribute: Attribute 編號（可選，需搭配 feature）
+        type_id: PresetType number (integer) or variable (e.g., "$preset")
+        name: PresetType name (e.g., "Dimmer", "Color")
+        feature: Feature number (optional)
+        attribute: Attribute number (optional, requires feature)
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Raises:
-        ValueError: 未提供 type_id 或 name 時
-        ValueError: 提供 attribute 但未提供 feature 時
+        ValueError: When neither type_id nor name is provided
+        ValueError: When attribute is provided without feature
 
     Examples:
         >>> preset_type(3)
@@ -323,15 +324,15 @@ def preset_type(
         >>> preset_type("$preset", feature=2)
         'presettype $preset.2'
     """
-    # 驗證：不能只有 attribute 沒有 feature
+    # Validation: Cannot have attribute without feature
     if attribute is not None and feature is None:
         raise ValueError("Cannot specify attribute without feature")
 
-    # 驗證：必須提供 type_id 或 name
+    # Validation: Must provide type_id or name
     if type_id is None and name is None:
         raise ValueError("Must provide type_id or name")
 
-    # 情況 1: 使用名稱
+    # Case 1: Using name
     if name is not None:
         base = f'presettype "{name}"'
         if feature is not None:
@@ -340,7 +341,7 @@ def preset_type(
                 base = f"{base}.{attribute}"
         return base
 
-    # 情況 2: 使用數字或變數
+    # Case 2: Using number or variable
     base = f"presettype {type_id}"
     if feature is not None:
         base = f"{base}.{feature}"
@@ -410,16 +411,16 @@ def layout(
     """
     Construct a Layout command to select a layout.
 
-    Layout 是一個物件類型，代表 fixtures 和其他物件的佈局。
-    Layout 的預設功能是 Select，表示呼叫 Layout 時會選擇該 Layout，
-    並在任何啟用 Link Selected 的 Layout View 中顯示。
+    Layout is an object type representing the layout of fixtures and other objects.
+    The default function for Layout is Select, meaning calling a Layout will select it
+    and display it in any Layout View with Link Selected enabled.
 
     Args:
-        layout_id: Layout 編號或 Layout 編號列表
-        end: 結束 Layout 編號（用於範圍選擇）
+        layout_id: Layout number or list of layout numbers
+        end: End layout number (for range selection)
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> layout(3)
@@ -432,18 +433,18 @@ def layout(
     if layout_id is None:
         raise ValueError("Must provide layout_id")
 
-    # 處理列表選擇（使用 + 連接）
+    # Handle list selection (using + to connect)
     if isinstance(layout_id, list):
         if len(layout_id) == 1:
             return f"layout {layout_id[0]}"
         layouts_str = " + ".join(str(lid) for lid in layout_id)
         return f"layout {layouts_str}"
 
-    # 處理範圍選擇（使用 thru）
+    # Handle range selection (using thru)
     if end is not None:
         if layout_id == end:
             return f"layout {layout_id}"
         return f"layout {layout_id} thru {end}"
 
-    # 單一選擇
+    # Single selection
     return f"layout {layout_id}"

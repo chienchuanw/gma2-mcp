@@ -190,13 +190,13 @@ def list_preset(
     """
     Construct a List command for presets.
 
-    列出 Preset Pool 中的 Presets。
+    List all presets in the Preset Pool.
 
     Args:
-        preset_type: Preset 類型（如 "color", "position", 4 等）
-        preset_id: Preset ID 或名稱模式（如 '"m*"'）
-        end: 範圍結束 Preset ID
-        filename: 輸出 CSV 檔案名稱
+        preset_type: Preset type (e.g., "color", "position", 4, etc.)
+        preset_id: Preset ID or name pattern (e.g., '"m*"')
+        end: End Preset ID for range
+        filename: Output CSV filename
 
     Returns:
         str: MA List command for presets
@@ -214,7 +214,7 @@ def list_preset(
     cmd = "list preset"
 
     if preset_type is not None:
-        # 處理文字類型名稱（加引號）或數字類型
+        # Handle string type names (add quotes) or numeric types
         if isinstance(preset_type, str) and not preset_type.startswith('"'):
             type_part = f'"{preset_type}"'
         else:
@@ -240,10 +240,10 @@ def list_attribute(*, filename: str | None = None) -> str:
     """
     Construct a List command for attributes.
 
-    列出 show file 中存在的所有屬性名稱。
+    List all attribute names that exist in the show file.
 
     Args:
-        filename: 輸出 CSV 檔案名稱
+        filename: Output CSV filename
 
     Returns:
         str: MA List command for attributes
@@ -264,11 +264,11 @@ def list_messages(*, condition: str | None = None, filename: str | None = None) 
     """
     Construct a List command for messages.
 
-    列出訊息中心的訊息。
+    List messages from the message center.
 
     Args:
-        condition: 條件過濾
-        filename: 輸出 CSV 檔案名稱
+        condition: Condition filter
+        filename: Output CSV filename
 
     Returns:
         str: MA List command for messages
@@ -305,14 +305,14 @@ def info(
     """
     Construct an Info command to add or display user info to an object.
 
-    Info 用於為物件添加或顯示用戶資訊。
-    如果提供 text，則設定該資訊；否則顯示現有資訊。
+    Info is used to add or display user information for an object.
+    If text is provided, it sets the information; otherwise, it displays existing information.
 
     Args:
-        object_type: 物件類型（如 "group", "cue", "preset"）
-        object_id: 物件 ID
-        end: 範圍結束 ID（使用 Thru）
-        text: 要添加的資訊文字（可選，如未提供則顯示現有資訊）
+        object_type: Object type (e.g., "group", "cue", "preset")
+        object_id: Object ID
+        end: End ID for range (uses Thru)
+        text: Information text to add (optional; if not provided, displays existing information)
 
     Returns:
         str: MA Info command
@@ -325,7 +325,7 @@ def info(
         >>> info("cue", 1, end=5)
         'info cue 1 thru 5'
     """
-    # 構建物件部分
+    # Build object part
     if end is not None:
         object_part = f"{object_type} {object_id} thru {end}"
     else:
@@ -333,7 +333,7 @@ def info(
 
     cmd = f"info {object_part}"
 
-    # 如果有文字，則添加資訊
+    # If text is provided, add the information
     if text is not None:
         cmd = f'{cmd} "{text}"'
 
@@ -346,12 +346,12 @@ def info_group(
     """
     Construct an Info command for groups.
 
-    為 Group 添加或顯示資訊。
+    Add or display information for a Group.
 
     Args:
         group_id: Group ID
-        end: 範圍結束 Group ID
-        text: 要添加的資訊文字
+        end: End Group ID for range
+        text: Information text to add
 
     Returns:
         str: MA Info command for group
@@ -375,13 +375,13 @@ def info_cue(
     """
     Construct an Info command for cues.
 
-    為 Cue 添加或顯示資訊。
+    Add or display information for a Cue.
 
     Args:
         cue_id: Cue ID
-        sequence_id: Sequence ID（可選）
-        end: 範圍結束 Cue ID
-        text: 要添加的資訊文字
+        sequence_id: Sequence ID (optional)
+        end: End Cue ID for range
+        text: Information text to add
 
     Returns:
         str: MA Info command for cue
@@ -394,7 +394,7 @@ def info_cue(
         >>> info_cue(1, text="opening look")
         'info cue 1 "opening look"'
     """
-    # 構建物件部分
+    # Build object part
     if end is not None:
         object_part = f"cue {cue_id} thru {end}"
     else:
@@ -420,12 +420,12 @@ def info_preset(
     """
     Construct an Info command for presets.
 
-    為 Preset 添加或顯示資訊。
+    Add or display information for a Preset.
 
     Args:
-        preset_type: Preset 類型（如 "color", 4）
+        preset_type: Preset type (e.g., "color", 4)
         preset_id: Preset ID
-        text: 要添加的資訊文字
+        text: Information text to add
 
     Returns:
         str: MA Info command for preset
@@ -436,7 +436,7 @@ def info_preset(
         >>> info_preset(4, 5, text="deep blue")
         'info preset 4.5 "deep blue"'
     """
-    # 轉換 preset type
+    # Convert preset type
     if isinstance(preset_type, str):
         type_num = PRESET_TYPES.get(preset_type.lower(), preset_type)
     else:

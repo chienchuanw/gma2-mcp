@@ -1,13 +1,13 @@
 """
 Info Commands Tests
 
-測試 grandMA2 資訊查詢相關命令的生成。
-包含 List 和 Info 系列命令。
+Tests for grandMA2 information query command generation.
+Includes List and Info command series.
 
-測試類別：
-- TestListCommands: list_objects, list_cue, list_group, list_preset,
-                    list_attribute, list_messages 測試
-- TestInfoCommands: info, info_group, info_cue, info_preset 測試
+Test Classes:
+- TestListCommands: Tests for list_objects, list_cue, list_group, list_preset,
+                    list_attribute, list_messages
+- TestInfoCommands: Tests for info, info_group, info_cue, info_preset
 """
 
 import pytest

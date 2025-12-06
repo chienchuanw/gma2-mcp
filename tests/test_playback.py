@@ -1,16 +1,16 @@
 """
 Playback Commands Tests
 
-測試 grandMA2 播放控制相關命令的生成。
-包含 Go、GoBack、Goto、GoFast、DefGo 系列命令。
+Tests for grandMA2 playback control command generation.
+Includes Go, GoBack, Goto, GoFast, and DefGo command series.
 
-測試類別：
-- TestGoCommands: go, go_executor, go_macro 測試
-- TestGoBackCommands: go_back, go_back_executor 測試
-- TestGotoCommands: goto 測試
-- TestSequenceCommands: go_sequence, pause_sequence, goto_cue 測試 (legacy)
-- TestGoFastCommands: go_fast_back, go_fast_forward 測試
-- TestDefGoCommands: def_go_back, def_go_forward, def_go_pause 測試
+Test Classes:
+- TestGoCommands: Tests for go, go_executor, go_macro
+- TestGoBackCommands: Tests for go_back, go_back_executor
+- TestGotoCommands: Tests for goto
+- TestSequenceCommands: Tests for go_sequence, pause_sequence, goto_cue (legacy)
+- TestGoFastCommands: Tests for go_fast_back, go_fast_forward
+- TestDefGoCommands: Tests for def_go_back, def_go_forward, def_go_pause
 """
 
 import pytest
@@ -266,7 +266,7 @@ class TestSequenceCommands:
 class TestGoFastCommands:
     """Tests for <<< (GoFastBack) and >>> (GoFastForward) keywords."""
 
-    # ---- GoFastBack (<<<) 測試 ----
+    # ---- GoFastBack (<<<) Tests ----
 
     def test_go_fast_back_executor(self):
         """Test <<< Executor 3 - jumps to previous cue on executor 3."""
@@ -296,7 +296,7 @@ class TestGoFastCommands:
         result = go_fast_back()
         assert result == "<<<"
 
-    # ---- GoFastForward (>>>) 測試 ----
+    # ---- GoFastForward (>>>) Tests ----
 
     def test_go_fast_forward_executor(self):
         """Test >>> Executor 3 - jumps to next cue on executor 3."""
@@ -330,8 +330,8 @@ class TestGoFastCommands:
 class TestDefGoCommands:
     """Tests for DefGoBack, DefGoForward, DefGoPause keywords.
 
-    這些指令作用於選定的 Executor（預設 Executor），
-    等同於按下控台上的實體 Go-、Go+、Pause 按鈕。
+    These commands operate on the selected Executor (default Executor),
+    equivalent to pressing the physical Go-, Go+, Pause buttons on the console.
     """
 
     def test_def_go_back(self):
