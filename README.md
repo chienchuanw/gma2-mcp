@@ -308,16 +308,16 @@ To exit a Telnet session:
 
 ```text
 gma2-mcp/
-├── main.py                  # Entry point with login test functionality
-├── connect.sh               # Telnet connection script with auto-login
+├── main.py                      # Entry point with login test functionality
+├── connect.sh                   # Telnet connection script with auto-login
 ├── src/
 │   ├── __init__.py
-│   ├── commands/            # Command builder module
-│   │   ├── __init__.py      # Public API exports
-│   │   ├── constants.py     # PRESET_TYPES, STORE_*_OPTIONS
-│   │   ├── helpers.py       # Internal helper functions
-│   │   ├── objects.py       # Object Keywords (fixture, channel, group, etc.)
-│   │   └── functions/       # Function Keywords organized by category
+│   ├── commands/                # Command builder module
+│   │   ├── __init__.py          # Public API exports
+│   │   ├── constants.py         # PRESET_TYPES, STORE_*_OPTIONS
+│   │   ├── helpers.py           # Internal helper functions
+│   │   ├── objects.py           # Object Keywords (fixture, channel, group, etc.)
+│   │   └── functions/           # Function Keywords organized by category
 │   │       ├── __init__.py
 │   │       ├── assignment.py    # Assign keyword functions
 │   │       ├── edit.py          # Copy, Move, Delete, Remove functions
@@ -328,30 +328,30 @@ gma2-mcp/
 │   │       ├── selection.py     # SelFix and Clear functions
 │   │       ├── store.py         # Store functions
 │   │       └── values.py        # At and value setting functions
-│   ├── gma2_client.py       # High-level grandMA2 client interface
-│   ├── telnet_client.py     # Telnet connection management
-│   ├── server.py            # MCP server implementation
-│   └── tools.py             # MCP tool definitions
+│   ├── gma2_client.py           # High-level grandMA2 client interface
+│   ├── telnet_client.py         # Telnet connection management
+│   ├── server.py                # MCP server implementation
+│   └── tools.py                 # MCP tool definitions
 ├── tests/
-│   ├── conftest.py          # Pytest configuration and fixtures
-│   ├── test_assignment.py   # Assign keyword tests
-│   ├── test_edit.py         # Copy, Move, Delete tests
-│   ├── test_info.py         # List and Info query tests
-│   ├── test_labeling.py     # Label and Appearance tests
-│   ├── test_macro.py        # Macro placeholder tests
-│   ├── test_objects.py      # Object Keywords tests
-│   ├── test_playback.py     # Playback control tests
-│   ├── test_selection.py    # Selection and Clear tests
-│   ├── test_store.py        # Store function tests
-│   ├── test_telnet_client.py # Telnet client tests
-│   ├── test_tools.py        # MCP tool tests
-│   └── test_values.py       # Value setting tests
-├── doc/                     # Documentation files
-├── pyproject.toml           # Project configuration
-├── pytest.ini               # Pytest configuration
-├── uv.lock                  # Dependency lock file
-├── Makefile                 # Utility commands
-└── README.md                # This file
+│   ├── conftest.py              # Pytest configuration and fixtures
+│   ├── test_assignment.py       # Assign keyword tests
+│   ├── test_edit.py             # Copy, Move, Delete tests
+│   ├── test_info.py             # List and Info query tests
+│   ├── test_labeling.py         # Label and Appearance tests
+│   ├── test_macro.py            # Macro placeholder tests
+│   ├── test_objects.py          # Object Keywords tests
+│   ├── test_playback.py         # Playback control tests
+│   ├── test_selection.py        # Selection and Clear tests
+│   ├── test_store.py            # Store function tests
+│   ├── test_telnet_client.py    # Telnet client tests
+│   ├── test_tools.py            # MCP tool tests
+│   └── test_values.py           # Value setting tests
+├── doc/                         # Documentation files
+├── pyproject.toml               # Project configuration
+├── pytest.ini                   # Pytest configuration
+├── uv.lock                      # Dependency lock file
+├── Makefile                     # Utility commands
+└── README.md                    # This file
 ```
 
 ## Dependencies
