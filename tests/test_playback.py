@@ -100,3 +100,31 @@ class TestGoFastCommands:
         result = go_fast_forward()
         assert result == ">>>"
 
+
+class TestDefGoCommands:
+    """Tests for DefGoBack, DefGoForward, DefGoPause keywords.
+
+    這些指令作用於選定的 Executor（預設 Executor），
+    等同於按下控台上的實體 Go-、Go+、Pause 按鈕。
+    """
+
+    def test_def_go_back(self):
+        """Test DefGoBack - calls previous cue in selected executor."""
+        from src.commands import def_go_back
+
+        result = def_go_back()
+        assert result == "defgoback"
+
+    def test_def_go_forward(self):
+        """Test DefGoForward - calls next cue in selected executor."""
+        from src.commands import def_go_forward
+
+        result = def_go_forward()
+        assert result == "defgoforward"
+
+    def test_def_go_pause(self):
+        """Test DefGoPause - pauses current fade in selected executor."""
+        from src.commands import def_go_pause
+
+        result = def_go_pause()
+        assert result == "defgopause"

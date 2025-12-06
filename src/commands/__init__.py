@@ -118,6 +118,9 @@ from .functions import (
     clear_active,
     clear_all,
     clear_selection,
+    def_go_back,
+    def_go_forward,
+    def_go_pause,
     go_fast_back,
     go_fast_forward,
     go_sequence,
@@ -219,6 +222,10 @@ __all__ = [
     # GoFast (<<< and >>>)
     "go_fast_back",
     "go_fast_forward",
+    # DefGo (Selected Executor)
+    "def_go_back",
+    "def_go_forward",
+    "def_go_pause",
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",

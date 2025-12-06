@@ -36,13 +36,16 @@ from .selection import (
     clear_all,
 )
 
-# Playback Function Keywords (Go, Pause, Goto, GoFast)
+# Playback Function Keywords (Go, Pause, Goto, GoFast, DefGo)
 from .playback import (
     go_sequence,
     pause_sequence,
     goto_cue,
     go_fast_back,
     go_fast_forward,
+    def_go_back,
+    def_go_forward,
+    def_go_pause,
 )
 
 # Edit Function Keywords (Copy, Move, Delete, Remove)
@@ -155,6 +158,10 @@ __all__ = [
     # GoFast
     "go_fast_back",
     "go_fast_forward",
+    # DefGo (Selected Executor)
+    "def_go_back",
+    "def_go_forward",
+    "def_go_pause",
     # Copy
     "copy",
     "copy_cue",

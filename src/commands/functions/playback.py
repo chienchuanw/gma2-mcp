@@ -145,3 +145,63 @@ def go_fast_forward(
         return f">>> sequence {sequence}"
 
     return ">>>"
+
+
+# ============================================================================
+# DEFGOBACK / DEFGOFORWARD / DEFGOPAUSE FUNCTION KEYWORDS
+# ============================================================================
+# These keywords operate on the **selected executor** (default executor).
+# They are equivalent to pressing the physical Go-, Go+, and Pause buttons.
+# ============================================================================
+
+
+def def_go_back() -> str:
+    """
+    Construct a DefGoBack command to call the previous cue in the selected executor.
+
+    DefGoBack 用於在選定的 Executor 上呼叫前一個 Cue。
+    等同於按下控台上的大型 Go- 按鈕。
+
+    Returns:
+        str: MA 指令字串
+
+    Examples:
+        >>> def_go_back()
+        'defgoback'
+    """
+    return "defgoback"
+
+
+def def_go_forward() -> str:
+    """
+    Construct a DefGoForward command to call the next cue in the selected executor.
+
+    DefGoForward 用於在選定的 Executor 上呼叫下一個 Cue。
+    等同於按下控台上的大型 Go+ 按鈕。
+
+    Returns:
+        str: MA 指令字串
+
+    Examples:
+        >>> def_go_forward()
+        'defgoforward'
+    """
+    return "defgoforward"
+
+
+def def_go_pause() -> str:
+    """
+    Construct a DefGoPause command to pause the current fade in the selected executor.
+
+    DefGoPause 用於暫停選定 Executor 上當前的 fade 和 effect。
+    如果 assign menu 中的 "Link effect to rate" 選項開啟，也會暫停 effects。
+    等同於按下控台上的大型 Pause 按鈕。
+
+    Returns:
+        str: MA 指令字串
+
+    Examples:
+        >>> def_go_pause()
+        'defgopause'
+    """
+    return "defgopause"
