@@ -810,3 +810,152 @@ class TestDmxUniverseCommands:
 
         with pytest.raises(ValueError, match="Must provide universe_id"):
             dmx_universe()
+
+
+class TestTimecodeCommands:
+    """
+    Tests for Timecode object keyword commands.
+
+    Timecode is an object keyword for timecode shows.
+    Supports store, play (go), record, edit, label, assign, rewind (top).
+    """
+
+    # ---- Basic Timecode ----
+
+    def test_timecode_single(self):
+        """Test timecode with single ID: timecode 2"""
+        from src.commands import timecode
+
+        result = timecode(2)
+        assert result == "timecode 2"
+
+    def test_timecode_range(self):
+        """Test timecode with range: timecode 1 thru 5"""
+        from src.commands import timecode
+
+        result = timecode(1, end=5)
+        assert result == "timecode 1 thru 5"
+
+    def test_timecode_list(self):
+        """Test timecode with list: timecode 1 + 3 + 5"""
+        from src.commands import timecode
+
+        result = timecode([1, 3, 5])
+        assert result == "timecode 1 + 3 + 5"
+
+    def test_timecode_select_all(self):
+        """Test timecode select all: timecode thru"""
+        from src.commands import timecode
+
+        result = timecode(select_all=True)
+        assert result == "timecode thru"
+
+    # ---- Error Handling ----
+
+    def test_timecode_no_id_raises_error(self):
+        """Test that calling timecode without ID raises ValueError."""
+        from src.commands import timecode
+
+        with pytest.raises(ValueError, match="Must provide timecode_id"):
+            timecode()
+
+    def test_timecode_range_list_conflict_raises_error(self):
+        """Test that using range with list raises ValueError."""
+        from src.commands import timecode
+
+        with pytest.raises(ValueError, match="Cannot use 'end' with list"):
+            timecode([1, 2], end=5)
+
+
+class TestTimecodeSlotCommands:
+    """
+    Tests for TimecodeSlot object keyword commands.
+
+    TimecodeSlot represents the 8 different possible timecode streams.
+    """
+
+    # ---- Basic TimecodeSlot ----
+
+    def test_timecode_slot_single(self):
+        """Test timecode slot with single ID: timecodeslot 3"""
+        from src.commands import timecode_slot
+
+        result = timecode_slot(3)
+        assert result == "timecodeslot 3"
+
+    def test_timecode_slot_range(self):
+        """Test timecode slot with range: timecodeslot 1 thru 4"""
+        from src.commands import timecode_slot
+
+        result = timecode_slot(1, end=4)
+        assert result == "timecodeslot 1 thru 4"
+
+    def test_timecode_slot_list(self):
+        """Test timecode slot with list: timecodeslot 1 + 3 + 5"""
+        from src.commands import timecode_slot
+
+        result = timecode_slot([1, 3, 5])
+        assert result == "timecodeslot 1 + 3 + 5"
+
+    # ---- Error Handling ----
+
+    def test_timecode_slot_no_id_raises_error(self):
+        """Test that calling timecode_slot without ID raises ValueError."""
+        from src.commands import timecode_slot
+
+        with pytest.raises(ValueError, match="Must provide slot_id"):
+            timecode_slot()
+
+
+class TestTimerCommands:
+    """
+    Tests for Timer object keyword commands.
+
+    Timer is an object keyword for timers. Timer 1 is a predefined stopwatch.
+    """
+
+    # ---- Basic Timer ----
+
+    def test_timer_single(self):
+        """Test timer with single ID: timer 4"""
+        from src.commands import timer
+
+        result = timer(4)
+        assert result == "timer 4"
+
+    def test_timer_range(self):
+        """Test timer with range: timer 2 thru 5"""
+        from src.commands import timer
+
+        result = timer(2, end=5)
+        assert result == "timer 2 thru 5"
+
+    def test_timer_list(self):
+        """Test timer with list: timer 1 + 3 + 5"""
+        from src.commands import timer
+
+        result = timer([1, 3, 5])
+        assert result == "timer 1 + 3 + 5"
+
+    def test_timer_select_all(self):
+        """Test timer select all: timer thru"""
+        from src.commands import timer
+
+        result = timer(select_all=True)
+        assert result == "timer thru"
+
+    # ---- Error Handling ----
+
+    def test_timer_no_id_raises_error(self):
+        """Test that calling timer without ID raises ValueError."""
+        from src.commands import timer
+
+        with pytest.raises(ValueError, match="Must provide timer_id"):
+            timer()
+
+    def test_timer_range_list_conflict_raises_error(self):
+        """Test that using range with list raises ValueError."""
+        from src.commands import timer
+
+        with pytest.raises(ValueError, match="Cannot use 'end' with list"):
+            timer([1, 2], end=5)

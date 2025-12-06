@@ -789,3 +789,194 @@ def dmx_universe(
 
     # Single universe
     return f"dmxuniverse {universe_id}"
+
+
+# ============================================================================
+# TIMECODE OBJECT KEYWORD
+# ============================================================================
+
+
+def timecode(
+    timecode_id: Optional[Union[int, List[int]]] = None,
+    *,
+    end: Optional[int] = None,
+    select_all: bool = False,
+) -> str:
+    """
+    Construct a Timecode command to select timecode shows.
+
+    Timecode is an object keyword for timecode shows. It can be used with
+    functions like Store, Go, Record, Edit, Label, Assign, and Top (rewind).
+
+    Args:
+        timecode_id: Timecode show ID (int or list of ints)
+        end: End ID for range selection (thru)
+        select_all: Select all timecode shows
+
+    Returns:
+        str: MA command to select timecode show(s)
+
+    Raises:
+        ValueError: If no timecode_id provided and select_all is False
+        ValueError: If using end with a list
+
+    Examples:
+        >>> timecode(2)
+        'timecode 2'
+        >>> timecode(1, end=5)
+        'timecode 1 thru 5'
+        >>> timecode([1, 3, 5])
+        'timecode 1 + 3 + 5'
+        >>> timecode(select_all=True)
+        'timecode thru'
+    """
+    # Handle select all
+    if select_all:
+        return "timecode thru"
+
+    # Validate input
+    if timecode_id is None:
+        raise ValueError("Must provide timecode_id or set select_all=True")
+
+    # Handle list selection
+    if isinstance(timecode_id, list):
+        if end is not None:
+            raise ValueError("Cannot use 'end' with list selection")
+        if len(timecode_id) == 1:
+            return f"timecode {timecode_id[0]}"
+        ids_str = " + ".join(str(i) for i in timecode_id)
+        return f"timecode {ids_str}"
+
+    # Handle range selection (using thru)
+    if end is not None:
+        if timecode_id == end:
+            return f"timecode {timecode_id}"
+        return f"timecode {timecode_id} thru {end}"
+
+    # Single timecode
+    return f"timecode {timecode_id}"
+
+
+# ============================================================================
+# TIMECODESLOT OBJECT KEYWORD
+# ============================================================================
+
+
+def timecode_slot(
+    slot_id: Optional[Union[int, List[int]]] = None,
+    *,
+    end: Optional[int] = None,
+) -> str:
+    """
+    Construct a TimecodeSlot command to select timecode slots.
+
+    TimecodeSlot represents the 8 different possible timecode streams.
+    The default function is Select.
+
+    Args:
+        slot_id: Timecode slot ID (1-8, or list of ints)
+        end: End ID for range selection (thru)
+
+    Returns:
+        str: MA command to select timecode slot(s)
+
+    Raises:
+        ValueError: If no slot_id provided
+        ValueError: If using end with a list
+
+    Examples:
+        >>> timecode_slot(3)
+        'timecodeslot 3'
+        >>> timecode_slot(1, end=4)
+        'timecodeslot 1 thru 4'
+        >>> timecode_slot([1, 3, 5])
+        'timecodeslot 1 + 3 + 5'
+    """
+    # Validate input
+    if slot_id is None:
+        raise ValueError("Must provide slot_id")
+
+    # Handle list selection
+    if isinstance(slot_id, list):
+        if end is not None:
+            raise ValueError("Cannot use 'end' with list selection")
+        if len(slot_id) == 1:
+            return f"timecodeslot {slot_id[0]}"
+        ids_str = " + ".join(str(i) for i in slot_id)
+        return f"timecodeslot {ids_str}"
+
+    # Handle range selection (using thru)
+    if end is not None:
+        if slot_id == end:
+            return f"timecodeslot {slot_id}"
+        return f"timecodeslot {slot_id} thru {end}"
+
+    # Single slot
+    return f"timecodeslot {slot_id}"
+
+
+# ============================================================================
+# TIMER OBJECT KEYWORD
+# ============================================================================
+
+
+def timer(
+    timer_id: Optional[Union[int, List[int]]] = None,
+    *,
+    end: Optional[int] = None,
+    select_all: bool = False,
+) -> str:
+    """
+    Construct a Timer command to select timers.
+
+    Timer is an object keyword for timers. Timer 1 is a predefined stopwatch
+    and is not editable. Timers can be edited, started, paused, restarted,
+    switched off, selected, locked, unlocked, and assigned.
+
+    Args:
+        timer_id: Timer ID (int or list of ints)
+        end: End ID for range selection (thru)
+        select_all: Select all timers
+
+    Returns:
+        str: MA command to select timer(s)
+
+    Raises:
+        ValueError: If no timer_id provided and select_all is False
+        ValueError: If using end with a list
+
+    Examples:
+        >>> timer(4)
+        'timer 4'
+        >>> timer(2, end=5)
+        'timer 2 thru 5'
+        >>> timer([1, 3, 5])
+        'timer 1 + 3 + 5'
+        >>> timer(select_all=True)
+        'timer thru'
+    """
+    # Handle select all
+    if select_all:
+        return "timer thru"
+
+    # Validate input
+    if timer_id is None:
+        raise ValueError("Must provide timer_id or set select_all=True")
+
+    # Handle list selection
+    if isinstance(timer_id, list):
+        if end is not None:
+            raise ValueError("Cannot use 'end' with list selection")
+        if len(timer_id) == 1:
+            return f"timer {timer_id[0]}"
+        ids_str = " + ".join(str(i) for i in timer_id)
+        return f"timer {ids_str}"
+
+    # Handle range selection (using thru)
+    if end is not None:
+        if timer_id == end:
+            return f"timer {timer_id}"
+        return f"timer {timer_id} thru {end}"
+
+    # Single timer
+    return f"timer {timer_id}"

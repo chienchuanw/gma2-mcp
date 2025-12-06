@@ -60,6 +60,9 @@ from .objects import (
     preset,
     preset_type,
     sequence,
+    timecode,
+    timecode_slot,
+    timer,
 )
 
 # Function Keywords
@@ -167,6 +170,9 @@ __all__ = [
     "executor",
     "dmx",
     "dmx_universe",
+    "timecode",
+    "timecode_slot",
+    "timer",
     # Assign Function Keyword
     "assign",
     "assign_fade",
