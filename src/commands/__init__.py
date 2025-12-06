@@ -121,9 +121,15 @@ from .functions import (
     def_go_back,
     def_go_forward,
     def_go_pause,
+    go,
+    go_back,
+    go_back_executor,
+    go_executor,
     go_fast_back,
     go_fast_forward,
+    go_macro,
     go_sequence,
+    goto,
     goto_cue,
     label_group,
     label_preset,
@@ -215,7 +221,16 @@ __all__ = [
     "info_cue",
     "info_group",
     "info_preset",
-    # Go/Pause/Goto
+    # Go
+    "go",
+    "go_executor",
+    "go_macro",
+    # GoBack
+    "go_back",
+    "go_back_executor",
+    # Goto
+    "goto",
+    # Go/Pause/Goto (Legacy)
     "go_sequence",
     "pause_sequence",
     "goto_cue",

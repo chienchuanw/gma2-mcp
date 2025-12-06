@@ -38,6 +38,12 @@ from .selection import (
 
 # Playback Function Keywords (Go, Pause, Goto, GoFast, DefGo)
 from .playback import (
+    go,
+    go_executor,
+    go_macro,
+    go_back,
+    go_back_executor,
+    goto,
     go_sequence,
     pause_sequence,
     goto_cue,
@@ -151,7 +157,16 @@ __all__ = [
     "remove_preset_type",
     "remove_fixture",
     "remove_effect",
-    # Go/Pause/Goto
+    # Go
+    "go",
+    "go_executor",
+    "go_macro",
+    # GoBack
+    "go_back",
+    "go_back_executor",
+    # Goto
+    "goto",
+    # Go/Pause/Goto (Legacy)
     "go_sequence",
     "pause_sequence",
     "goto_cue",

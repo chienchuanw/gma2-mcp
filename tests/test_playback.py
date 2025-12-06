@@ -2,21 +2,247 @@
 Playback Commands Tests
 
 測試 grandMA2 播放控制相關命令的生成。
-包含 Go、Pause、Goto、GoFast 系列命令。
+包含 Go、GoBack、Goto、GoFast、DefGo 系列命令。
 
 測試類別：
-- TestSequenceCommands: go_sequence, pause_sequence, goto_cue 測試
+- TestGoCommands: go, go_executor, go_macro 測試
+- TestGoBackCommands: go_back, go_back_executor 測試
+- TestGotoCommands: goto 測試
+- TestSequenceCommands: go_sequence, pause_sequence, goto_cue 測試 (legacy)
 - TestGoFastCommands: go_fast_back, go_fast_forward 測試
+- TestDefGoCommands: def_go_back, def_go_forward, def_go_pause 測試
 """
 
 import pytest
 
 
+class TestGoCommands:
+    """Tests for Go keyword - activates next step of an executing object."""
+
+    def test_go_executor_basic(self):
+        """Test Go Executor 3 - executes next cue on executor 3."""
+        from src.commands import go
+
+        result = go("executor", 3)
+        assert result == "go executor 3"
+
+    def test_go_macro(self):
+        """Test Go Macro 2 - starts macro 2."""
+        from src.commands import go
+
+        result = go("macro", 2)
+        assert result == "go macro 2"
+
+    def test_go_executor_range(self):
+        """Test Go Executor 1 Thru 5."""
+        from src.commands import go
+
+        result = go("executor", 1, end=5)
+        assert result == "go executor 1 thru 5"
+
+    def test_go_executor_list(self):
+        """Test Go with multiple executors."""
+        from src.commands import go
+
+        result = go("executor", [1, 2, 3])
+        assert result == "go executor 1 + 2 + 3"
+
+    def test_go_with_cue_mode_normal(self):
+        """Test Go with cue_mode=normal."""
+        from src.commands import go
+
+        result = go("executor", 3, cue_mode="normal")
+        assert result == "go executor 3 /cue_mode=normal"
+
+    def test_go_with_cue_mode_assert(self):
+        """Test Go with cue_mode=assert - Go with assert in original timing."""
+        from src.commands import go
+
+        result = go("executor", 3, cue_mode="assert")
+        assert result == "go executor 3 /cue_mode=assert"
+
+    def test_go_with_cue_mode_xassert(self):
+        """Test Go with cue_mode=xassert - Go with assert in current cue timing."""
+        from src.commands import go
+
+        result = go("executor", 3, cue_mode="xassert")
+        assert result == "go executor 3 /cue_mode=xassert"
+
+    def test_go_with_cue_mode_release(self):
+        """Test Go with cue_mode=release - finishes fade and switches off."""
+        from src.commands import go
+
+        result = go("executor", 3, cue_mode="release")
+        assert result == "go executor 3 /cue_mode=release"
+
+    def test_go_with_userprofile(self):
+        """Test Go with userprofile option."""
+        from src.commands import go
+
+        result = go("executor", 3, userprofile="Klaus")
+        assert result == 'go executor 3 /userprofile="Klaus"'
+
+    def test_go_with_multiple_options(self):
+        """Test Go with both cue_mode and userprofile."""
+        from src.commands import go
+
+        result = go("executor", 3, cue_mode="assert", userprofile="Klaus")
+        assert result == 'go executor 3 /cue_mode=assert /userprofile="Klaus"'
+
+    def test_go_executor_convenience(self):
+        """Test go_executor convenience function."""
+        from src.commands import go_executor
+
+        result = go_executor(3)
+        assert result == "go executor 3"
+
+    def test_go_executor_with_options(self):
+        """Test go_executor with cue_mode option."""
+        from src.commands import go_executor
+
+        result = go_executor(3, cue_mode="assert")
+        assert result == "go executor 3 /cue_mode=assert"
+
+    def test_go_executor_list_convenience(self):
+        """Test go_executor with list of executors."""
+        from src.commands import go_executor
+
+        result = go_executor([1, 2, 3])
+        assert result == "go executor 1 + 2 + 3"
+
+    def test_go_macro_convenience(self):
+        """Test go_macro convenience function."""
+        from src.commands import go_macro
+
+        result = go_macro(2)
+        assert result == "go macro 2"
+
+
+class TestGoBackCommands:
+    """Tests for GoBack keyword - activates previous step of an object."""
+
+    def test_go_back_executor_basic(self):
+        """Test GoBack Executor 3 - executes previous cue on executor 3."""
+        from src.commands import go_back
+
+        result = go_back("executor", 3)
+        assert result == "goback executor 3"
+
+    def test_go_back_executor_range(self):
+        """Test GoBack Executor 1 Thru 5."""
+        from src.commands import go_back
+
+        result = go_back("executor", 1, end=5)
+        assert result == "goback executor 1 thru 5"
+
+    def test_go_back_executor_list(self):
+        """Test GoBack with multiple executors."""
+        from src.commands import go_back
+
+        result = go_back("executor", [1, 2, 3])
+        assert result == "goback executor 1 + 2 + 3"
+
+    def test_go_back_with_cue_mode_assert(self):
+        """Test GoBack with cue_mode=assert."""
+        from src.commands import go_back
+
+        result = go_back("executor", 3, cue_mode="assert")
+        assert result == "goback executor 3 /cue_mode=assert"
+
+    def test_go_back_with_cue_mode_release(self):
+        """Test GoBack with cue_mode=release."""
+        from src.commands import go_back
+
+        result = go_back("executor", 3, cue_mode="release")
+        assert result == "goback executor 3 /cue_mode=release"
+
+    def test_go_back_with_userprofile(self):
+        """Test GoBack with userprofile option."""
+        from src.commands import go_back
+
+        result = go_back("executor", 3, userprofile="Klaus")
+        assert result == 'goback executor 3 /userprofile="Klaus"'
+
+    def test_go_back_executor_convenience(self):
+        """Test go_back_executor convenience function."""
+        from src.commands import go_back_executor
+
+        result = go_back_executor(3)
+        assert result == "goback executor 3"
+
+    def test_go_back_executor_with_options(self):
+        """Test go_back_executor with cue_mode option."""
+        from src.commands import go_back_executor
+
+        result = go_back_executor(3, cue_mode="assert")
+        assert result == "goback executor 3 /cue_mode=assert"
+
+
+class TestGotoCommands:
+    """Tests for Goto keyword - jumps to a specific cue."""
+
+    def test_goto_cue_basic(self):
+        """Test Goto Cue 3 - jumps to cue 3 on selected executor."""
+        from src.commands import goto
+
+        result = goto(3)
+        assert result == "goto cue 3"
+
+    def test_goto_cue_with_executor(self):
+        """Test Goto Cue 5 Executor 4."""
+        from src.commands import goto
+
+        result = goto(5, executor=4)
+        assert result == "goto cue 5 executor 4"
+
+    def test_goto_cue_with_sequence(self):
+        """Test Goto Cue 3 Sequence 1."""
+        from src.commands import goto
+
+        result = goto(3, sequence=1)
+        assert result == "goto cue 3 sequence 1"
+
+    def test_goto_cue_float(self):
+        """Test Goto with decimal cue number."""
+        from src.commands import goto
+
+        result = goto(3.5)
+        assert result == "goto cue 3.5"
+
+    def test_goto_with_cue_mode_assert(self):
+        """Test Goto with cue_mode=assert."""
+        from src.commands import goto
+
+        result = goto(3, cue_mode="assert")
+        assert result == "goto cue 3 /cue_mode=assert"
+
+    def test_goto_with_cue_mode_release(self):
+        """Test Goto with cue_mode=release."""
+        from src.commands import goto
+
+        result = goto(3, cue_mode="release")
+        assert result == "goto cue 3 /cue_mode=release"
+
+    def test_goto_with_userprofile(self):
+        """Test Goto with userprofile option."""
+        from src.commands import goto
+
+        result = goto(3, userprofile="Klaus")
+        assert result == 'goto cue 3 /userprofile="Klaus"'
+
+    def test_goto_with_executor_and_options(self):
+        """Test Goto with executor and cue_mode."""
+        from src.commands import goto
+
+        result = goto(5, executor=4, cue_mode="assert")
+        assert result == "goto cue 5 executor 4 /cue_mode=assert"
+
+
 class TestSequenceCommands:
-    """Tests for sequence-related commands."""
+    """Tests for legacy sequence-related commands."""
 
     def test_go_sequence(self):
-        """Test executing a sequence."""
+        """Test executing a sequence (legacy function)."""
         from src.commands import go_sequence
 
         result = go_sequence(1)
@@ -30,7 +256,7 @@ class TestSequenceCommands:
         assert result == "pause sequence 1"
 
     def test_goto_cue(self):
-        """Test jumping to a specific cue."""
+        """Test jumping to a specific cue (legacy function)."""
         from src.commands import goto_cue
 
         result = goto_cue(1, 5)
