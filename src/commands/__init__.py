@@ -83,6 +83,8 @@ from .functions import (
     fixture_at,
     group_at,
     preset_type_at,
+    # Edit Function Keyword
+    edit,
     # Copy Function Keyword
     copy,
     copy_cue,
@@ -184,6 +186,8 @@ __all__ = [
     "group_at",
     "executor_at",
     "preset_type_at",
+    # Edit Function Keyword
+    "edit",
     # Copy Function Keyword
     "copy",
     "copy_cue",

@@ -2,9 +2,10 @@
 Edit Commands Tests
 
 Tests for grandMA2 edit operation command generation.
-Includes Copy, Move, Delete, and Remove command series.
+Includes Edit, Copy, Move, Delete, and Remove command series.
 
 Test Classes:
+- TestEditCommands: Tests for edit keyword
 - TestCopyCommands: Tests for copy, copy_cue
 - TestMoveCommands: Tests for move
 - TestDeleteCommands: Tests for delete series
@@ -12,6 +13,107 @@ Test Classes:
 """
 
 import pytest
+
+
+class TestEditCommands:
+    """
+    Tests for Edit keyword commands.
+
+    Edit is a function keyword used to modify values and open editors.
+    Default behavior takes the first cue in the sequence of a selected executor.
+    """
+
+    # ---- Basic Edit ----
+
+    def test_edit_no_args(self):
+        """Test edit without arguments: edit"""
+        from src.commands import edit
+
+        result = edit()
+        assert result == "edit"
+
+    def test_edit_effect(self):
+        """Test edit effect: edit effect 2"""
+        from src.commands import edit
+
+        result = edit("effect", 2)
+        assert result == "edit effect 2"
+
+    def test_edit_cue(self):
+        """Test edit cue: edit cue 5"""
+        from src.commands import edit
+
+        result = edit("cue", 5)
+        assert result == "edit cue 5"
+
+    def test_edit_sequence(self):
+        """Test edit sequence: edit sequence 1"""
+        from src.commands import edit
+
+        result = edit("sequence", 1)
+        assert result == "edit sequence 1"
+
+    def test_edit_group(self):
+        """Test edit group: edit group 3"""
+        from src.commands import edit
+
+        result = edit("group", 3)
+        assert result == "edit group 3"
+
+    def test_edit_preset(self):
+        """Test edit preset: edit preset 2.1"""
+        from src.commands import edit
+
+        result = edit("preset", "2.1")
+        assert result == "edit preset 2.1"
+
+    def test_edit_dmx_universe(self):
+        """Test edit dmx universe: edit dmxuniverse 3"""
+        from src.commands import edit
+
+        result = edit("dmxuniverse", 3)
+        assert result == "edit dmxuniverse 3"
+
+    def test_edit_macro(self):
+        """Test edit macro: edit macro 1"""
+        from src.commands import edit
+
+        result = edit("macro", 1)
+        assert result == "edit macro 1"
+
+    # ---- Edit with Range ----
+
+    def test_edit_range(self):
+        """Test edit with range: edit cue 1 thru 5"""
+        from src.commands import edit
+
+        result = edit("cue", 1, end=5)
+        assert result == "edit cue 1 thru 5"
+
+    # ---- Edit with List ----
+
+    def test_edit_list(self):
+        """Test edit with list: edit group 1 + 3 + 5"""
+        from src.commands import edit
+
+        result = edit("group", [1, 3, 5])
+        assert result == "edit group 1 + 3 + 5"
+
+    # ---- Edit with noconfirm Option ----
+
+    def test_edit_with_noconfirm(self):
+        """Test edit with noconfirm option: edit effect 2 /noconfirm"""
+        from src.commands import edit
+
+        result = edit("effect", 2, noconfirm=True)
+        assert result == "edit effect 2 /noconfirm"
+
+    def test_edit_range_with_noconfirm(self):
+        """Test edit range with noconfirm: edit cue 1 thru 5 /noconfirm"""
+        from src.commands import edit
+
+        result = edit("cue", 1, end=5, noconfirm=True)
+        assert result == "edit cue 1 thru 5 /noconfirm"
 
 
 class TestCopyCommands:

@@ -4,6 +4,7 @@ Edit Function Keywords for grandMA2 Command Builder
 This module contains functions related to edit operations.
 
 Included functions:
+- Edit: edit
 - Copy: copy, copy_cue
 - Move: move
 - Delete: delete, delete_cue, delete_group, delete_preset, delete_fixture, delete_messages
@@ -13,6 +14,72 @@ Included functions:
 from typing import List, Optional, Union
 
 from ..constants import PRESET_TYPES
+
+
+# ============================================================================
+# EDIT FUNCTION KEYWORD
+# ============================================================================
+
+
+def edit(
+    object_type: Optional[str] = None,
+    object_id: Optional[Union[int, str, List[int]]] = None,
+    *,
+    end: Optional[int] = None,
+    noconfirm: bool = False,
+) -> str:
+    """
+    Construct an Edit command to modify values or open editors.
+
+    Edit is a function keyword used to modify values. When called without
+    arguments, it takes the first cue in the sequence of a selected executor.
+    If the executor is in a certain cue, then this cue is edited.
+
+    Args:
+        object_type: Type of object to edit (e.g., "effect", "cue", "sequence")
+        object_id: Object ID (int, string like "2.1", or list of ints)
+        end: End ID for range selection
+        noconfirm: Suppress confirmation pop-up
+
+    Returns:
+        str: MA command to edit object(s)
+
+    Examples:
+        >>> edit()
+        'edit'
+        >>> edit("effect", 2)
+        'edit effect 2'
+        >>> edit("cue", 5)
+        'edit cue 5'
+        >>> edit("dmxuniverse", 3)
+        'edit dmxuniverse 3'
+        >>> edit("cue", 1, end=5)
+        'edit cue 1 thru 5'
+        >>> edit("group", [1, 3, 5])
+        'edit group 1 + 3 + 5'
+        >>> edit("effect", 2, noconfirm=True)
+        'edit effect 2 /noconfirm'
+    """
+    # If no object type specified, return simple edit command
+    if object_type is None:
+        return "edit"
+
+    # Build ID part
+    if object_id is None:
+        cmd = f"edit {object_type}"
+    elif isinstance(object_id, list):
+        id_part = " + ".join(str(i) for i in object_id)
+        cmd = f"edit {object_type} {id_part}"
+    elif end is not None:
+        cmd = f"edit {object_type} {object_id} thru {end}"
+    else:
+        cmd = f"edit {object_type} {object_id}"
+
+    # Add noconfirm option
+    if noconfirm:
+        cmd = f"{cmd} /noconfirm"
+
+    return cmd
 
 
 # ============================================================================
