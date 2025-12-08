@@ -47,6 +47,9 @@ from .groups import group
 # Preset related
 from .presets import preset, preset_type
 
+# Attribute/Feature related
+from .attributes import attribute, feature
+
 # Cue/Sequence related
 from .cues import cue, cue_part, sequence
 
@@ -71,6 +74,9 @@ __all__ = [
     # Preset
     "preset",
     "preset_type",
+    # Attribute/Feature
+    "attribute",
+    "feature",
     # Cue/Sequence
     "cue",
     "cue_part",

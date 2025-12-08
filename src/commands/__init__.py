@@ -48,12 +48,14 @@ from .constants import (
 
 # Object Keywords
 from .objects import (
+    attribute,
     channel,
     cue,
     cue_part,
     dmx,
     dmx_universe,
     executor,
+    feature,
     fixture,
     group,
     layout,
@@ -173,6 +175,8 @@ __all__ = [
     "STORE_BOOL_OPTIONS",
     "STORE_VALUE_OPTIONS",
     # Object Keywords
+    "attribute",
+    "feature",
     "fixture",
     "channel",
     "group",
