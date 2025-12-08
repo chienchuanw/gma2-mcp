@@ -138,6 +138,8 @@ from .functions import (
     # Park Function Keywords
     park,
     unpark,
+    # Call Function Keywords
+    call,
     # Other Function Keywords
     call_preset,
     clear,
@@ -293,6 +295,8 @@ __all__ = [
     # Park Function Keywords
     "park",
     "unpark",
+    # Call Function Keywords
+    "call",
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",

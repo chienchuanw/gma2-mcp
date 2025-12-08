@@ -141,6 +141,11 @@ from .park import (
     unpark,
 )
 
+# Call Function Keywords
+from .call import (
+    call,
+)
+
 # Backward Compatibility Aliases
 # select_group -> group (from objects.py)
 # call_preset -> preset (from objects.py)
@@ -251,6 +256,8 @@ __all__ = [
     # Park Function Keywords
     "park",
     "unpark",
+    # Call Function Keywords
+    "call",
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",
