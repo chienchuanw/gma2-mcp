@@ -1,10 +1,10 @@
 """
 Layout/View Object Keywords for grandMA2 Command Builder
 
-包含與 Layout 和 View 相關的 Object Keywords：
-- layout: 選擇 layout
+Contains Object Keywords related to Layouts and Views:
+- layout: Select layouts
 
-Layout 是代表燈具和其他物件佈局的物件類型。
+Layout is an object type that represents the layout of fixtures and other objects.
 """
 
 from typing import List, Optional, Union
@@ -15,18 +15,18 @@ def layout(
     end: Optional[int] = None,
 ) -> str:
     """
-    建構 Layout 指令以選擇 layout。
+    Construct a Layout command to select layouts.
 
-    Layout 是代表燈具和其他物件佈局的物件類型。
-    Layout 的預設函式是 Select，意味著呼叫 Layout 會選擇它
-    並在任何啟用 Link Selected 的 Layout View 中顯示它。
+    Layout is an object type that represents the layout of fixtures and other objects.
+    The default function for Layout is Select, meaning calling a Layout will select it
+    and display it in any Layout View with Link Selected enabled.
 
     Args:
-        layout_id: Layout 編號或 layout 編號列表
-        end: 結束 layout 編號（用於範圍選擇）
+        layout_id: Layout number or list of layout numbers
+        end: End layout number (for range selection)
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> layout(3)
@@ -39,19 +39,18 @@ def layout(
     if layout_id is None:
         raise ValueError("Must provide layout_id")
 
-    # 處理列表選擇（使用 + 連接）
+    # Handle list selection (using + separator)
     if isinstance(layout_id, list):
         if len(layout_id) == 1:
             return f"layout {layout_id[0]}"
         layouts_str = " + ".join(str(lid) for lid in layout_id)
         return f"layout {layouts_str}"
 
-    # 處理範圍選擇（使用 thru）
+    # Handle range selection (using thru)
     if end is not None:
         if layout_id == end:
             return f"layout {layout_id}"
         return f"layout {layout_id} thru {end}"
 
-    # 單一選擇
+    # Single selection
     return f"layout {layout_id}"
-

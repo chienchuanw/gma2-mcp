@@ -1,65 +1,65 @@
 """
 Object Keywords for grandMA2 Command Builder
 
-此模組包含所有 grandMA2 Object Keywords 的實作。
-Object Keywords 是 grandMA2 指令語法中的「名詞」，用於指定操作的對象。
+This module contains implementations of all grandMA2 Object Keywords.
+Object Keywords are "nouns" in grandMA2 command syntax used to specify the objects to operate on.
 
-根據 grandMA2 User Manual 第 10.1.2 節的分類，Object Keywords 分為以下類別：
+According to the classification in grandMA2 User Manual section 10.1.2, Object Keywords are divided into:
 
-Fixture/Channel 相關：
-- fixture: 使用 Fixture ID 存取燈具
-- channel: 使用 Channel ID 存取燈具
+Fixture/Channel related:
+- fixture: Access fixtures using Fixture ID
+- channel: Access fixtures using Channel ID
 
-Group/Selection 相關：
-- group: 選擇燈具群組
+Group/Selection related:
+- group: Select fixture groups
 
-Preset 相關：
-- preset: 選擇或套用預設
-- preset_type: 呼叫或選擇預設類型
+Preset related:
+- preset: Select or apply presets
+- preset_type: Call or select preset types
 
-Cue/Sequence 相關：
-- cue: 參照 cue
-- cue_part: 參照 cue part
-- sequence: 參照 sequence
+Cue/Sequence related:
+- cue: Reference cues
+- cue_part: Reference cue parts
+- sequence: Reference sequences
 
-Executor 相關：
-- executor: 參照 executor
+Executor related:
+- executor: Reference executors
 
-Layout/View 相關：
-- layout: 選擇 layout
+Layout/View related:
+- layout: Select layouts
 
-DMX 相關：
-- dmx: 參照 DMX 位址
-- dmx_universe: 參照 DMX universe
+DMX related:
+- dmx: Reference DMX addresses
+- dmx_universe: Reference DMX universes
 
-Time 相關：
-- timecode: 參照 timecode show
-- timecode_slot: 參照 timecode slot
-- timer: 參照 timer
+Time related:
+- timecode: Reference timecode shows
+- timecode_slot: Reference timecode slots
+- timer: Reference timers
 """
 
-# Fixture/Channel 相關
+# Fixture/Channel related
 from .fixtures import channel, fixture
 
-# Group/Selection 相關
+# Group/Selection related
 from .groups import group
 
-# Preset 相關
+# Preset related
 from .presets import preset, preset_type
 
-# Cue/Sequence 相關
+# Cue/Sequence related
 from .cues import cue, cue_part, sequence
 
-# Executor 相關
+# Executor related
 from .executors import executor
 
-# Layout/View 相關
+# Layout/View related
 from .layouts import layout
 
-# DMX 相關
+# DMX related
 from .dmx import dmx, dmx_universe
 
-# Time 相關
+# Time related
 from .time import timecode, timecode_slot, timer
 
 __all__ = [
@@ -87,4 +87,3 @@ __all__ = [
     "timecode_slot",
     "timer",
 ]
-

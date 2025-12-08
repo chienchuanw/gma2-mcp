@@ -1,12 +1,12 @@
 """
 Time Object Keywords for grandMA2 Command Builder
 
-包含與時間相關的 Object Keywords：
-- timecode: 參照 timecode show
-- timecode_slot: 參照 timecode slot
-- timer: 參照 timer
+Contains Object Keywords related to time:
+- timecode: Reference timecode shows
+- timecode_slot: Reference timecode slots
+- timer: Reference timers
 
-這些物件類型用於時間相關的控制和同步。
+These object types are used for time-related control and synchronization.
 """
 
 from typing import List, Optional, Union
@@ -20,24 +20,24 @@ def timecode(
     select_all: bool = False,
 ) -> str:
     """
-    建構 Timecode 指令以參照 timecode show。
+    Construct a Timecode command to reference timecode shows.
 
-    Timecode 是用於時間碼同步的物件類型。
-    可以使用 timecode.slot 語法來指定特定的 slot。
+    Timecode is an object type used for timecode synchronization.
+    You can use timecode.slot syntax to specify a specific slot.
 
     Args:
-        timecode_id: Timecode show 編號或編號列表
-        end: 結束編號（用於範圍選擇）
-        slot: Timecode slot 編號（用於 timecode.slot 語法）
-        select_all: 如果為 True，選擇所有 timecode（timecode thru）
+        timecode_id: Timecode show number or list of numbers
+        end: End number (for range selection)
+        slot: Timecode slot number (for timecode.slot syntax)
+        select_all: If True, select all timecodes (timecode thru)
 
     Returns:
-        str: MA 參照 timecode 的指令
+        str: MA command string to reference timecodes
 
     Raises:
-        ValueError: 當未提供 timecode_id 且 select_all 為 False 時
-        ValueError: 當 slot 與多個 timecodes 一起使用時
-        ValueError: 當 end 與列表一起使用時
+        ValueError: When timecode_id is not provided and select_all is False
+        ValueError: When slot is used with multiple timecodes
+        ValueError: When end is used with a list
 
     Examples:
         >>> timecode(1)
@@ -51,22 +51,22 @@ def timecode(
         >>> timecode(select_all=True)
         'timecode thru'
     """
-    # 處理 select_all
+    # Handle select_all
     if select_all:
         return "timecode thru"
 
     if timecode_id is None:
         raise ValueError("Must provide timecode_id")
 
-    # 處理 slot 語法（timecode.slot）
+    # Handle slot syntax (timecode.slot)
     if slot is not None:
         if isinstance(timecode_id, list):
             raise ValueError("Cannot use slot with multiple timecodes")
         return f"timecode {timecode_id}.{slot}"
 
-    # 處理列表選擇（使用 + 連接）
+    # Handle list selection (using + separator)
     if isinstance(timecode_id, list):
-        # 驗證：不能同時使用列表和 end
+        # Validation: cannot use list and end together
         if end is not None:
             raise ValueError("Cannot use 'end' with list")
         if len(timecode_id) == 1:
@@ -74,13 +74,13 @@ def timecode(
         tcs_str = " + ".join(str(tid) for tid in timecode_id)
         return f"timecode {tcs_str}"
 
-    # 處理範圍選擇（使用 thru）
+    # Handle range selection (using thru)
     if end is not None:
         if timecode_id == end:
             return f"timecode {timecode_id}"
         return f"timecode {timecode_id} thru {end}"
 
-    # 單一選擇
+    # Single selection
     return f"timecode {timecode_id}"
 
 
@@ -90,19 +90,19 @@ def timecode_slot(
     end: Optional[int] = None,
 ) -> str:
     """
-    建構 TimecodeSlot 指令以參照 timecode slot。
+    Construct a TimecodeSlot command to reference timecode slots.
 
-    TimecodeSlot 代表 8 個不同的可能 timecode 串流。
+    TimecodeSlot represents 8 different possible timecode streams.
 
     Args:
-        slot_id: Slot 編號或 slot 編號列表
-        end: 結束 slot 編號（用於範圍選擇）
+        slot_id: Slot number or list of slot numbers
+        end: End slot number (for range selection)
 
     Returns:
-        str: MA 參照 timecode slot 的指令
+        str: MA command string to reference timecode slots
 
     Raises:
-        ValueError: 當未提供 slot_id 時
+        ValueError: When slot_id is not provided
 
     Examples:
         >>> timecode_slot(3)
@@ -115,20 +115,20 @@ def timecode_slot(
     if slot_id is None:
         raise ValueError("Must provide slot_id")
 
-    # 處理列表選擇（使用 + 連接）
+    # Handle list selection (using + separator)
     if isinstance(slot_id, list):
         if len(slot_id) == 1:
             return f"timecodeslot {slot_id[0]}"
         slots_str = " + ".join(str(sid) for sid in slot_id)
         return f"timecodeslot {slots_str}"
 
-    # 處理範圍選擇（使用 thru）
+    # Handle range selection (using thru)
     if end is not None:
         if slot_id == end:
             return f"timecodeslot {slot_id}"
         return f"timecodeslot {slot_id} thru {end}"
 
-    # 單一選擇
+    # Single selection
     return f"timecodeslot {slot_id}"
 
 
@@ -139,21 +139,21 @@ def timer(
     select_all: bool = False,
 ) -> str:
     """
-    建構 Timer 指令以參照 timer。
+    Construct a Timer command to reference timers.
 
-    Timer 是用於計時器功能的物件類型。
+    Timer is an object type used for timer functionality.
 
     Args:
-        timer_id: Timer 編號或 timer 編號列表
-        end: 結束 timer 編號（用於範圍選擇）
-        select_all: 如果為 True，選擇所有 timer（timer thru）
+        timer_id: Timer number or list of timer numbers
+        end: End timer number (for range selection)
+        select_all: If True, select all timers (timer thru)
 
     Returns:
-        str: MA 參照 timer 的指令
+        str: MA command string to reference timers
 
     Raises:
-        ValueError: 當未提供 timer_id 且 select_all 為 False 時
-        ValueError: 當 end 與列表一起使用時
+        ValueError: When timer_id is not provided and select_all is False
+        ValueError: When end is used with a list
 
     Examples:
         >>> timer(1)
@@ -165,16 +165,16 @@ def timer(
         >>> timer(select_all=True)
         'timer thru'
     """
-    # 處理 select_all
+    # Handle select_all
     if select_all:
         return "timer thru"
 
     if timer_id is None:
         raise ValueError("Must provide timer_id")
 
-    # 處理列表選擇（使用 + 連接）
+    # Handle list selection (using + separator)
     if isinstance(timer_id, list):
-        # 驗證：不能同時使用列表和 end
+        # Validation: cannot use list and end together
         if end is not None:
             raise ValueError("Cannot use 'end' with list")
         if len(timer_id) == 1:
@@ -182,11 +182,11 @@ def timer(
         timers_str = " + ".join(str(tid) for tid in timer_id)
         return f"timer {timers_str}"
 
-    # 處理範圍選擇（使用 thru）
+    # Handle range selection (using thru)
     if end is not None:
         if timer_id == end:
             return f"timer {timer_id}"
         return f"timer {timer_id} thru {end}"
 
-    # 單一選擇
+    # Single selection
     return f"timer {timer_id}"

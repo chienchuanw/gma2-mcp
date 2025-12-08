@@ -1,11 +1,11 @@
 """
 Preset Object Keywords for grandMA2 Command Builder
 
-包含與預設相關的 Object Keywords：
-- preset: 選擇或套用預設
-- preset_type: 呼叫或選擇預設類型
+Contains Object Keywords related to presets:
+- preset: Select or apply presets
+- preset_type: Call or select preset types
 
-Preset Types 的對應關係：
+Preset Types mapping:
 - dimmer=1, color=2, gobo=3, beam=4, focus=5, control=6, shapers=7, video=8
 """
 
@@ -23,25 +23,25 @@ def preset(
     wildcard: bool = False,
 ) -> str:
     """
-    建構 Preset 指令以選擇或套用預設。
+    Construct a Preset command to select or apply presets.
 
-    Preset 可用於：
-    - 選擇儲存在預設中的燈具
-    - 將預設套用到目前選擇的燈具或頻道
+    Preset can be used to:
+    - Select fixtures stored in a preset
+    - Apply a preset to currently selected fixtures or channels
 
-    如果沒有選擇燈具/頻道，預設函式是 SelFix。
-    如果已選擇燈具/頻道，預設函式是 At。
+    If no fixtures/channels are selected, the default function is SelFix.
+    If fixtures/channels are selected, the default function is At.
 
     Args:
-        preset_type_or_id: 預設類型（字串如 "dimmer"）或類型編號（整數）
-                           或當只提供一個參數時為預設 ID
-        preset_id: 預設編號或編號列表（用於多重選擇）
-        name: 預設名稱（按名稱選擇時使用）
-        end: 結束編號（用於範圍選擇）
-        wildcard: 是否使用萬用字元 *（與 name 一起使用）
+        preset_type_or_id: Preset type (string like "dimmer") or type number (integer)
+                           or preset ID when only one parameter is provided
+        preset_id: Preset number or list of numbers (for multiple selection)
+        name: Preset name (used when selecting by name)
+        end: End number (for range selection)
+        wildcard: Whether to use wildcard * (used with name)
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Examples:
         >>> preset(5)
@@ -61,13 +61,13 @@ def preset(
         >>> preset(1, [1, 3, 5])
         'preset 1.1 + 1.3 + 1.5'
     """
-    # Case 1: 僅名稱（可選萬用字元）
+    # Case 1: Name only (optional wildcard)
     if name is not None and preset_type_or_id is None:
         if wildcard:
             return f'preset *."{name}"'
         return f'preset "{name}"'
 
-    # Case 2: 類型 + 名稱（例如：preset "color"."Red"）
+    # Case 2: Type + Name (e.g., preset "color"."Red")
     if name is not None and preset_type_or_id is not None:
         if isinstance(preset_type_or_id, str):
             type_str = f'"{preset_type_or_id}"'
@@ -75,30 +75,30 @@ def preset(
             type_str = str(preset_type_or_id)
         return f'preset {type_str}."{name}"'
 
-    # Case 3: 僅預設 ID（例如：preset 5）
+    # Case 3: Preset ID only (e.g., preset 5)
     if preset_type_or_id is not None and preset_id is None:
         return f"preset {preset_type_or_id}"
 
-    # Case 4: 類型 + ID（例如：preset 3.2 或 preset "dimmer".1）
+    # Case 4: Type + ID (e.g., preset 3.2 or preset "dimmer".1)
     if preset_type_or_id is not None and preset_id is not None:
-        # 取得類型編號
+        # Get type number
         if isinstance(preset_type_or_id, str):
             type_num = PRESET_TYPES.get(preset_type_or_id.lower(), 1)
         else:
             type_num = preset_type_or_id
 
-        # 處理多重選擇（列表）
+        # Handle multiple selection (list)
         if isinstance(preset_id, list):
             if len(preset_id) == 1:
                 return f"preset {type_num}.{preset_id[0]}"
             presets_str = " + ".join(f"{type_num}.{pid}" for pid in preset_id)
             return f"preset {presets_str}"
 
-        # 處理範圍選擇
+        # Handle range selection
         if end is not None:
             return f"preset {type_num}.{preset_id} thru {end}"
 
-        # 單一選擇
+        # Single selection
         return f"preset {type_num}.{preset_id}"
 
     raise ValueError("Must provide preset_type_or_id, preset_id, or name")
@@ -112,27 +112,27 @@ def preset_type(
     attribute: Optional[int] = None,
 ) -> str:
     """
-    建構 PresetType 指令以呼叫或選擇預設類型。
+    Construct a PresetType command to call or select preset types.
 
-    PresetType 可用於：
-    - 在燈具表和預設類型欄中呼叫 PresetType
-    - 選擇 PresetType 中的 Features 和 Attributes
-    - 為選擇的燈具啟用 PresetType
+    PresetType can be used to:
+    - Call PresetType in fixture sheet and preset type columns
+    - Select Features and Attributes in PresetType
+    - Enable PresetType for selected fixtures
 
-    預設類型包含 features 和 attributes，可以使用點分隔的數字來呼叫。
+    Preset types contain features and attributes, which can be called using dot-separated numbers.
 
     Args:
-        type_id: PresetType 編號（整數）或變數（例如："$preset"）
-        name: PresetType 名稱（例如："Dimmer"、"Color"）
-        feature: Feature 編號（可選）
-        attribute: Attribute 編號（可選，需要 feature）
+        type_id: PresetType number (integer) or variable (e.g., "$preset")
+        name: PresetType name (e.g., "Dimmer", "Color")
+        feature: Feature number (optional)
+        attribute: Attribute number (optional, requires feature)
 
     Returns:
-        str: MA 指令字串
+        str: MA command string
 
     Raises:
-        ValueError: 當既沒有提供 type_id 也沒有提供 name 時
-        ValueError: 當提供 attribute 但沒有提供 feature 時
+        ValueError: When neither type_id nor name is provided
+        ValueError: When attribute is provided without feature
 
     Examples:
         >>> preset_type(3)
@@ -148,15 +148,15 @@ def preset_type(
         >>> preset_type("$preset", feature=2)
         'presettype $preset.2'
     """
-    # 驗證：不能有 attribute 而沒有 feature
+    # Validation: cannot have attribute without feature
     if attribute is not None and feature is None:
         raise ValueError("Cannot specify attribute without feature")
 
-    # 驗證：必須提供 type_id 或 name
+    # Validation: must provide type_id or name
     if type_id is None and name is None:
         raise ValueError("Must provide type_id or name")
 
-    # Case 1: 使用名稱
+    # Case 1: Using name
     if name is not None:
         base = f'presettype "{name}"'
         if feature is not None:
@@ -165,7 +165,7 @@ def preset_type(
                 base = f"{base}.{attribute}"
         return base
 
-    # Case 2: 使用數字或變數
+    # Case 2: Using number or variable
     base = f"presettype {type_id}"
     if feature is not None:
         base = f"{base}.{feature}"

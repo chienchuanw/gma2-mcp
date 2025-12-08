@@ -1,11 +1,11 @@
 """
 DMX Object Keywords for grandMA2 Command Builder
 
-包含與 DMX 相關的 Object Keywords：
-- dmx: 參照 DMX 位址
-- dmx_universe: 參照 DMX universe
+Contains Object Keywords related to DMX:
+- dmx: Reference DMX addresses
+- dmx_universe: Reference DMX universes
 
-DMX 是用於直接控制 DMX 輸出的物件類型。
+DMX is an object type used to directly control DMX output.
 """
 
 from typing import List, Optional, Union
@@ -19,22 +19,22 @@ def dmx(
     select_all: bool = False,
 ) -> str:
     """
-    建構 DMX 指令以參照 DMX 位址。
+    Construct a DMX command to reference DMX addresses.
 
-    DMX 是用於直接控制 DMX 輸出的物件類型。
-    DMX 位址可以使用 universe.address 語法來指定。
+    DMX is an object type used to directly control DMX output.
+    DMX addresses can be specified using universe.address syntax.
 
     Args:
-        address: DMX 位址（1-512）或位址列表
-        end: 結束位址（用於範圍選擇）
-        universe: DMX universe 編號（用於 universe.address 語法）
-        select_all: 如果為 True，選擇所有 DMX 位址（dmx thru）
+        address: DMX address (1-512) or list of addresses
+        end: End address (for range selection)
+        universe: DMX universe number (for universe.address syntax)
+        select_all: If True, select all DMX addresses (dmx thru)
 
     Returns:
-        str: MA 參照 DMX 位址的指令
+        str: MA command string to reference DMX addresses
 
     Raises:
-        ValueError: 當未提供 address 且 select_all 為 False 時
+        ValueError: When address is not provided and select_all is False
 
     Examples:
         >>> dmx(100)
@@ -52,45 +52,45 @@ def dmx(
         >>> dmx(select_all=True)
         'dmx thru'
     """
-    # 處理 select_all
+    # Handle select_all
     if select_all:
         return "dmx thru"
 
     if address is None:
         raise ValueError("Must provide address")
 
-    # 處理 universe 語法（universe.address）
+    # Handle universe syntax (universe.address)
     if universe is not None:
-        # 處理列表選擇（使用 + 連接）
+        # Handle list selection (using + separator)
         if isinstance(address, list):
             if len(address) == 1:
                 return f"dmx {universe}.{address[0]}"
             addrs_str = " + ".join(f"{universe}.{addr}" for addr in address)
             return f"dmx {addrs_str}"
 
-        # 處理範圍選擇（使用 thru）
+        # Handle range selection (using thru)
         if end is not None:
             if address == end:
                 return f"dmx {universe}.{address}"
             return f"dmx {universe}.{address} thru {end}"
 
-        # 單一選擇
+        # Single selection
         return f"dmx {universe}.{address}"
 
-    # 處理列表選擇（使用 + 連接）
+    # Handle list selection (using + separator)
     if isinstance(address, list):
         if len(address) == 1:
             return f"dmx {address[0]}"
         addrs_str = " + ".join(str(addr) for addr in address)
         return f"dmx {addrs_str}"
 
-    # 處理範圍選擇（使用 thru）
+    # Handle range selection (using thru)
     if end is not None:
         if address == end:
             return f"dmx {address}"
         return f"dmx {address} thru {end}"
 
-    # 單一選擇
+    # Single selection
     return f"dmx {address}"
 
 
@@ -100,19 +100,19 @@ def dmx_universe(
     end: Optional[int] = None,
 ) -> str:
     """
-    建構 DmxUniverse 指令以參照 DMX universe。
+    Construct a DmxUniverse command to reference DMX universes.
 
-    DmxUniverse 是用於參照整個 DMX universe 的物件類型。
+    DmxUniverse is an object type used to reference entire DMX universes.
 
     Args:
-        universe_id: Universe 編號或 universe 編號列表
-        end: 結束 universe 編號（用於範圍選擇）
+        universe_id: Universe number or list of universe numbers
+        end: End universe number (for range selection)
 
     Returns:
-        str: MA 參照 DMX universe 的指令
+        str: MA command string to reference DMX universes
 
     Raises:
-        ValueError: 當未提供 universe_id 時
+        ValueError: When universe_id is not provided
 
     Examples:
         >>> dmx_universe(1)
@@ -125,18 +125,18 @@ def dmx_universe(
     if universe_id is None:
         raise ValueError("Must provide universe_id")
 
-    # 處理列表選擇（使用 + 連接）
+    # Handle list selection (using + separator)
     if isinstance(universe_id, list):
         if len(universe_id) == 1:
             return f"dmxuniverse {universe_id[0]}"
         univs_str = " + ".join(str(uid) for uid in universe_id)
         return f"dmxuniverse {univs_str}"
 
-    # 處理範圍選擇（使用 thru）
+    # Handle range selection (using thru)
     if end is not None:
         if universe_id == end:
             return f"dmxuniverse {universe_id}"
         return f"dmxuniverse {universe_id} thru {end}"
 
-    # 單一選擇
+    # Single selection
     return f"dmxuniverse {universe_id}"

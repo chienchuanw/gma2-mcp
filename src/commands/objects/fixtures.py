@@ -1,11 +1,11 @@
 """
 Fixture/Channel Object Keywords for grandMA2 Command Builder
 
-包含與燈具和頻道相關的 Object Keywords：
-- fixture: 使用 Fixture ID 存取燈具
-- channel: 使用 Channel ID 存取燈具
+Contains Object Keywords related to fixtures and channels:
+- fixture: Access fixtures using Fixture ID
+- channel: Access fixtures using Channel ID
 
-這些是 grandMA2 中最基礎的物件類型，用於選擇和控制燈具。
+These are the most basic object types in grandMA2, used for selecting and controlling fixtures.
 """
 
 from typing import List, Optional, Union
@@ -19,19 +19,20 @@ def fixture(
     select_all: bool = False,
 ) -> str:
     """
-    建構 Fixture 指令以使用 Fixture ID 存取燈具。
+    Construct a Fixture command to access fixtures using Fixture ID.
 
-    Fixture 是使用 fixture ID 存取燈具的物件關鍵字。
-    預設函式是 SelFix，意味著輸入 fixtures 而不指定函式將會選擇它們。
+    Fixture is an object keyword for accessing fixtures using fixture ID.
+    The default function is SelFix, meaning entering fixtures without specifying
+    a function will select them.
 
     Args:
-        fixture_id: 燈具編號或燈具編號列表
-        end: 範圍選擇的結束燈具編號
-        sub_id: 子燈具 ID（例如：fixture 11.5 表示第 5 個子燈具）
-        select_all: 如果為 True，選擇所有燈具（fixture thru）
+        fixture_id: Fixture number or list of fixture numbers
+        end: End fixture number for range selection
+        sub_id: Sub-fixture ID (e.g., fixture 11.5 means the 5th sub-fixture)
+        select_all: If True, select all fixtures (fixture thru)
 
     Returns:
-        str: MA 選擇燈具的指令
+        str: MA command string for selecting fixtures
 
     Examples:
         >>> fixture(34)
@@ -76,19 +77,19 @@ def channel(
     select_all: bool = False,
 ) -> str:
     """
-    建構 Channel 指令以使用 Channel ID 存取燈具。
+    Construct a Channel command to access fixtures using Channel ID.
 
-    Channel 是使用 Channel ID 存取燈具的物件類型。
-    預設函式是 SelFix。
+    Channel is an object type for accessing fixtures using Channel ID.
+    The default function is SelFix.
 
     Args:
-        channel_id: 頻道編號或頻道編號列表
-        end: 範圍選擇的結束頻道編號
-        sub_id: 子燈具 ID
-        select_all: 如果為 True，選擇所有頻道（channel thru）
+        channel_id: Channel number or list of channel numbers
+        end: End channel number for range selection
+        sub_id: Sub-fixture ID
+        select_all: If True, select all channels (channel thru)
 
     Returns:
-        str: MA 選擇頻道的指令
+        str: MA command string for selecting channels
 
     Examples:
         >>> channel(34)
@@ -117,4 +118,3 @@ def channel(
         return f"channel {channel_id} thru {end}"
 
     return f"channel {channel_id}"
-

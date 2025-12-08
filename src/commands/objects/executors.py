@@ -1,10 +1,10 @@
 """
 Executor Object Keywords for grandMA2 Command Builder
 
-包含與 Executor 相關的 Object Keywords：
-- executor: 參照 executor
+Contains Object Keywords related to Executors:
+- executor: Reference executors
 
-Executor 是可以容納 sequences、chasers 或其他物件的物件類型。
+Executor is an object type that can contain sequences, chasers, or other objects.
 """
 
 from typing import List, Optional, Union
@@ -17,21 +17,21 @@ def executor(
     page: Optional[int] = None,
 ) -> str:
     """
-    建構 Executor 指令以參照 executor。
+    Construct an Executor command to reference executors.
 
-    Executor 是可以容納 sequences、chasers 或其他物件的物件類型。
+    Executor is an object type that can contain sequences, chasers, or other objects.
 
     Args:
-        executor_id: Executor 編號或 executor 編號列表
-        end: 結束 executor 編號（用於範圍選擇）
-        page: Executor page 編號（用於 page.id 語法）
+        executor_id: Executor number or list of executor numbers
+        end: End executor number (for range selection)
+        page: Executor page number (for page.id syntax)
 
     Returns:
-        str: MA 參照 executor 的指令
+        str: MA command string to reference executors
 
     Raises:
-        ValueError: 當未提供 executor_id 時
-        ValueError: 當 page 與多個 executors 一起使用時
+        ValueError: When executor_id is not provided
+        ValueError: When page is used with multiple executors
 
     Examples:
         >>> executor(3)
@@ -46,25 +46,24 @@ def executor(
     if executor_id is None:
         raise ValueError("Must provide executor_id")
 
-    # 處理 page 語法（page.id）
+    # Handle page syntax (page.id)
     if page is not None:
         if isinstance(executor_id, list):
             raise ValueError("Cannot use page with multiple executors")
         return f"executor {page}.{executor_id}"
 
-    # 處理列表選擇（使用 + 連接）
+    # Handle list selection (using + separator)
     if isinstance(executor_id, list):
         if len(executor_id) == 1:
             return f"executor {executor_id[0]}"
         execs_str = " + ".join(str(eid) for eid in executor_id)
         return f"executor {execs_str}"
 
-    # 處理範圍選擇（使用 thru）
+    # Handle range selection (using thru)
     if end is not None:
         if executor_id == end:
             return f"executor {executor_id}"
         return f"executor {executor_id} thru {end}"
 
-    # 單一選擇
+    # Single selection
     return f"executor {executor_id}"
-
