@@ -80,7 +80,10 @@ class TestFeature:
 
     Syntax:
         Feature [number]
-        Feature [feature_number].[attribute_number]
+        Feature "Name"
+        Feature [Feature].[Attribute]
+        Feature "Name".[Attribute]
+        Feature $variable.[Attribute]
     """
 
     # ---- Feature by number ----
@@ -91,6 +94,29 @@ class TestFeature:
 
         result = feature(3)
         assert result == "feature 3"
+
+    def test_feature_by_number_2(self):
+        """Test feature by number: feature 2"""
+        from src.commands import feature
+
+        result = feature(2)
+        assert result == "feature 2"
+
+    # ---- Feature by name (quoted) ----
+
+    def test_feature_by_name(self):
+        """Test feature by name: feature "Gobo1" """
+        from src.commands import feature
+
+        result = feature("Gobo1")
+        assert result == 'feature "Gobo1"'
+
+    def test_feature_by_name_position(self):
+        """Test feature by name: feature "Position" """
+        from src.commands import feature
+
+        result = feature("Position")
+        assert result == 'feature "Position"'
 
     # ---- Feature with attribute (dot notation) ----
 
@@ -108,6 +134,22 @@ class TestFeature:
         result = feature(2, 5)
         assert result == "feature 2.5"
 
+    # ---- Feature name with attribute (dot notation) ----
+
+    def test_feature_name_with_attribute(self):
+        """Test feature name with attribute: feature "Position".2"""
+        from src.commands import feature
+
+        result = feature("Position", 2)
+        assert result == 'feature "Position".2'
+
+    def test_feature_name_with_attribute_gobo(self):
+        """Test feature name with attribute: feature "Gobo1".1"""
+        from src.commands import feature
+
+        result = feature("Gobo1", 1)
+        assert result == 'feature "Gobo1".1'
+
     # ---- Feature with variable ----
 
     def test_feature_with_variable(self):
@@ -116,6 +158,13 @@ class TestFeature:
 
         result = feature("$feature", 1)
         assert result == "feature $feature.1"
+
+    def test_feature_with_variable_2(self):
+        """Test feature with variable: feature $feature.2"""
+        from src.commands import feature
+
+        result = feature("$feature", 2)
+        assert result == "feature $feature.2"
 
 
 class TestPresetType:

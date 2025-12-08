@@ -68,8 +68,13 @@ def feature(
     organized by Features, which in turn are organized by PresetType.
     You can use dot notation to access specific attributes within a feature.
 
+    Note: Feature numbers may change when fixtures are added.
+          Use unique feature names in macros for stability.
+    Tip: Type "List Feature" to see all features with names and numbers.
+
     Args:
-        feature_id: Feature number or variable (e.g., "$feature")
+        feature_id: Feature number (int), name (str), or variable (str starting with $).
+                    String names are automatically quoted unless they start with $.
         attr_num: Optional attribute number within the feature.
                   If provided, uses dot notation (e.g., "feature 3.1")
 
@@ -79,14 +84,28 @@ def feature(
     Examples:
         >>> feature(3)
         'feature 3'
+        >>> feature("Gobo1")
+        'feature "Gobo1"'
         >>> feature(3, 1)
         'feature 3.1'
-        >>> feature(2, 5)
-        'feature 2.5'
+        >>> feature("Position", 2)
+        'feature "Position".2'
         >>> feature("$feature", 1)
         'feature $feature.1'
     """
-    if attr_num is not None:
-        return f"feature {feature_id}.{attr_num}"
-    return f"feature {feature_id}"
+    # Determine if feature_id needs quoting
+    # - Integers: no quotes
+    # - Variables (starting with $): no quotes
+    # - Names (other strings): add quotes
+    if isinstance(feature_id, int):
+        feature_ref = str(feature_id)
+    elif isinstance(feature_id, str) and feature_id.startswith("$"):
+        # Variable reference - no quotes
+        feature_ref = feature_id
+    else:
+        # Name reference - add quotes
+        feature_ref = f'"{feature_id}"'
 
+    if attr_num is not None:
+        return f"feature {feature_ref}.{attr_num}"
+    return f"feature {feature_ref}"
