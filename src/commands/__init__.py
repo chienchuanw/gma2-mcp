@@ -125,6 +125,12 @@ from .functions import (
     # Macro Placeholder
     macro_with_input_after,
     macro_with_input_before,
+    # Helping Keywords (Plus +, Minus -)
+    add_to_selection,
+    at_relative,
+    page_next,
+    page_previous,
+    remove_from_selection,
     # Other Function Keywords
     call_preset,
     clear,
@@ -267,6 +273,12 @@ __all__ = [
     "def_go_back",
     "def_go_forward",
     "def_go_pause",
+    # Helping Keywords (Plus +, Minus -)
+    "at_relative",
+    "add_to_selection",
+    "remove_from_selection",
+    "page_next",
+    "page_previous",
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",

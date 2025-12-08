@@ -124,6 +124,15 @@ from .macro import (
     macro_with_input_before,
 )
 
+# Helping Keywords (Plus +, Minus -)
+from .helping import (
+    at_relative,
+    add_to_selection,
+    remove_from_selection,
+    page_next,
+    page_previous,
+)
+
 # Backward Compatibility Aliases
 # select_group -> group (from objects.py)
 # call_preset -> preset (from objects.py)
@@ -223,6 +232,12 @@ __all__ = [
     # Macro Placeholder
     "macro_with_input_after",
     "macro_with_input_before",
+    # Helping Keywords (Plus +, Minus -)
+    "at_relative",
+    "add_to_selection",
+    "remove_from_selection",
+    "page_next",
+    "page_previous",
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",
