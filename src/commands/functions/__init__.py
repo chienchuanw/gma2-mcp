@@ -124,13 +124,15 @@ from .macro import (
     macro_with_input_before,
 )
 
-# Helping Keywords (Plus +, Minus -)
+# Helping Keywords (Plus +, Minus -, And, If)
 from .helping import (
     at_relative,
     add_to_selection,
     remove_from_selection,
     page_next,
     page_previous,
+    condition_and,
+    if_condition,
 )
 
 # Backward Compatibility Aliases
@@ -232,12 +234,14 @@ __all__ = [
     # Macro Placeholder
     "macro_with_input_after",
     "macro_with_input_before",
-    # Helping Keywords (Plus +, Minus -)
+    # Helping Keywords (Plus +, Minus -, And, If)
     "at_relative",
     "add_to_selection",
     "remove_from_selection",
     "page_next",
     "page_previous",
+    "condition_and",
+    "if_condition",
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",

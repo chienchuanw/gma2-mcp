@@ -184,3 +184,62 @@ def page_previous(steps: Optional[int] = None) -> str:
         return "page -"
     return f"page - {steps}"
 
+
+def condition_and(*conditions: str) -> str:
+    """
+    Combine multiple conditions using the And keyword.
+
+    The And keyword is a helping keyword that adds selection or values.
+    It is commonly used with the If keyword to combine multiple filter conditions.
+
+    Args:
+        *conditions: Variable number of condition strings to combine
+
+    Returns:
+        str: Conditions joined by " and "
+
+    Raises:
+        ValueError: If no conditions are provided
+
+    Examples:
+        >>> condition_and('fixture 5 attribute "pan"', 'fixture 5 attribute "tilt"')
+        'fixture 5 attribute "pan" and fixture 5 attribute "tilt"'
+        >>> condition_and('fixture 5 attribute "pan"')
+        'fixture 5 attribute "pan"'
+    """
+    if not conditions:
+        raise ValueError("At least one condition is required")
+
+    return " and ".join(conditions)
+
+
+def if_condition(*conditions: str) -> str:
+    """
+    Construct an If condition clause with optional And conditions.
+
+    The If keyword is used to filter commands based on conditions.
+    Multiple conditions can be combined using And.
+
+    Syntax: If [Condition] And [Condition] And [Condition] ...
+
+    Args:
+        *conditions: Variable number of condition strings.
+                    First condition follows If, rest are joined with And.
+
+    Returns:
+        str: If condition clause (e.g., "if fixture 5 attribute \"pan\"")
+
+    Raises:
+        ValueError: If no conditions are provided
+
+    Examples:
+        >>> if_condition('fixture 5 attribute "pan"')
+        'if fixture 5 attribute "pan"'
+        >>> if_condition('fixture 5 attribute "pan"', 'fixture 5 attribute "tilt"')
+        'if fixture 5 attribute "pan" and fixture 5 attribute "tilt"'
+    """
+    if not conditions:
+        raise ValueError("At least one condition is required")
+
+    combined = condition_and(*conditions)
+    return f"if {combined}"

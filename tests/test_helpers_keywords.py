@@ -171,3 +171,103 @@ class TestPageNavigation:
         result = page_previous(3)
         assert result == "page - 3"
 
+
+class TestAndKeyword:
+    """
+    Tests for And keyword - a helping keyword that adds selection or values.
+
+    And is used to combine conditions, especially with the If keyword.
+    Syntax: [Function] [Object] If [Condition] And [Condition]
+
+    Example:
+        Delete Cue 1 If Fixture 5 Attribute "Pan" And Fixture 5 Attribute "Tilt"
+    """
+
+    # ---- Basic And combination ----
+
+    def test_condition_and_two_conditions(self):
+        """Test combining two conditions with And"""
+        from src.commands import condition_and
+
+        result = condition_and(
+            'fixture 5 attribute "pan"',
+            'fixture 5 attribute "tilt"',
+        )
+        assert result == 'fixture 5 attribute "pan" and fixture 5 attribute "tilt"'
+
+    def test_condition_and_three_conditions(self):
+        """Test combining three conditions with And"""
+        from src.commands import condition_and
+
+        result = condition_and(
+            'fixture 5 attribute "pan"',
+            'fixture 5 attribute "tilt"',
+            'fixture 5 attribute "dimmer"',
+        )
+        assert (
+            result
+            == 'fixture 5 attribute "pan" and fixture 5 attribute "tilt" and fixture 5 attribute "dimmer"'
+        )
+
+    def test_condition_and_single_condition(self):
+        """Test single condition returns as-is (no And needed)"""
+        from src.commands import condition_and
+
+        result = condition_and('fixture 5 attribute "pan"')
+        assert result == 'fixture 5 attribute "pan"'
+
+    def test_condition_and_empty_raises_error(self):
+        """Test that empty conditions raise ValueError"""
+        from src.commands import condition_and
+
+        with pytest.raises(ValueError):
+            condition_and()
+
+
+class TestIfCondition:
+    """
+    Tests for If condition builder with And support.
+
+    The If keyword is used to filter commands based on conditions.
+    And can be used to combine multiple conditions.
+    """
+
+    # ---- Basic If condition ----
+
+    def test_if_condition_single(self):
+        """Test if condition with single condition"""
+        from src.commands import if_condition
+
+        result = if_condition('fixture 5 attribute "pan"')
+        assert result == 'if fixture 5 attribute "pan"'
+
+    def test_if_condition_with_and(self):
+        """Test if condition with And: if ... and ..."""
+        from src.commands import if_condition
+
+        result = if_condition(
+            'fixture 5 attribute "pan"',
+            'fixture 5 attribute "tilt"',
+        )
+        assert result == 'if fixture 5 attribute "pan" and fixture 5 attribute "tilt"'
+
+    def test_if_condition_with_multiple_and(self):
+        """Test if condition with multiple And conditions"""
+        from src.commands import if_condition
+
+        result = if_condition(
+            'fixture 5 attribute "pan"',
+            'fixture 5 attribute "tilt"',
+            'fixture 10 attribute "dimmer"',
+        )
+        assert (
+            result
+            == 'if fixture 5 attribute "pan" and fixture 5 attribute "tilt" and fixture 10 attribute "dimmer"'
+        )
+
+    def test_if_condition_empty_raises_error(self):
+        """Test that empty condition raises ValueError"""
+        from src.commands import if_condition
+
+        with pytest.raises(ValueError):
+            if_condition()
