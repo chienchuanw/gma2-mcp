@@ -146,6 +146,14 @@ from .call import (
     call,
 )
 
+# Variable Function Keywords
+from .variables import (
+    set_user_var,
+    set_var,
+    add_user_var,
+    add_var,
+)
+
 # Backward Compatibility Aliases
 # select_group -> group (from objects.py)
 # call_preset -> preset (from objects.py)
@@ -258,6 +266,11 @@ __all__ = [
     "unpark",
     # Call Function Keywords
     "call",
+    # Variable Function Keywords
+    "set_user_var",
+    "set_var",
+    "add_user_var",
+    "add_var",
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",

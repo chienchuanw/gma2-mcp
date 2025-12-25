@@ -140,6 +140,11 @@ from .functions import (
     unpark,
     # Call Function Keywords
     call,
+    # Variable Function Keywords
+    set_user_var,
+    set_var,
+    add_user_var,
+    add_var,
     # Other Function Keywords
     call_preset,
     clear,
@@ -297,6 +302,11 @@ __all__ = [
     "unpark",
     # Call Function Keywords
     "call",
+    # Variable Function Keywords
+    "set_user_var",
+    "set_var",
+    "add_user_var",
+    "add_var",
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",
