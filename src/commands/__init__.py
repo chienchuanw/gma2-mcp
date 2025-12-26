@@ -74,6 +74,7 @@ from .functions import (
     assign_fade,
     assign_function,
     assign_to_layout,
+    empty,
     # Label Function Keyword
     label,
     # Appearance Function Keyword
@@ -204,6 +205,7 @@ __all__ = [
     "assign_fade",
     "assign_function",
     "assign_to_layout",
+    "empty",
     # Label Function Keyword
     "label",
     # Appearance Function Keyword

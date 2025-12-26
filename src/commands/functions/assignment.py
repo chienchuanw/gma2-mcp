@@ -205,3 +205,29 @@ def assign_to_layout(
         'assign macro 1 thru 5 at layout 2 /x=0 /y=0'
     """
     return assign(object_type, object_id, "layout", layout_id, source_end=end, x=x, y=y)
+
+
+def empty() -> str:
+    """
+    Construct an Empty command to deactivate executors.
+
+    Empty is a function keyword used to assign the "empty" function to executors,
+    which deactivates them. It is typically used with the Assign keyword.
+
+    Note: Empty must be used with Assign to deactivate executors.
+    Shortcut: Em
+
+    Returns:
+        str: The "empty" keyword
+
+    Examples:
+        >>> empty()
+        'empty'
+        >>> # Typical usage with assign
+        >>> f"assign {empty()} executor 101"
+        'assign empty executor 101'
+        >>> # Using assign_function helper
+        >>> assign_function("empty", "executor", 101)
+        'assign empty at executor 101'
+    """
+    return "empty"
