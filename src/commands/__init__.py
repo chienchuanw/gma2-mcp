@@ -75,6 +75,7 @@ from .functions import (
     assign_function,
     assign_to_layout,
     empty,
+    temp_fader,
     # Label Function Keyword
     label,
     # Appearance Function Keyword
@@ -206,6 +207,7 @@ __all__ = [
     "assign_function",
     "assign_to_layout",
     "empty",
+    "temp_fader",
     # Label Function Keyword
     "label",
     # Appearance Function Keyword

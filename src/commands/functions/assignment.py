@@ -231,3 +231,41 @@ def empty() -> str:
         'assign empty at executor 101'
     """
     return "empty"
+
+
+def temp_fader(value: Optional[int] = None) -> str:
+    """
+    Construct a TempFader command for temporary fader control.
+
+    TempFader is a function that crossfades the cue on when pulled up,
+    and crossfades the cue off when pulled down. It can be used in two ways:
+    1. With Assign to assign the function to an executor
+    2. Standalone to set the temp fader value for selected executor
+
+    Note: TempFader crossfades cue on/off based on fader position.
+    Shortcut: TempF
+
+    Args:
+        value: Optional fader value (0-100). If None, returns just "tempfader".
+               If provided, returns "tempfader [value]".
+
+    Returns:
+        str: MA command for temp fader
+
+    Examples:
+        >>> temp_fader()
+        'tempfader'
+        >>> temp_fader(50)
+        'tempfader 50'
+        >>> temp_fader(100)
+        'tempfader 100'
+        >>> # Typical usage with assign
+        >>> assign_function("tempfader", "executor", 28)
+        'assign tempfader at executor 28'
+        >>> # Set temp fader value for selected executor
+        >>> temp_fader(50)
+        'tempfader 50'
+    """
+    if value is None:
+        return "tempfader"
+    return f"tempfader {value}"

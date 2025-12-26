@@ -82,6 +82,7 @@ from .assignment import (
     assign_fade,
     assign_to_layout,
     empty,
+    temp_fader,
 )
 
 # Labeling Function Keywords (Label, Appearance)
@@ -228,6 +229,7 @@ __all__ = [
     "assign_fade",
     "assign_to_layout",
     "empty",
+    "temp_fader",
     # Appearance
     "appearance",
     # At
