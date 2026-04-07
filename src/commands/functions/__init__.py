@@ -169,6 +169,32 @@ from .cue_timing import (
     out_fade,
 )
 
+# Fixture Control Function Keywords
+from .fixture_control import (
+    align,
+    all_keyword,
+    fix,
+    locate,
+    next_keyword,
+    previous,
+    invert,
+)
+
+# Executor Control Function Keywords
+from .executor_control import (
+    off,
+    on,
+    kill,
+    flash,
+    swop,
+    stomp,
+    temp,
+    toggle,
+    release,
+    top,
+    select,
+)
+
 # Call Function Keywords
 from .call import (
     call,
@@ -321,4 +347,24 @@ __all__ = [
     "out_delay",
     "fade",
     "out_fade",
+    # Fixture Control Function Keywords
+    "align",
+    "all_keyword",
+    "fix",
+    "locate",
+    "next_keyword",
+    "previous",
+    "invert",
+    # Executor Control Function Keywords
+    "off",
+    "on",
+    "kill",
+    "flash",
+    "swop",
+    "stomp",
+    "temp",
+    "toggle",
+    "release",
+    "top",
+    "select",
 ]
