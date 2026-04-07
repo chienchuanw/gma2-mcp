@@ -235,6 +235,37 @@ from .flash_swop_ext import (
     store_look,
 )
 
+# MAtricks Function Keywords
+from .matricks import (
+    matricks,
+    matricks_blocks,
+    matricks_filter,
+    matricks_groups,
+    matricks_interleave,
+    matricks_reset,
+    matricks_wings,
+)
+
+# Effect Function Keywords
+from .effect import (
+    effect,
+    effect_attack,
+    effect_bpm,
+    effect_decay,
+    effect_delay,
+    effect_fade,
+    effect_form,
+    effect_high,
+    effect_hz,
+    effect_id,
+    effect_low,
+    effect_phase,
+    effect_sec,
+    effect_speed_group,
+    effect_width,
+    sync_effects,
+)
+
 # Rate & Speed Function Keywords
 from .rate_speed import (
     rate,
@@ -471,4 +502,29 @@ __all__ = [
     "swop_go",
     "swop_on",
     "store_look",
+    # MAtricks Function Keywords
+    "matricks",
+    "matricks_blocks",
+    "matricks_filter",
+    "matricks_groups",
+    "matricks_interleave",
+    "matricks_reset",
+    "matricks_wings",
+    # Effect Function Keywords
+    "effect",
+    "effect_attack",
+    "effect_bpm",
+    "effect_decay",
+    "effect_delay",
+    "effect_fade",
+    "effect_form",
+    "effect_high",
+    "effect_hz",
+    "effect_id",
+    "effect_low",
+    "effect_phase",
+    "effect_sec",
+    "effect_speed_group",
+    "effect_width",
+    "sync_effects",
 ]
