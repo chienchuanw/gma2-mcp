@@ -56,6 +56,22 @@ from .cues import cue, cue_part, sequence
 # Executor related
 from .executors import executor
 
+# Executor Object Keywords
+from .executor_objects import (
+    fader,
+    fader_page,
+    button_page,
+    channel_fader,
+    channel_page,
+    exec_button_1,
+    exec_button_2,
+    exec_button_3,
+    all_button_executors,
+    all_chase_executors,
+    all_fader_executors,
+    all_seq_executors,
+)
+
 # Layout/View related
 from .layouts import layout
 
@@ -83,6 +99,19 @@ __all__ = [
     "sequence",
     # Executor
     "executor",
+    # Executor Object Keywords
+    "fader",
+    "fader_page",
+    "button_page",
+    "channel_fader",
+    "channel_page",
+    "exec_button_1",
+    "exec_button_2",
+    "exec_button_3",
+    "all_button_executors",
+    "all_chase_executors",
+    "all_fader_executors",
+    "all_seq_executors",
     # Layout/View
     "layout",
     # DMX
