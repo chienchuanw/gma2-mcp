@@ -16,3 +16,9 @@ __pycache__/
 
 # augment
 .augment/
+
+# openspec
+openspec/
+
+# opencode
+.opencode/
