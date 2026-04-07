@@ -202,6 +202,31 @@ from .functions import (
     to_zero,
     load,
     learn,
+    # Crossfade Function Keywords
+    crossfade,
+    crossfade_a,
+    crossfade_b,
+    manual_xfade,
+    # Rate & Speed Function Keywords
+    rate,
+    rate1,
+    double_rate,
+    half_rate,
+    double_speed,
+    half_speed,
+    speed,
+    # Step Timing Function Keywords
+    snap_percent,
+    step_fade,
+    step_in_fade,
+    step_out_fade,
+    fade_path,
+    # Flash/Swop Extension Function Keywords
+    flash_go,
+    flash_on,
+    swop_go,
+    swop_on,
+    store_look,
     # Other Function Keywords
     call_preset,
     clear,
@@ -421,6 +446,31 @@ __all__ = [
     "to_zero",
     "load",
     "learn",
+    # Crossfade Function Keywords
+    "crossfade",
+    "crossfade_a",
+    "crossfade_b",
+    "manual_xfade",
+    # Rate & Speed Function Keywords
+    "rate",
+    "rate1",
+    "double_rate",
+    "half_rate",
+    "double_speed",
+    "half_speed",
+    "speed",
+    # Step Timing Function Keywords
+    "snap_percent",
+    "step_fade",
+    "step_in_fade",
+    "step_out_fade",
+    "fade_path",
+    # Flash/Swop Extension Function Keywords
+    "flash_go",
+    "flash_on",
+    "swop_go",
+    "swop_on",
+    "store_look",
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",
