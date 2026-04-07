@@ -319,9 +319,11 @@ gma2-mcp/
 │   │   ├── objects.py           # Object Keywords (fixture, channel, group, etc.)
 │   │   └── functions/           # Function Keywords organized by category
 │   │       ├── __init__.py
+│   │       ├── advanced_edit.py  # Flip, CircularCopy, Import, Export, etc.
 │   │       ├── assignment.py    # Assign keyword functions
 │   │       ├── blackout.py      # Blackout, Black, Freeze, Highlight, Solo
 │   │       ├── blind.py         # Blind, BlindEdit, Preview, PreviewEdit
+│   │       ├── conditionals.py  # EndIf, IfActive, IfOutput, Or, With
 │   │       ├── crossfade.py     # Crossfade, CrossfadeA/B, ManualXFade
 │   │       ├── cue_timing.py    # Delay, OutDelay, Fade, OutFade
 │   │       ├── edit.py          # Copy, Move, Delete, Remove functions
@@ -332,14 +334,21 @@ gma2-mcp/
 │   │       ├── info.py          # List and Info query functions
 │   │       ├── intensity.py     # Full, ToFull, Zero, ToZero, Load, Learn
 │   │       ├── labeling.py      # Label and Appearance functions
+│   │       ├── list_ext.py      # ListShows, ListOops, ListVar, etc.
 │   │       ├── macro.py         # Macro placeholder functions
 │   │       ├── matricks.py      # MAtricks, MAtricksBlocks, etc.
+│   │       ├── midi.py          # MidiControl, MidiNote, MidiProgram
+│   │       ├── navigation.py    # Down, Up, NextRow, Search, etc.
+│   │       ├── network.py       # Remote, Telnet, JoinSession, etc.
 │   │       ├── playback.py      # Go, GoBack, Goto, GoFast, DefGo functions
 │   │       ├── programmer.py    # Block, Unblock, Clone, Default, etc.
 │   │       ├── rate_speed.py    # Rate, DoubleRate, HalfRate, Speed, etc.
+│   │       ├── rdm.py           # RdmInfo, RdmList, RdmAutomatch, etc.
 │   │       ├── selection.py     # SelFix and Clear functions
+│   │       ├── show_data.py     # CrashLog*, Lua, PSR, Thru, etc.
 │   │       ├── step_timing.py   # SnapPercent, StepFade, FadePath, etc.
 │   │       ├── store.py         # Store functions
+│   │       ├── system.py        # Backup, Setup, Shutdown, Login, etc.
 │   │       └── values.py        # At and value setting functions
 │   ├── gma2_client.py           # High-level grandMA2 client interface
 │   ├── telnet_client.py         # Telnet connection management
@@ -347,12 +356,14 @@ gma2-mcp/
 │   └── tools.py                 # MCP tool definitions
 ├── tests/
 │   ├── conftest.py              # Pytest configuration and fixtures
+│   ├── test_advanced_edit.py     # Flip, CircularCopy tests
 │   ├── test_assignment.py       # Assign keyword tests
 │   ├── test_blackout.py         # Blackout, Freeze, Highlight tests
 │   ├── test_blind.py            # Blind, Preview tests
+│   ├── test_conditionals.py     # EndIf, IfActive, Or tests
+│   ├── test_crossfade.py        # Crossfade keyword tests
 │   ├── test_cue_timing.py       # Delay, Fade tests
 │   ├── test_edit.py             # Copy, Move, Delete tests
-│   ├── test_crossfade.py         # Crossfade keyword tests
 │   ├── test_effect.py           # Effect keyword tests
 │   ├── test_executor_control.py # Off, On, Kill, Flash tests
 │   ├── test_executor_objects.py # Fader, FaderPage, etc. tests
@@ -361,14 +372,22 @@ gma2-mcp/
 │   ├── test_info.py             # List and Info query tests
 │   ├── test_intensity.py        # Full, Zero, Load tests
 │   ├── test_labeling.py         # Label and Appearance tests
-│   ├── test_matricks.py         # MAtricks keyword tests
+│   ├── test_list_ext.py         # ListShows, ListOops tests
 │   ├── test_macro.py            # Macro placeholder tests
+│   ├── test_matricks.py         # MAtricks keyword tests
+│   ├── test_midi.py             # MIDI keyword tests
+│   ├── test_misc_objects.py     # Camera, View, World tests
+│   ├── test_navigation.py       # Down, Up, NextRow tests
+│   ├── test_network.py          # Remote, Telnet tests
 │   ├── test_objects.py          # Object Keywords tests
 │   ├── test_playback.py         # Playback control tests
 │   ├── test_programmer.py       # Block, Clone, Update tests
 │   ├── test_rate_speed.py       # Rate, Speed keyword tests
-│   ├── test_step_timing.py      # StepFade, SnapPercent tests
+│   ├── test_rdm.py              # RDM keyword tests
 │   ├── test_selection.py        # Selection and Clear tests
+│   ├── test_show_data.py        # CrashLog, Lua, PSR tests
+│   ├── test_step_timing.py      # StepFade, SnapPercent tests
+│   ├── test_system.py           # Backup, Shutdown tests
 │   ├── test_store.py            # Store function tests
 │   ├── test_telnet_client.py    # Telnet client tests
 │   ├── test_tools.py            # MCP tool tests
