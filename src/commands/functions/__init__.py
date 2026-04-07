@@ -195,6 +195,30 @@ from .executor_control import (
     select,
 )
 
+# Programmer & Show Data Function Keywords
+from .programmer import (
+    block,
+    unblock,
+    clone,
+    default,
+    extract,
+    insert,
+    record,
+    replace,
+    update,
+    oops,
+)
+
+# Intensity & Misc Function Keywords
+from .intensity import (
+    full,
+    to_full,
+    zero,
+    to_zero,
+    load,
+    learn,
+)
+
 # Call Function Keywords
 from .call import (
     call,
@@ -367,4 +391,22 @@ __all__ = [
     "release",
     "top",
     "select",
+    # Programmer & Show Data Function Keywords
+    "block",
+    "unblock",
+    "clone",
+    "default",
+    "extract",
+    "insert",
+    "record",
+    "replace",
+    "update",
+    "oops",
+    # Intensity & Misc Function Keywords
+    "full",
+    "to_full",
+    "zero",
+    "to_zero",
+    "load",
+    "learn",
 ]
