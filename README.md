@@ -325,6 +325,7 @@ gma2-mcp/
 │   │       ├── crossfade.py     # Crossfade, CrossfadeA/B, ManualXFade
 │   │       ├── cue_timing.py    # Delay, OutDelay, Fade, OutFade
 │   │       ├── edit.py          # Copy, Move, Delete, Remove functions
+│   │       ├── effect.py        # Effect, EffectBPM, EffectForm, etc.
 │   │       ├── executor_control.py # Off, On, Kill, Flash, Swop, etc.
 │   │       ├── fixture_control.py  # Align, All, Fix, Locate, Next, etc.
 │   │       ├── flash_swop_ext.py   # FlashGo, FlashOn, SwopGo, SwopOn, StoreLook
@@ -332,6 +333,7 @@ gma2-mcp/
 │   │       ├── intensity.py     # Full, ToFull, Zero, ToZero, Load, Learn
 │   │       ├── labeling.py      # Label and Appearance functions
 │   │       ├── macro.py         # Macro placeholder functions
+│   │       ├── matricks.py      # MAtricks, MAtricksBlocks, etc.
 │   │       ├── playback.py      # Go, GoBack, Goto, GoFast, DefGo functions
 │   │       ├── programmer.py    # Block, Unblock, Clone, Default, etc.
 │   │       ├── rate_speed.py    # Rate, DoubleRate, HalfRate, Speed, etc.
@@ -351,6 +353,7 @@ gma2-mcp/
 │   ├── test_cue_timing.py       # Delay, Fade tests
 │   ├── test_edit.py             # Copy, Move, Delete tests
 │   ├── test_crossfade.py         # Crossfade keyword tests
+│   ├── test_effect.py           # Effect keyword tests
 │   ├── test_executor_control.py # Off, On, Kill, Flash tests
 │   ├── test_executor_objects.py # Fader, FaderPage, etc. tests
 │   ├── test_fixture_control.py  # Align, Fix, Locate tests
@@ -358,6 +361,7 @@ gma2-mcp/
 │   ├── test_info.py             # List and Info query tests
 │   ├── test_intensity.py        # Full, Zero, Load tests
 │   ├── test_labeling.py         # Label and Appearance tests
+│   ├── test_matricks.py         # MAtricks keyword tests
 │   ├── test_macro.py            # Macro placeholder tests
 │   ├── test_objects.py          # Object Keywords tests
 │   ├── test_playback.py         # Playback control tests
