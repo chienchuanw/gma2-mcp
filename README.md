@@ -322,17 +322,21 @@ gma2-mcp/
 │   │       ├── assignment.py    # Assign keyword functions
 │   │       ├── blackout.py      # Blackout, Black, Freeze, Highlight, Solo
 │   │       ├── blind.py         # Blind, BlindEdit, Preview, PreviewEdit
+│   │       ├── crossfade.py     # Crossfade, CrossfadeA/B, ManualXFade
 │   │       ├── cue_timing.py    # Delay, OutDelay, Fade, OutFade
 │   │       ├── edit.py          # Copy, Move, Delete, Remove functions
 │   │       ├── executor_control.py # Off, On, Kill, Flash, Swop, etc.
 │   │       ├── fixture_control.py  # Align, All, Fix, Locate, Next, etc.
+│   │       ├── flash_swop_ext.py   # FlashGo, FlashOn, SwopGo, SwopOn, StoreLook
 │   │       ├── info.py          # List and Info query functions
 │   │       ├── intensity.py     # Full, ToFull, Zero, ToZero, Load, Learn
 │   │       ├── labeling.py      # Label and Appearance functions
 │   │       ├── macro.py         # Macro placeholder functions
 │   │       ├── playback.py      # Go, GoBack, Goto, GoFast, DefGo functions
 │   │       ├── programmer.py    # Block, Unblock, Clone, Default, etc.
+│   │       ├── rate_speed.py    # Rate, DoubleRate, HalfRate, Speed, etc.
 │   │       ├── selection.py     # SelFix and Clear functions
+│   │       ├── step_timing.py   # SnapPercent, StepFade, FadePath, etc.
 │   │       ├── store.py         # Store functions
 │   │       └── values.py        # At and value setting functions
 │   ├── gma2_client.py           # High-level grandMA2 client interface
@@ -346,8 +350,11 @@ gma2-mcp/
 │   ├── test_blind.py            # Blind, Preview tests
 │   ├── test_cue_timing.py       # Delay, Fade tests
 │   ├── test_edit.py             # Copy, Move, Delete tests
+│   ├── test_crossfade.py         # Crossfade keyword tests
 │   ├── test_executor_control.py # Off, On, Kill, Flash tests
+│   ├── test_executor_objects.py # Fader, FaderPage, etc. tests
 │   ├── test_fixture_control.py  # Align, Fix, Locate tests
+│   ├── test_flash_swop_ext.py   # FlashGo, SwopGo tests
 │   ├── test_info.py             # List and Info query tests
 │   ├── test_intensity.py        # Full, Zero, Load tests
 │   ├── test_labeling.py         # Label and Appearance tests
@@ -355,6 +362,8 @@ gma2-mcp/
 │   ├── test_objects.py          # Object Keywords tests
 │   ├── test_playback.py         # Playback control tests
 │   ├── test_programmer.py       # Block, Clone, Update tests
+│   ├── test_rate_speed.py       # Rate, Speed keyword tests
+│   ├── test_step_timing.py      # StepFade, SnapPercent tests
 │   ├── test_selection.py        # Selection and Clear tests
 │   ├── test_store.py            # Store function tests
 │   ├── test_telnet_client.py    # Telnet client tests
