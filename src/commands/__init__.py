@@ -147,6 +147,23 @@ from .functions import (
     set_var,
     add_user_var,
     add_var,
+    # Blind & Preview Function Keywords
+    blind,
+    blind_edit,
+    preview,
+    preview_edit,
+    # Blackout & Global State Function Keywords
+    blackout,
+    black,
+    freeze,
+    highlight,
+    full_highlight,
+    solo,
+    # Cue Timing Function Keywords
+    delay,
+    out_delay,
+    fade,
+    out_fade,
     # Other Function Keywords
     call_preset,
     clear,
@@ -311,6 +328,23 @@ __all__ = [
     "set_var",
     "add_user_var",
     "add_var",
+    # Blind & Preview Function Keywords
+    "blind",
+    "blind_edit",
+    "preview",
+    "preview_edit",
+    # Blackout & Global State Function Keywords
+    "blackout",
+    "black",
+    "freeze",
+    "highlight",
+    "full_highlight",
+    "solo",
+    # Cue Timing Function Keywords
+    "delay",
+    "out_delay",
+    "fade",
+    "out_fade",
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",
