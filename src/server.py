@@ -17,60 +17,100 @@ from mcp.server.fastmcp import FastMCP
 from src.telnet_client import GMA2TelnetClient
 from src.tools import set_gma2_client
 from src.commands import (
-    select_fixture,
-    store_group,
-    label_group,
+    assign,
+    attribute_at,
+    blackout,
+    clear,
+    clear_active,
+    clear_all,
+    clear_selection,
+    delete_cue as cmd_delete_cue,
+    executor_at,
+    fixture,
+    fixture_at,
+    go_executor,
     go_sequence,
-    pause_sequence,
+    goto,
     goto_cue,
+    highlight,
+    kill,
+    label,
+    label_group,
+    off,
+    on,
+    pause_sequence,
+    preset,
+    select_fixture,
+    store_cue as cmd_store_cue,
+    store_group,
+    store_preset as cmd_store_preset,
+    toggle,
 )
+from src.commands.constants import PRESET_TYPES
 
-# Load environment variables
 load_dotenv()
 
-# Configure logging
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
-# Get configuration from environment variables
 GMA_HOST = os.getenv("GMA_HOST", "127.0.0.1")
 GMA_PORT = int(os.getenv("GMA_PORT", "30000"))
 GMA_USER = os.getenv("GMA_USER", "administrator")
 GMA_PASSWORD = os.getenv("GMA_PASSWORD", "admin")
 
-# Create MCP server
 mcp = FastMCP(
     name="grandMA2-MCP",
     instructions="""
-    This is an MCP server for controlling grandMA2 lighting console.
-    You can use the following tools to operate grandMA2:
+    MCP server for controlling grandMA2 lighting consoles via Telnet.
 
-    1. create_fixture_group - Create a fixture group
-       Example: Save fixtures 1 to 10 as group 1 with name "Front Wash"
+    Available tools by category:
 
-    2. execute_sequence - Execute sequence operations
-       Example: Execute sequence 1, pause sequence 2, jump to cue 5 of sequence 1
+    Fixture Groups:
+      - create_fixture_group: Select fixtures and store as a named group
 
-    3. send_raw_command - Send raw MA commands
-       Example: Send "blackout" or "go+ executor 1.1"
+    Cue Management:
+      - store_cue: Store current programmer state as a cue
+      - delete_cue: Delete a cue
+      - goto_cue: Jump to a specific cue in an executor or sequence
+
+    Fixture & Value Control:
+      - set_fixture_value: Set fixture(s) to a dimmer value (0-100)
+      - set_fixture_attribute: Set a specific attribute (Pan, Tilt, etc.)
+      - clear_programmer: Clear the programmer (all, selection, or active)
+
+    Preset Management:
+      - store_preset: Store current values as a preset
+      - apply_preset: Apply an existing preset to the current selection
+
+    Executor Control:
+      - control_executor: On/off/go/kill/toggle an executor
+      - set_executor_fader: Set executor fader level (0-100)
+      - assign_to_executor: Assign a sequence to an executor
+
+    Global State:
+      - toggle_blackout: Toggle grand blackout
+      - toggle_highlight: Toggle highlight mode
+
+    Labeling:
+      - label_object: Assign a name to any MA2 object
+
+    Sequence Playback:
+      - execute_sequence: Go/pause/goto on a sequence
+
+    Raw Command:
+      - send_raw_command: Send any grandMA2 command-line instruction
     """,
 )
 
-# Global telnet client instance
 _client: GMA2TelnetClient | None = None
 _connected: bool = False
 
 
 async def get_client() -> GMA2TelnetClient:
-    """
-    Get or create a telnet client instance (async).
-
-    On first call, establishes connection and login. Subsequent calls return
-    the already connected client.
-    """
+    """Get or create the shared telnet client instance."""
     global _client, _connected
     if _client is None or not _connected:
         _client = GMA2TelnetClient(
@@ -88,7 +128,7 @@ async def get_client() -> GMA2TelnetClient:
 
 
 # ============================================================
-# MCP Tools Definition
+# Fixture Group Tools
 # ============================================================
 
 
@@ -120,15 +160,12 @@ async def create_fixture_group(
     """
     client = await get_client()
 
-    # Select fixtures
     select_cmd = select_fixture(start_fixture, end_fixture)
     await client.send_command(select_cmd)
 
-    # Save as group
     store_cmd = store_group(group_id)
     await client.send_command(store_cmd)
 
-    # Add label if name is provided
     if group_name:
         label_cmd = label_group(group_id, group_name)
         await client.send_command(label_cmd)
@@ -137,6 +174,425 @@ async def create_fixture_group(
     return (
         f"Created Group {group_id} containing Fixtures {start_fixture} to {end_fixture}"
     )
+
+
+# ============================================================
+# Cue Management Tools
+# ============================================================
+
+
+@mcp.tool()
+async def store_cue(
+    cue_id: int,
+    name: str | None = None,
+    merge: bool = False,
+    overwrite: bool = False,
+    noconfirm: bool = False,
+) -> str:
+    """
+    Store the current programmer state as a cue.
+
+    Args:
+        cue_id: Cue number to store
+        name: (Optional) Name for the cue
+        merge: Merge new values into existing cue
+        overwrite: Overwrite existing cue entirely
+        noconfirm: Suppress store confirmation pop-up
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Store cue 1
+        - Store cue 5 with name "Blackout" and merge enabled
+    """
+    client = await get_client()
+    cmd = cmd_store_cue(
+        cue_id, name=name, merge=merge, overwrite=overwrite, noconfirm=noconfirm
+    )
+    await client.send_command(cmd)
+    label_part = f' "{name}"' if name else ""
+    return f"Stored Cue {cue_id}{label_part}"
+
+
+@mcp.tool()
+async def delete_cue(cue_id: int) -> str:
+    """
+    Delete a cue from the current sequence.
+
+    Args:
+        cue_id: Cue number to delete
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Delete cue 3
+    """
+    client = await get_client()
+    cmd = cmd_delete_cue(cue_id)
+    await client.send_command(cmd)
+    return f"Deleted Cue {cue_id}"
+
+
+@mcp.tool()
+async def goto_cue_tool(
+    cue_id: int,
+    executor: int | None = None,
+    sequence: int | None = None,
+) -> str:
+    """
+    Jump to a specific cue.
+
+    Targets either an executor or a sequence. If neither is specified,
+    the command applies to the selected executor.
+
+    Args:
+        cue_id: Target cue number
+        executor: (Optional) Executor number
+        sequence: (Optional) Sequence number
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Goto cue 5 on executor 4
+        - Goto cue 3 in sequence 1
+    """
+    client = await get_client()
+    cmd = goto(cue_id, executor=executor, sequence=sequence)
+    await client.send_command(cmd)
+    target = ""
+    if executor is not None:
+        target = f" on Executor {executor}"
+    elif sequence is not None:
+        target = f" in Sequence {sequence}"
+    return f"Jumped to Cue {cue_id}{target}"
+
+
+# ============================================================
+# Fixture & Value Control Tools
+# ============================================================
+
+
+@mcp.tool()
+async def set_fixture_value(
+    fixture_id: int,
+    value: int,
+    end_fixture: int | None = None,
+) -> str:
+    """
+    Set fixture(s) to a dimmer value.
+
+    Args:
+        fixture_id: Fixture number (or start of range)
+        value: Dimmer percentage (0-100)
+        end_fixture: (Optional) End fixture for range
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Set fixture 1 to 75%
+        - Set fixtures 1 thru 10 to 50%
+    """
+    client = await get_client()
+    cmd = fixture_at(fixture_id, value, end=end_fixture)
+    await client.send_command(cmd)
+    range_part = f" thru {end_fixture}" if end_fixture else ""
+    return f"Set Fixture {fixture_id}{range_part} to {value}%"
+
+
+@mcp.tool()
+async def set_fixture_attribute(
+    fixture_id: int,
+    attribute: str,
+    value: int,
+    end_fixture: int | None = None,
+) -> str:
+    """
+    Set a specific attribute on fixture(s).
+
+    First selects the fixture(s), then applies the attribute value.
+
+    Args:
+        fixture_id: Fixture number (or start of range)
+        attribute: Attribute name (e.g., "Pan", "Tilt", "Dimmer")
+        value: Value to set
+        end_fixture: (Optional) End fixture for range
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Set Pan to 128 on fixture 1
+        - Set Tilt to 50 on fixtures 1 thru 10
+    """
+    client = await get_client()
+    if end_fixture is not None:
+        fix_cmd = f"fixture {fixture_id} thru {end_fixture}"
+    else:
+        fix_cmd = fixture(fixture_id)
+    await client.send_command(fix_cmd)
+    attr_cmd = attribute_at(attribute, value)
+    await client.send_command(attr_cmd)
+    range_part = f" thru {end_fixture}" if end_fixture else ""
+    return f"Set {attribute} to {value} on Fixture {fixture_id}{range_part}"
+
+
+@mcp.tool()
+async def clear_programmer(
+    mode: str = "all",
+) -> str:
+    """
+    Clear the programmer.
+
+    Args:
+        mode: Clear mode - "all" (clear everything), "selection" (clear selection only),
+              "active" (clear active values only), or "default" (standard clear)
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Clear all programmer data
+        - Clear selection only
+    """
+    client = await get_client()
+    mode_map = {
+        "all": clear_all,
+        "selection": clear_selection,
+        "active": clear_active,
+        "default": clear,
+    }
+    cmd_fn = mode_map.get(mode, clear)
+    cmd = cmd_fn()
+    await client.send_command(cmd)
+    return f"Cleared programmer ({mode})"
+
+
+# ============================================================
+# Preset Management Tools
+# ============================================================
+
+
+@mcp.tool()
+async def store_preset(
+    preset_type: str,
+    preset_id: int,
+    scope: str | None = None,
+) -> str:
+    """
+    Store current programmer values as a preset.
+
+    Args:
+        preset_type: Preset type (dimmer, position, gobo, color, beam, focus, control, shapers, video)
+        preset_id: Preset number
+        scope: (Optional) Scope: "global", "selective", or "universal"
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Store color preset 1
+        - Store global dimmer preset 5
+    """
+    client = await get_client()
+    kwargs = {}
+    if scope == "global":
+        kwargs["global_scope"] = True
+    elif scope == "selective":
+        kwargs["selective"] = True
+    elif scope == "universal":
+        kwargs["universal"] = True
+    cmd = cmd_store_preset(preset_type, preset_id, **kwargs)
+    await client.send_command(cmd)
+    scope_part = f" ({scope})" if scope else ""
+    return f"Stored {preset_type} Preset {preset_id}{scope_part}"
+
+
+@mcp.tool()
+async def apply_preset(
+    preset_type: str,
+    preset_id: int,
+) -> str:
+    """
+    Apply an existing preset to the current selection.
+
+    Args:
+        preset_type: Preset type (dimmer, position, gobo, color, beam, focus, control, shapers, video)
+        preset_id: Preset number
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Apply color preset 3
+        - Apply position preset 1
+    """
+    client = await get_client()
+    cmd = preset(preset_type, preset_id)
+    await client.send_command(cmd)
+    return f"Applied {preset_type} Preset {preset_id}"
+
+
+# ============================================================
+# Executor Control Tools
+# ============================================================
+
+
+@mcp.tool()
+async def control_executor(
+    executor_id: int,
+    action: str,
+) -> str:
+    """
+    Control an executor (on, off, go, kill, toggle).
+
+    Args:
+        executor_id: Executor number
+        action: Action to perform: "on", "off", "go", "kill", or "toggle"
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Turn on executor 1
+        - Kill executor 3
+        - Go on executor 2
+    """
+    client = await get_client()
+    action_map = {
+        "on": lambda eid: on(executor=eid),
+        "off": lambda eid: off(executor=eid),
+        "go": lambda eid: go_executor(eid),
+        "kill": lambda eid: kill(f"executor {eid}"),
+        "toggle": lambda eid: toggle(f"executor {eid}"),
+    }
+    cmd_fn = action_map.get(action)
+    if cmd_fn is None:
+        return f"Unknown action: {action}. Use on, off, go, kill, or toggle."
+    cmd = cmd_fn(executor_id)
+    await client.send_command(cmd)
+    return f"Executor {executor_id}: {action}"
+
+
+@mcp.tool()
+async def set_executor_fader(
+    executor_id: int,
+    value: int,
+) -> str:
+    """
+    Set an executor's fader level.
+
+    Args:
+        executor_id: Executor number
+        value: Fader value (0-100)
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Set executor 1 fader to 75%
+    """
+    client = await get_client()
+    cmd = executor_at(executor_id, value)
+    await client.send_command(cmd)
+    return f"Set Executor {executor_id} fader to {value}%"
+
+
+@mcp.tool()
+async def assign_to_executor(
+    sequence_id: int,
+    executor_id: int,
+) -> str:
+    """
+    Assign a sequence to an executor.
+
+    Args:
+        sequence_id: Sequence number to assign
+        executor_id: Target executor number
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Assign sequence 1 to executor 6
+    """
+    client = await get_client()
+    cmd = assign("sequence", sequence_id, "executor", executor_id)
+    await client.send_command(cmd)
+    return f"Assigned Sequence {sequence_id} to Executor {executor_id}"
+
+
+# ============================================================
+# Global State Tools
+# ============================================================
+
+
+@mcp.tool()
+async def toggle_blackout() -> str:
+    """
+    Toggle the grand blackout state.
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = blackout()
+    await client.send_command(cmd)
+    return "Toggled Blackout"
+
+
+@mcp.tool()
+async def toggle_highlight() -> str:
+    """
+    Toggle highlight mode for fixture programming.
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = highlight()
+    await client.send_command(cmd)
+    return "Toggled Highlight"
+
+
+# ============================================================
+# Labeling Tools
+# ============================================================
+
+
+@mcp.tool()
+async def label_object(
+    object_type: str,
+    object_id: int,
+    name: str,
+) -> str:
+    """
+    Assign a name label to a grandMA2 object.
+
+    Args:
+        object_type: Object type (e.g., "group", "cue", "sequence", "macro", "preset")
+        object_id: Object number
+        name: Name to assign
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Label group 1 as "Front Wash"
+        - Label cue 5 as "Intro"
+    """
+    client = await get_client()
+    cmd = label(object_type, object_id, name)
+    await client.send_command(cmd)
+    return f'Labeled {object_type} {object_id} as "{name}"'
+
+
+# ============================================================
+# Sequence Playback Tools (existing)
+# ============================================================
 
 
 @mcp.tool()
@@ -183,6 +639,11 @@ async def execute_sequence(
     return f"Unknown action: {action}, use go, pause, or goto"
 
 
+# ============================================================
+# Raw Command Tool (existing)
+# ============================================================
+
+
 @mcp.tool()
 async def send_raw_command(command: str) -> str:
     """
@@ -217,8 +678,6 @@ def main():
     """MCP Server entry point."""
     logger.info("Starting grandMA2 MCP Server...")
     logger.info(f"Connecting to grandMA2: {GMA_HOST}:{GMA_PORT}")
-
-    # Start server using stdio transport
     mcp.run(transport="stdio")
 
 
