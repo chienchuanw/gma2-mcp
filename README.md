@@ -320,11 +320,18 @@ gma2-mcp/
 │   │   └── functions/           # Function Keywords organized by category
 │   │       ├── __init__.py
 │   │       ├── assignment.py    # Assign keyword functions
+│   │       ├── blackout.py      # Blackout, Black, Freeze, Highlight, Solo
+│   │       ├── blind.py         # Blind, BlindEdit, Preview, PreviewEdit
+│   │       ├── cue_timing.py    # Delay, OutDelay, Fade, OutFade
 │   │       ├── edit.py          # Copy, Move, Delete, Remove functions
+│   │       ├── executor_control.py # Off, On, Kill, Flash, Swop, etc.
+│   │       ├── fixture_control.py  # Align, All, Fix, Locate, Next, etc.
 │   │       ├── info.py          # List and Info query functions
+│   │       ├── intensity.py     # Full, ToFull, Zero, ToZero, Load, Learn
 │   │       ├── labeling.py      # Label and Appearance functions
 │   │       ├── macro.py         # Macro placeholder functions
 │   │       ├── playback.py      # Go, GoBack, Goto, GoFast, DefGo functions
+│   │       ├── programmer.py    # Block, Unblock, Clone, Default, etc.
 │   │       ├── selection.py     # SelFix and Clear functions
 │   │       ├── store.py         # Store functions
 │   │       └── values.py        # At and value setting functions
@@ -335,12 +342,19 @@ gma2-mcp/
 ├── tests/
 │   ├── conftest.py              # Pytest configuration and fixtures
 │   ├── test_assignment.py       # Assign keyword tests
+│   ├── test_blackout.py         # Blackout, Freeze, Highlight tests
+│   ├── test_blind.py            # Blind, Preview tests
+│   ├── test_cue_timing.py       # Delay, Fade tests
 │   ├── test_edit.py             # Copy, Move, Delete tests
+│   ├── test_executor_control.py # Off, On, Kill, Flash tests
+│   ├── test_fixture_control.py  # Align, Fix, Locate tests
 │   ├── test_info.py             # List and Info query tests
+│   ├── test_intensity.py        # Full, Zero, Load tests
 │   ├── test_labeling.py         # Label and Appearance tests
 │   ├── test_macro.py            # Macro placeholder tests
 │   ├── test_objects.py          # Object Keywords tests
 │   ├── test_playback.py         # Playback control tests
+│   ├── test_programmer.py       # Block, Clone, Update tests
 │   ├── test_selection.py        # Selection and Clear tests
 │   ├── test_store.py            # Store function tests
 │   ├── test_telnet_client.py    # Telnet client tests
