@@ -15,8 +15,9 @@ __pycache__/
 *.log
 .remember/
 
-# augment
+# harness
 .augment/
+.claude/
 
 # openspec
 openspec/
