@@ -959,3 +959,67 @@ class TestTimerCommands:
 
         with pytest.raises(ValueError, match="Cannot use 'end' with list"):
             timer([1, 2], end=5)
+
+
+class TestPresetTypesMapping:
+    """
+    Tests that PRESET_TYPES maps names to the correct grandMA2 preset pool IDs.
+
+    Reference: grandMA2 User Manual v3.9, Ch.19.2 "Preset Pools" screenshot.
+    The numbered preset pools are:
+        1=Dimmer, 2=Position, 3=Gobo, 4=Color, 5=Beam,
+        6=Focus, 7=Control, 8=Shapers, 9=Video
+    """
+
+    def test_dimmer_maps_to_1(self):
+        from src.commands.constants import PRESET_TYPES
+
+        assert PRESET_TYPES["dimmer"] == 1
+
+    def test_position_maps_to_2(self):
+        from src.commands.constants import PRESET_TYPES
+
+        assert PRESET_TYPES["position"] == 2
+
+    def test_gobo_maps_to_3(self):
+        from src.commands.constants import PRESET_TYPES
+
+        assert PRESET_TYPES["gobo"] == 3
+
+    def test_color_maps_to_4(self):
+        from src.commands.constants import PRESET_TYPES
+
+        assert PRESET_TYPES["color"] == 4
+
+    def test_beam_maps_to_5(self):
+        from src.commands.constants import PRESET_TYPES
+
+        assert PRESET_TYPES["beam"] == 5
+
+    def test_focus_maps_to_6(self):
+        from src.commands.constants import PRESET_TYPES
+
+        assert PRESET_TYPES["focus"] == 6
+
+    def test_control_maps_to_7(self):
+        from src.commands.constants import PRESET_TYPES
+
+        assert PRESET_TYPES["control"] == 7
+
+    def test_shapers_maps_to_8(self):
+        from src.commands.constants import PRESET_TYPES
+
+        assert PRESET_TYPES["shapers"] == 8
+
+    def test_video_maps_to_9(self):
+        from src.commands.constants import PRESET_TYPES
+
+        assert PRESET_TYPES["video"] == 9
+
+    def test_all_preset_type_ids_are_unique(self):
+        from src.commands.constants import PRESET_TYPES
+
+        values = list(PRESET_TYPES.values())
+        assert len(values) == len(set(values)), (
+            f"Duplicate preset type IDs found: {values}"
+        )
