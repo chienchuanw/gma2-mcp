@@ -277,7 +277,7 @@ Allocate objects in the show file. Usually combined with numbers, IDs, names, or
 | `fixture()`  | Select fixtures by Fixture ID | `fixture(34)` -> `fixture 34`            |
 | `channel()`  | Select fixtures by Channel ID | `channel(11, sub_id=5)` -> `channel 11.5`|
 | `group()`    | Select fixtures in a group    | `group(3)` -> `group 3`                  |
-| `preset()`   | Apply a preset                | `preset("color", 5)` -> `preset 2.5`    |
+| `preset()`   | Apply a preset                | `preset("color", 5)` -> `preset 4.5`    |
 | `cue()`      | Reference a cue               | `cue(5)` -> `cue 5`                     |
 | `sequence()` | Reference a sequence          | `sequence(3)` -> `sequence 3`            |
 
