@@ -102,7 +102,7 @@ class TestSetupGroupWithPreset:
         assert cmds[0] == "selfix fixture 1 thru 10"
         assert cmds[1] == "store group 1"
         assert cmds[2] == 'label group 1 "Front Wash"'
-        assert cmds[3] == "preset 2.3"
+        assert cmds[3] == "preset 4.3"
         assert result["count"] == 4
         assert "Front Wash" in result["summary"]
 
