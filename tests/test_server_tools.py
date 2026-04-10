@@ -189,7 +189,7 @@ class TestStorePresetTool:
 
         result = await store_preset(preset_type="color", preset_id=1)
 
-        client.send_command.assert_called_once_with("store preset 2.1")
+        client.send_command.assert_called_once_with("store preset 4.1")
         assert "color" in result
 
     @pytest.mark.asyncio
@@ -217,7 +217,7 @@ class TestApplyPresetTool:
 
         result = await apply_preset(preset_type="color", preset_id=3)
 
-        client.send_command.assert_called_once_with("preset 2.3")
+        client.send_command.assert_called_once_with("preset 4.3")
         assert "color" in result
 
 
