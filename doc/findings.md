@@ -115,7 +115,7 @@ src/commands/
 
 ### Constants (`src/commands/constants.py`)
 
-- `PRESET_TYPES`: Maps names to IDs -- dimmer=1, position=2, color=2, gobo=3, beam=4, focus=5, control=6, shapers=7, video=8
+- `PRESET_TYPES`: Maps names to IDs -- dimmer=1, position=2, gobo=3, color=4, beam=5, focus=6, control=7, shapers=8, video=9 (fixed in issue #1; was incorrectly color=2, beam=4, etc.)
 - `STORE_FLAG_OPTIONS`: merge, overwrite, remove, noconfirm, global, selective, universal, auto, trackingshield, embedded
 - `STORE_BOOL_OPTIONS`: cueonly, tracking, keepactive, presetfilter, addnewcontent, originalcontent, effects, values, valuetimes
 - `STORE_VALUE_OPTIONS`: source, useselection, screen, x, y
@@ -291,9 +291,19 @@ gma2-mcp/
 
 ## Observations & Potential Improvements
 
-1. **`PRESET_TYPES` collision**: Both "position" and "color" map to ID 2. This may be intentional (grandMA2 behavior) or a bug.
-2. **Legacy `src/tools.py`**: Contains functions that don't `await` async calls. These appear to be pre-MCP implementations that were superseded by `src/server.py`. Could be cleaned up.
-3. **`main.py` uses deprecated `telnetlib`**: This standalone test script uses the stdlib `telnetlib` (removed in Python 3.13), unlike the main codebase which uses `telnetlib3`.
-4. **No error handling in MCP tools**: Most tools don't handle cases where the telnet connection drops mid-session. The `get_client()` lazy init only checks initial connection.
-5. **No response parsing**: `send_command()` is fire-and-forget. The server never confirms whether a command was accepted by the console.
+1. ~~**`PRESET_TYPES` collision**: Both "position" and "color" map to ID 2.~~ **FIXED** in issue #1 -- color is now correctly 4, all types shifted to match manual.
+2. **Legacy `src/tools.py`**: Contains functions that don't `await` async calls. These appear to be pre-MCP implementations that were superseded by `src/server.py`. Could be cleaned up. (Issue #3)
+3. **`main.py` uses deprecated `telnetlib`**: This standalone test script uses the stdlib `telnetlib` (removed in Python 3.13), unlike the main codebase which uses `telnetlib3`. (Issue #10)
+4. **No error handling in MCP tools**: Most tools don't handle cases where the telnet connection drops mid-session. The `get_client()` lazy init only checks initial connection. (Issue #2)
+5. **No response parsing**: `send_command()` is fire-and-forget. The server never confirms whether a command was accepted by the console. (Issue #4)
 6. **GMA2Client.create() is not a context manager factory**: The `create()` classmethod returns a `GMA2Client` but you need to wrap it in `async with` separately. The README example `async with GMA2Client.create(...) as client:` works because `__aenter__` returns `self`.
+
+## grandMA2 Manual Key Findings (v3.9)
+
+- **1,850 pages** covering the complete console feature set
+- **Telnet Remote (Ch.34.4)**: Any command-line command can be sent via Telnet on port 30000. Login is case-sensitive. Accessing fixture setup via Telnet locks access for other users.
+- **Preset Pools (Ch.19.2)**: 9 numbered preset types (1-9) plus "Dynamic" and "All" (unnumbered, UI-only). Each pool stores values of its type.
+- **Macros (Ch.38)**: Stored command sequences with variables (`$name`), conditionals, timing (wait/follow/go). Executed as command-line input. Can use `@` for user input prompts. Predefined variables: `$SELECTEDEXEC`, `$SHOWFILE`, `$USER`, etc.
+- **Effects (Ch.31)**: Continuous parameter modulation with configurable BPM/Hz, waveform, phase, width. Can be stored in cues or assigned to executors.
+- **Chasers (Ch.30)**: Step-based sequences that cycle through cues automatically.
+- **Timecode (Ch.35)**: Record and play back timecode shows synchronized to external time sources.
