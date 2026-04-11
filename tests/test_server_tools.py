@@ -622,6 +622,16 @@ class TestLabelSequenceCueTool:
         client.send_command.assert_called_once_with('label sequence 100 cue 1 "Opening+Childhood"')
         assert "Opening+Childhood" in result
 
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_label_sequence_cue_with_end_cue(self, mock_get):
+        from src.server import label_sequence_cue as label_sequence_cue_tool
+        client = _mock_client()
+        mock_get.return_value = client
+        result = await label_sequence_cue_tool(sequence="Set List", cue_id=1, name="Act 1", end_cue=5)
+        client.send_command.assert_called_once_with('label sequence "Set List" cue 1 thru 5 "Act 1"')
+        assert "thru 5" in result
+
 
 class TestStoreCueAcrossSequencesTool:
     @pytest.mark.asyncio
