@@ -129,18 +129,18 @@ class TestAssignMacroCmdCommands:
         from src.commands import assign_macro_cmd
 
         result = assign_macro_cmd(macro_id=101, line=1, command="SetVar $song='Opening+Childhood'")
-        assert result == 'Assign Macro 1.101.1 /CMD="SetVar $song=\'Opening+Childhood\'"'
+        assert result == 'assign macro 1.101.1 /cmd="SetVar $song=\'Opening+Childhood\'"'
 
     def test_assign_macro_cmd_custom_pool(self):
         """Test macro line assignment with custom pool."""
         from src.commands import assign_macro_cmd
 
         result = assign_macro_cmd(macro_id=50, line=3, command="Go Sequence 5", pool=2)
-        assert result == 'Assign Macro 2.50.3 /CMD="Go Sequence 5"'
+        assert result == 'assign macro 2.50.3 /cmd="Go Sequence 5"'
 
     def test_assign_macro_cmd_macro_reference(self):
         """Test macro line with Macro command reference."""
         from src.commands import assign_macro_cmd
 
         result = assign_macro_cmd(macro_id=101, line=2, command="Macro 102")
-        assert result == 'Assign Macro 1.101.2 /CMD="Macro 102"'
+        assert result == 'assign macro 1.101.2 /cmd="Macro 102"'
