@@ -91,6 +91,7 @@ from .labeling import (
     label,
     label_group,
     label_preset,
+    label_sequence_cue,
     appearance,
 )
 
@@ -469,6 +470,7 @@ __all__ = [
     "label",
     "label_group",
     "label_preset",
+    "label_sequence_cue",
     # Delete
     "delete",
     "delete_cue",

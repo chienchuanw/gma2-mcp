@@ -37,6 +37,7 @@ from src.commands import (
     kill,
     label,
     label_group,
+    label_sequence_cue as cmd_label_sequence_cue,
     off,
     on,
     pause_sequence,
@@ -97,6 +98,7 @@ mcp = FastMCP(
 
     Labeling:
       - label_object: Assign a name to any MA2 object
+      - label_sequence_cue: Label a cue within a specific sequence
 
     Macro Tools:
       - set_macro_line: Set the command for a macro line
@@ -590,6 +592,40 @@ async def label_object(
     cmd = label(object_type, object_id, name)
     await client.send_command(cmd)
     return f'Labeled {object_type} {object_id} as "{name}"'
+
+
+@mcp.tool()
+async def label_sequence_cue(
+    sequence: str,
+    cue_id: int,
+    name: str,
+    end_cue: int | None = None,
+) -> str:
+    """
+    Label a cue within a specific sequence.
+
+    This tool addresses cues through the sequence context, which is required
+    for labeling cues inside named sequences.
+
+    Args:
+        sequence: Sequence ID or name (e.g., "100" or "Set List")
+        cue_id: Cue number within the sequence
+        name: Label to assign
+        end_cue: (Optional) End cue for range labeling
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Label cue 1 in "Set List" as "Opening+Childhood"
+        - Label cue 1 in sequence 100 as "Opening+Childhood"
+        - Label cues 1 thru 5 in "Set List" as "Act 1"
+    """
+    client = await get_client()
+    cmd = cmd_label_sequence_cue(sequence, cue_id, name, end_cue=end_cue)
+    await client.send_command(cmd)
+    range_part = f" thru {end_cue}" if end_cue else ""
+    return f'Labeled Sequence "{sequence}" Cue {cue_id}{range_part} as "{name}"'
 
 
 # ============================================================
