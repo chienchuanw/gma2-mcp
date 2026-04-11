@@ -38,7 +38,7 @@ class TestCreateFixtureGroupTool:
     @pytest.mark.asyncio
     @patch("src.tools.get_gma2_client")
     async def test_create_fixture_group_with_label(self, mock_get_client):
-        """Test creating a fixture group with a label."""
+        """Test creating a fixture group with inline name."""
         from src.tools import create_fixture_group
 
         mock_client = MagicMock()
@@ -48,17 +48,16 @@ class TestCreateFixtureGroupTool:
             start_fixture=1, end_fixture=10, group_id=1, group_name="Front Wash"
         )
 
-        # Verify sent commands (including label)
+        # Verify sent commands (inline name, no separate label)
         calls = mock_client.send_command.call_args_list
-        assert len(calls) == 3
+        assert len(calls) == 2
         assert calls[0][0][0] == "selfix fixture 1 thru 10"
-        assert calls[1][0][0] == "store group 1"
-        assert calls[2][0][0] == 'label group 1 "Front Wash"'
+        assert calls[1][0][0] == 'store group 1 "Front Wash"'
 
     @pytest.mark.asyncio
     @patch("src.tools.get_gma2_client")
     async def test_create_fixture_group_with_custom_name(self, mock_get_client):
-        """Test creating a fixture group with a custom name."""
+        """Test creating a fixture group with a custom inline name."""
         from src.tools import create_fixture_group
 
         mock_client = MagicMock()
@@ -69,7 +68,7 @@ class TestCreateFixtureGroupTool:
         )
 
         calls = mock_client.send_command.call_args_list
-        assert calls[2][0][0] == 'label group 1 "Front Stage Wash"'
+        assert calls[1][0][0] == 'store group 1 "Front Stage Wash"'
 
 
 class TestExecuteSequenceTool:

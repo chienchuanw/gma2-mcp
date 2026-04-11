@@ -89,16 +89,12 @@ async def create_fixture_group(
     client.send_command(select_cmd)
     logger.info(f"Selected Fixtures {start_fixture} to {end_fixture}")
 
-    # Step 2: Save as group
-    store_cmd = store_group(group_id)
+    # Step 2: Save as group (with inline name if provided)
+    store_cmd = store_group(group_id, name=group_name)
     client.send_command(store_cmd)
     logger.info(f"Saved as Group {group_id}")
 
-    # Step 3: (Optional) Add label
     if group_name:
-        label_cmd = label_group(group_id, group_name)
-        client.send_command(label_cmd)
-        logger.info(f'Named Group {group_id} as "{group_name}"')
         return f'Created Group {group_id} "{group_name}" containing Fixtures {start_fixture} to {end_fixture}'
 
     return (

@@ -163,12 +163,10 @@ async def create_fixture_group(
     select_cmd = select_fixture(start_fixture, end_fixture)
     await client.send_command(select_cmd)
 
-    store_cmd = store_group(group_id)
+    store_cmd = store_group(group_id, name=group_name)
     await client.send_command(store_cmd)
 
     if group_name:
-        label_cmd = label_group(group_id, group_name)
-        await client.send_command(label_cmd)
         return f'Created Group {group_id} "{group_name}" containing Fixtures {start_fixture} to {end_fixture}'
 
     return (
