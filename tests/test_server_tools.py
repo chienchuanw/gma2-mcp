@@ -102,6 +102,55 @@ class TestDeleteCueTool:
         client.send_command.assert_called_once_with("delete cue 3")
         assert "Cue 3" in result
 
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_delete_cue_includes_warnings(self, mock_get):
+        from src.server import delete_cue
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await delete_cue(cue_id=1)
+
+        assert "⚠ Warnings:" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_delete_cue_warnings_mention_executor_handles(self, mock_get):
+        from src.server import delete_cue
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await delete_cue(cue_id=1)
+
+        assert "executor" in result.lower()
+        assert "missing cue" in result.lower()
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_delete_cue_warnings_mention_lost_programming(self, mock_get):
+        from src.server import delete_cue
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await delete_cue(cue_id=1)
+
+        assert "permanently lost" in result.lower()
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_delete_cue_still_sends_command(self, mock_get):
+        from src.server import delete_cue
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        await delete_cue(cue_id=5)
+
+        client.send_command.assert_called_once_with("delete cue 5")
+
 
 class TestGotoCueTool:
     @pytest.mark.asyncio
