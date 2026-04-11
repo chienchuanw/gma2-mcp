@@ -15,7 +15,6 @@ from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
 from src.telnet_client import GMA2TelnetClient
-from src.tools import set_gma2_client
 from src.commands import (
     appearance as cmd_appearance,
     assign,
@@ -167,7 +166,6 @@ async def get_client() -> GMA2TelnetClient:
         await _client.connect()
         await _client.login()
         _connected = True
-        set_gma2_client(_client)
         logger.info(f"Connected to grandMA2: {GMA_HOST}:{GMA_PORT}")
     return _client
 
