@@ -74,7 +74,7 @@ mcp = FastMCP(
     Cue Management:
       - store_cue: Store current programmer state as a cue
       - delete_cue: Delete a cue
-      - goto_cue: Jump to a specific cue in an executor or sequence
+      - goto_cue_tool: Jump to a specific cue in an executor or sequence
 
     Fixture & Value Control:
       - set_fixture_value: Set fixture(s) to a dimmer value (0-100)
