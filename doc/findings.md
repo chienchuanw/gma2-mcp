@@ -78,7 +78,7 @@ src/commands/
 | Module | Functions |
 |--------|-----------|
 | `values.py` | at, at_full, at_zero, attribute_at, fixture_at, channel_at, group_at, executor_at, preset_type_at |
-| `store.py` | store, store_cue, store_group, store_preset |
+| `store.py` | store, store_cue, store_group (accepts optional `name` for inline naming), store_preset |
 | `selection.py` | select_fixture, select_group, clear, clear_selection, clear_active, clear_all |
 | `playback.py` | go, go_executor, go_sequence, go_back, goto, goto_cue, pause_sequence, def_go_*, go_fast_* |
 | `edit.py` | copy, copy_cue, move, delete, delete_cue, delete_fixture, delete_group, delete_preset, remove, remove_* |
@@ -130,8 +130,8 @@ High-level workflows that compose multiple command builder calls:
 
 | Method | Workflow |
 |--------|----------|
-| `build_cue_list(seq_id, cues)` | Store cues, label them, assign fade times |
-| `setup_group_with_preset(fixtures, group_id, ...)` | Select fixtures -> store group -> label -> apply preset |
+| `build_cue_list(seq_id, cues)` | Store cues with inline names, assign fade times (1 command per named cue via `store_cue(id, name=name)` instead of separate `label()` call) |
+| `setup_group_with_preset(fixtures, group_id, ...)` | Select fixtures -> store group with inline name -> apply preset (3 commands instead of 4, uses `store_group(id, name=name)` instead of separate `label_group()`) |
 | `quick_look(fixtures, value, store_as_cue)` | Select fixtures -> set value -> optionally store cue |
 | `assign_sequences_to_executors(assignments)` | Batch assign sequence/executor pairs |
 
@@ -165,7 +165,7 @@ Builder-pattern for composing command batches:
 
 | Category | Tool | Args |
 |----------|------|------|
-| **Fixture Groups** | `create_fixture_group` | start_fixture, end_fixture, group_id, group_name? |
+| **Fixture Groups** | `create_fixture_group` | start_fixture, end_fixture, group_id, group_name? (uses inline store-with-name: 2 commands instead of 3) |
 | **Cue Management** | `store_cue` | cue_id, name?, merge?, overwrite?, noconfirm? |
 | | `delete_cue` | cue_id |
 | | `goto_cue_tool` | cue_id, executor?, sequence? |
@@ -203,7 +203,7 @@ Original tool implementations before MCP migration. Contains:
 
 ## Test Suite
 
-- **808 test cases** across **48 test files**
+- **823 test cases** across **48 test files**
 - Config: `pytest.ini` with `asyncio_mode = auto`
 - Tests cover:
   - Every command builder module (unit tests for string output)
