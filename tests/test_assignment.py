@@ -120,6 +120,36 @@ class TestAssignCommands:
         result = assign_to_layout("macro", 1, 2, x=0, y=0, end=5)
         assert result == "assign macro 1 thru 5 at layout 2 /x=0 /y=0"
 
+    # ---- Named page executor addressing (issue #19) ----
+
+    def test_assign_quoted_page_name_omits_target_type(self):
+        """Test that quoted page name target omits the target type keyword."""
+        from src.commands import assign
+
+        result = assign("sequence", 101, "executor", '"Set List".61')
+        assert result == 'assign sequence 101 at "Set List".61'
+
+    def test_assign_numeric_target_still_includes_type(self):
+        """Regression guard: numeric target_id still includes target type."""
+        from src.commands import assign
+
+        result = assign("sequence", 1, "executor", 6)
+        assert result == "assign sequence 1 at executor 6"
+
+    def test_assign_numeric_string_target_includes_type(self):
+        """Numeric string target_id still includes target type."""
+        from src.commands import assign
+
+        result = assign("sequence", 1, "executor", "6")
+        assert result == "assign sequence 1 at executor 6"
+
+    def test_assign_no_target_type_quoted_page(self):
+        """Test quoted page target_id with no target_type."""
+        from src.commands import assign
+
+        result = assign("sequence", 101, target_id='"Set List".61')
+        assert result == 'assign sequence 101 at "Set List".61'
+
 
 class TestAssignMacroCmdCommands:
     """Tests for assign_macro_cmd command."""
