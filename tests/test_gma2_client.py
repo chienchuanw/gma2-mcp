@@ -47,12 +47,11 @@ class TestBuildCueList:
             ],
         )
 
-        assert result["count"] == 6  # 3 store + 3 label
+        assert result["count"] == 3  # 3 store with inline name
         cmds = result["commands_sent"]
-        assert cmds[0] == "store cue 1"
-        assert cmds[1] == 'label cue 1 "Preset"'
-        assert cmds[2] == "store cue 2"
-        assert cmds[3] == 'label cue 2 "Look 1"'
+        assert cmds[0] == 'store cue 1 "Preset"'
+        assert cmds[1] == 'store cue 2 "Look 1"'
+        assert cmds[2] == 'store cue 3 "Blackout"'
         assert "3 cues" in result["summary"]
 
     @pytest.mark.asyncio
@@ -68,10 +67,9 @@ class TestBuildCueList:
         )
 
         cmds = result["commands_sent"]
-        assert cmds[0] == "store cue 1"
-        assert cmds[1] == 'label cue 1 "Intro"'
-        assert cmds[2] == "assign fade 3.0 cue 1"
-        assert result["count"] == 3
+        assert cmds[0] == 'store cue 1 "Intro"'
+        assert cmds[1] == "assign fade 3.0 cue 1"
+        assert result["count"] == 2
 
     @pytest.mark.asyncio
     async def test_cue_without_name_or_fade(self):
