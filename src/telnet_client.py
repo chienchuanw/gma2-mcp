@@ -15,13 +15,24 @@ Uses telnetlib3 (based on asyncio) to replace the deprecated telnetlib module.
 """
 
 import asyncio
+import enum
 import logging
+import time
 from typing import Any, Optional
 
 import telnetlib3
 
 # Configure logger
 logger = logging.getLogger(__name__)
+
+
+class ConnectionState(enum.Enum):
+    """Connection state for the Telnet client."""
+
+    DISCONNECTED = "disconnected"
+    CONNECTING = "connecting"
+    CONNECTED = "connected"
+    RECONNECTING = "reconnecting"
 
 
 class GMA2TelnetClient:
@@ -64,6 +75,9 @@ class GMA2TelnetClient:
         port: int = DEFAULT_PORT,
         user: str = DEFAULT_USER,
         password: str = DEFAULT_PASSWORD,
+        max_retries: int = 3,
+        retry_base_delay: float = 1.0,
+        health_check_ttl: float = 5.0,
     ):
         """
         Initialize Telnet Client.
@@ -73,19 +87,32 @@ class GMA2TelnetClient:
             port: Telnet port (default 30000)
             user: Login username (default "administrator")
             password: Login password (default "admin")
+            max_retries: Maximum reconnection attempts before raising
+            retry_base_delay: Base delay in seconds for exponential backoff
+            health_check_ttl: Seconds to skip health checks after a successful command
         """
         self.host = host
         self.port = port
         self.user = user
         self.password = password
+        self.max_retries = max_retries
+        self.retry_base_delay = retry_base_delay
+        self.health_check_ttl = health_check_ttl
         # telnetlib3 uses reader/writer pattern
         self._reader: Optional[Any] = None
         self._writer: Optional[Any] = None
         self._connection: Optional[Any] = None  # Kept for compatibility checks
+        self._state = ConnectionState.DISCONNECTED
+        self._last_successful_command_time: float = 0.0
 
         logger.debug(
             f"GMA2TelnetClient initialized: host={host}, port={port}, user={user}"
         )
+
+    @property
+    def state(self) -> ConnectionState:
+        """Return the current connection state."""
+        return self._state
 
     def run_sync(self, coro: Any) -> Any:
         """
@@ -107,6 +134,7 @@ class GMA2TelnetClient:
             ConnectionError: Unable to connect to grandMA2 host
         """
         logger.info(f"Connecting to {self.host}:{self.port}...")
+        self._state = ConnectionState.CONNECTING
 
         try:
             # telnetlib3 uses open_connection to establish connection
@@ -116,10 +144,12 @@ class GMA2TelnetClient:
             )
             # Mark connection state
             self._connection = True
+            self._state = ConnectionState.CONNECTED
             # Wait for connection to stabilize
             await asyncio.sleep(0.5)
             logger.info(f"Successfully connected to {self.host}:{self.port}")
         except Exception as e:
+            self._state = ConnectionState.DISCONNECTED
             logger.error(f"Connection failed: {e}")
             raise ConnectionError(f"Unable to connect to {self.host}:{self.port}: {e}")
 
@@ -159,6 +189,47 @@ class GMA2TelnetClient:
         logger.info("Login successful")
         return True
 
+    async def check_connection(self) -> bool:
+        """probe whether the telnet session is alive."""
+        if self._writer is None or self._reader is None:
+            return False
+        try:
+            self._writer.write("\r\n")
+            await asyncio.wait_for(self._reader.read(1024), timeout=1.0)
+            return True
+        except Exception:
+            return False
+
+    async def _ensure_connected(self) -> None:
+        """ensure connection is alive, reconnect if needed."""
+        if (time.monotonic() - self._last_successful_command_time) < self.health_check_ttl:
+            return
+
+        if await self.check_connection():
+            return
+
+        self._state = ConnectionState.RECONNECTING
+        for attempt in range(self.max_retries):
+            delay = self.retry_base_delay * (2 ** attempt)
+            try:
+                await self.disconnect()
+                await self.connect()
+                await self.login()
+                return  # success
+            except Exception:
+                logger.warning(
+                    f"Reconnection attempt {attempt + 1}/{self.max_retries} failed, "
+                    f"retrying in {delay}s"
+                )
+                if attempt < self.max_retries - 1:
+                    await asyncio.sleep(delay)
+
+        self._state = ConnectionState.DISCONNECTED
+        raise ConnectionError(
+            f"failed to reconnect after {self.max_retries} attempts to "
+            f"{self.host}:{self.port}"
+        )
+
     async def send_command(self, command: str, delay: float = 0.3) -> None:
         """
         Send a command to grandMA2 (async).
@@ -169,7 +240,10 @@ class GMA2TelnetClient:
 
         Raises:
             RuntimeError: Connection not established
+            ConnectionError: Failed to reconnect after retries
         """
+        await self._ensure_connected()
+
         if self._writer is None:
             raise RuntimeError("Connection not established, call connect() first")
 
@@ -181,6 +255,7 @@ class GMA2TelnetClient:
 
         # Wait for grandMA2 to process command
         await asyncio.sleep(delay)
+        self._last_successful_command_time = time.monotonic()
         logger.debug(f"Command sent, waiting {delay} seconds")
 
     async def send_command_with_response(
@@ -203,6 +278,8 @@ class GMA2TelnetClient:
         Raises:
             RuntimeError: Connection not established
         """
+        await self._ensure_connected()
+
         if self._writer is None or self._reader is None:
             raise RuntimeError("Connection not established, call connect() first")
 
@@ -254,6 +331,7 @@ class GMA2TelnetClient:
             self._reader = None
             self._connection = None
             logger.info("Connection closed")
+        self._state = ConnectionState.DISCONNECTED
 
     async def __aenter__(self) -> "GMA2TelnetClient":
         """Async context manager entry point: establish connection and login."""
