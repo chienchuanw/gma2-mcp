@@ -51,6 +51,7 @@ from src.commands import (
     toggle,
 )
 from src.commands.constants import PRESET_TYPES
+from src.gma2_client import GMA2Client
 
 load_dotenv()
 
@@ -108,6 +109,11 @@ mcp = FastMCP(
 
     Macro Tools:
       - set_macro_line: Set the command for a macro line
+
+    Bulk Cue Operations:
+      - store_cue_across_sequences: Store a cue across a range of sequences
+      - label_cue_across_sequences: Label a cue across a range of sequences
+      - appearance_cue_across_sequences: Set cue appearance across a range of sequences
 
     Sequence Playback:
       - execute_sequence: Go/pause/goto on a sequence
@@ -803,6 +809,132 @@ async def set_macro_line(
     cmd = assign_macro_cmd(macro_id, line, command, pool=pool)
     await client.send_command(cmd)
     return f'Set Macro {macro_id} Line {line} to "{command}" (Pool {pool})'
+
+
+# ============================================================
+# Bulk Cue Operations Tools
+# ============================================================
+
+
+@mcp.tool()
+async def store_cue_across_sequences(
+    cue_id: float,
+    sequence_start: int,
+    sequence_end: int,
+    cue_name: str | None = None,
+) -> dict:
+    """
+    Store a cue across a range of sequences.
+
+    Iterates over every sequence in the range and stores the specified cue.
+    Optionally assigns a name to each stored cue.
+
+    Args:
+        cue_id: Cue number to store (e.g., 1, 0.5)
+        sequence_start: First sequence number in the range
+        sequence_end: Last sequence number in the range (inclusive)
+        cue_name: (Optional) Name for the cue
+
+    Returns:
+        dict: Result with commands_sent, count, and summary
+
+    Examples:
+        - Store cue 0.5 across sequences 101-125 with name "((LOADING SONG))"
+        - Store cue 1 in sequence 101
+    """
+    telnet = await get_client()
+    gma2 = GMA2Client(telnet)
+    return await gma2.store_cue_across_sequences(
+        cue_id=cue_id,
+        sequence_start=sequence_start,
+        sequence_end=sequence_end,
+        cue_name=cue_name,
+    )
+
+
+@mcp.tool()
+async def label_cue_across_sequences(
+    cue_id: float,
+    sequence_start: int,
+    sequence_end: int,
+    label: str,
+) -> dict:
+    """
+    Label a cue across a range of sequences.
+
+    Iterates over every sequence in the range and labels the specified cue.
+
+    Args:
+        cue_id: Cue number to label (e.g., 1, 0.5)
+        sequence_start: First sequence number in the range
+        sequence_end: Last sequence number in the range (inclusive)
+        label: Label text to assign
+
+    Returns:
+        dict: Result with commands_sent, count, and summary
+
+    Examples:
+        - Label cue 0.5 across sequences 101-125 as "((LOADING SONG))"
+    """
+    telnet = await get_client()
+    gma2 = GMA2Client(telnet)
+    return await gma2.label_cue_across_sequences(
+        cue_id=cue_id,
+        sequence_start=sequence_start,
+        sequence_end=sequence_end,
+        label=label,
+    )
+
+
+@mcp.tool()
+async def appearance_cue_across_sequences(
+    cue_id: float,
+    sequence_start: int,
+    sequence_end: int,
+    red: int | None = None,
+    green: int | None = None,
+    blue: int | None = None,
+    color: str | None = None,
+) -> dict:
+    """
+    Set appearance (color) on a cue across a range of sequences.
+
+    Iterates over every sequence in the range and applies the color to the
+    specified cue. Supports RGB values (0-100) or hex color codes.
+
+    Args:
+        cue_id: Cue number (e.g., 1, 0.5)
+        sequence_start: First sequence number in the range
+        sequence_end: Last sequence number in the range (inclusive)
+        red: (Optional) Red component (0-100)
+        green: (Optional) Green component (0-100)
+        blue: (Optional) Blue component (0-100)
+        color: (Optional) Hex color code (e.g., "FF0000")
+
+    Returns:
+        dict: Result with commands_sent, count, and summary
+
+    Examples:
+        - Set cue 0.5 to black across sequences 101-125 (red=0, green=0, blue=0)
+        - Set cue 1 to red across sequences 101-103 (color="FF0000")
+    """
+    telnet = await get_client()
+    gma2 = GMA2Client(telnet)
+    kwargs = {}
+    if red is not None:
+        kwargs["red"] = red
+    if green is not None:
+        kwargs["green"] = green
+    if blue is not None:
+        kwargs["blue"] = blue
+    if color is not None:
+        kwargs["color"] = color
+    return await gma2.appearance_cue_across_sequences(
+        cue_id=cue_id,
+        sequence_start=sequence_start,
+        sequence_end=sequence_end,
+        **kwargs,
+    )
 
 
 # ============================================================
