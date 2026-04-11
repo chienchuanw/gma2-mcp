@@ -18,6 +18,7 @@ from src.telnet_client import GMA2TelnetClient
 from src.tools import set_gma2_client
 from src.commands import (
     assign,
+    assign_macro_cmd,
     attribute_at,
     blackout,
     clear,
@@ -96,6 +97,9 @@ mcp = FastMCP(
 
     Labeling:
       - label_object: Assign a name to any MA2 object
+
+    Macro Tools:
+      - set_macro_line: Set the command for a macro line
 
     Sequence Playback:
       - execute_sequence: Go/pause/goto on a sequence
@@ -586,6 +590,40 @@ async def label_object(
     cmd = label(object_type, object_id, name)
     await client.send_command(cmd)
     return f'Labeled {object_type} {object_id} as "{name}"'
+
+
+# ============================================================
+# Macro Tools
+# ============================================================
+
+
+@mcp.tool()
+async def set_macro_line(
+    macro_id: int,
+    line: int,
+    command: str,
+    pool: int = 1,
+) -> str:
+    """
+    Set the command for a specific line within a macro.
+
+    Args:
+        macro_id: Macro number
+        line: Line number within the macro
+        command: The command string for that line (e.g., "SetVar $song='Opening+Childhood'")
+        pool: Macro pool number (default: 1)
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Set macro 101 line 1 to "SetVar $song='Opening+Childhood'"
+        - Set macro 50 line 3 in pool 2 to "Go Sequence 5"
+    """
+    client = await get_client()
+    cmd = assign_macro_cmd(macro_id, line, command, pool=pool)
+    await client.send_command(cmd)
+    return f'Set Macro {macro_id} Line {line} to "{command}" (Pool {pool})'
 
 
 # ============================================================
