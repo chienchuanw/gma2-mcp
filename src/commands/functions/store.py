@@ -144,17 +144,27 @@ def store_cue(
     return cmd
 
 
-def store_group(group_id: int) -> str:
+def store_group(group_id: int, *, name: Optional[str] = None) -> str:
     """
     Construct a command to store a group.
 
     Args:
         group_id: Group number
+        name: Optional name for the group (inline naming)
 
     Returns:
         str: MA command to store a group
+
+    Examples:
+        >>> store_group(1)
+        'store group 1'
+        >>> store_group(1, name="Front Wash")
+        'store group 1 "Front Wash"'
     """
-    return f"store group {group_id}"
+    cmd = f"store group {group_id}"
+    if name:
+        cmd += f' "{name}"'
+    return cmd
 
 
 def store_preset(

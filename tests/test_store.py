@@ -29,6 +29,27 @@ class TestGroupCommands:
         result = store_group(42)
         assert result == "store group 42"
 
+    def test_store_group_with_name(self):
+        """Test storing a group with inline name: store group 1 "Front Wash"."""
+        from src.commands import store_group
+
+        result = store_group(1, name="Front Wash")
+        assert result == 'store group 1 "Front Wash"'
+
+    def test_store_group_with_name_and_different_id(self):
+        """Test storing a group with inline name and different ID."""
+        from src.commands import store_group
+
+        result = store_group(42, name="Back Truss")
+        assert result == 'store group 42 "Back Truss"'
+
+    def test_store_group_without_name_backward_compat(self):
+        """Test store_group without name still works (backward compat)."""
+        from src.commands import store_group
+
+        result = store_group(5)
+        assert result == "store group 5"
+
     def test_label_group(self):
         """Test labeling a group."""
         from src.commands import label_group
