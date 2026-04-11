@@ -88,10 +88,8 @@ class GMA2Client:
 
         for cue_def in cues:
             cue_id = cue_def["id"]
-            sent.append(await self._send(store_cue(cue_id)))
-
-            if "name" in cue_def:
-                sent.append(await self._send(label("cue", cue_id, cue_def["name"])))
+            name = cue_def.get("name")
+            sent.append(await self._send(store_cue(cue_id, name=name)))
 
             if "fade" in cue_def:
                 sent.append(await self._send(assign_fade(cue_def["fade"], cue_id)))
