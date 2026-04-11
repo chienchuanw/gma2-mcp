@@ -151,6 +151,90 @@ Add the server to your MCP client configuration.
 }
 ```
 
+**Claude Code (CLI / IDE extensions)**
+
+Claude Code manages MCP servers through its own configuration, separate from Claude Desktop. You can set it up using either the CLI command or by editing the settings file directly.
+
+**Option 1: Using the `claude mcp add` command (recommended)**
+
+Run the following command in your terminal:
+
+```bash
+claude mcp add gma2 \
+  -e GMA_HOST=2.0.0.1 \
+  -e GMA_USER=administrator \
+  -e GMA_PASSWORD=admin \
+  -- uv --directory /path/to/gma2-mcp run python -m src.server
+```
+
+This registers the MCP server with Claude Code. The `-e` flags set environment variables that the server reads at startup. Replace `/path/to/gma2-mcp` with the actual path to your cloned repository, and adjust the `GMA_HOST`, `GMA_USER`, and `GMA_PASSWORD` values to match your console.
+
+To register the server for a specific project only (instead of globally), add the `-s project` flag:
+
+```bash
+claude mcp add gma2 -s project \
+  -e GMA_HOST=2.0.0.1 \
+  -e GMA_USER=administrator \
+  -e GMA_PASSWORD=admin \
+  -- uv --directory /path/to/gma2-mcp run python -m src.server
+```
+
+**Option 2: Editing the settings file manually**
+
+Add the server entry to your Claude Code settings file. The file location depends on the scope:
+
+- **User-level** (available in all projects): `~/.claude/settings.json`
+- **Project-level** (available only in the current project): `.claude/settings.json` in the project root
+
+```json
+{
+  "mcpServers": {
+    "gma2": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/path/to/gma2-mcp",
+        "run",
+        "python",
+        "-m",
+        "src.server"
+      ],
+      "env": {
+        "GMA_HOST": "2.0.0.1",
+        "GMA_USER": "administrator",
+        "GMA_PASSWORD": "admin"
+      }
+    }
+  }
+}
+```
+
+**Verifying the setup**
+
+After registering the server, verify it is working:
+
+```bash
+# List all registered MCP servers
+claude mcp list
+
+# Check the server details
+claude mcp get gma2
+```
+
+When you start a new Claude Code session, the server starts automatically. You can confirm the tools are available by asking Claude to list its MCP tools or by directly requesting a grandMA2 operation (e.g., "toggle blackout on the console").
+
+**Managing the server**
+
+```bash
+# Remove the server
+claude mcp remove gma2
+
+# Re-add with different settings
+claude mcp add gma2 \
+  -e GMA_HOST=192.168.1.100 \
+  -- uv --directory /path/to/gma2-mcp run python -m src.server
+```
+
 ## Usage
 
 ### MCP Tools
