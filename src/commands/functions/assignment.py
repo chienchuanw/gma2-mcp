@@ -319,8 +319,8 @@ def assign_cue_cmd(
 
     Examples:
         >>> assign_cue_cmd(1, 100, "Macro 101")
-        'Assign Cue 1 Sequence 100 /CMD="Macro 101"'
+        'assign cue 1 sequence 100 /cmd="Macro 101"'
         >>> assign_cue_cmd(5, 200, "Go Sequence 10")
-        'Assign Cue 5 Sequence 200 /CMD="Go Sequence 10"'
+        'assign cue 5 sequence 200 /cmd="Go Sequence 10"'
     """
-    return f'Assign Cue {cue_id} Sequence {sequence_id} /CMD="{command}"'
+    return f'assign cue {cue_id} sequence {sequence_id} /cmd="{command}"'

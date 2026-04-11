@@ -154,11 +154,11 @@ class TestAssignCueCmdCommands:
         from src.commands import assign_cue_cmd
 
         result = assign_cue_cmd(cue_id=1, sequence_id=100, command="Macro 101")
-        assert result == 'Assign Cue 1 Sequence 100 /CMD="Macro 101"'
+        assert result == 'assign cue 1 sequence 100 /cmd="Macro 101"'
 
     def test_assign_cue_cmd_go_command(self):
         """Test cue CMD assignment with go command."""
         from src.commands import assign_cue_cmd
 
         result = assign_cue_cmd(cue_id=5, sequence_id=200, command="Go Sequence 10")
-        assert result == 'Assign Cue 5 Sequence 200 /CMD="Go Sequence 10"'
+        assert result == 'assign cue 5 sequence 200 /cmd="Go Sequence 10"'
