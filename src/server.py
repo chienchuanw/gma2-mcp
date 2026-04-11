@@ -17,6 +17,7 @@ from mcp.server.fastmcp import FastMCP
 from src.telnet_client import GMA2TelnetClient
 from src.tools import set_gma2_client
 from src.commands import (
+    appearance as cmd_appearance,
     assign,
     assign_cue_cmd,
     assign_macro_cmd,
@@ -100,6 +101,9 @@ mcp = FastMCP(
 
     Labeling:
       - label_object: Assign a name to any MA2 object
+
+    Appearance:
+      - assign_appearance: Set frame/background color on pool objects and cues
       - label_sequence_cue: Label a cue within a specific sequence
 
     Macro Tools:
@@ -694,6 +698,77 @@ async def label_sequence_cue(
     await client.send_command(cmd)
     range_part = f" thru {end_cue}" if end_cue else ""
     return f'Labeled Sequence "{sequence}" Cue {cue_id}{range_part} as "{name}"'
+
+
+# ============================================================
+# Appearance Tools
+# ============================================================
+
+
+@mcp.tool()
+async def assign_appearance(
+    object_type: str,
+    object_id: int | str,
+    end: int | None = None,
+    source_type: str | None = None,
+    source_id: int | str | None = None,
+    reset: bool = False,
+    color: str | None = None,
+    red: int | None = None,
+    green: int | None = None,
+    blue: int | None = None,
+    hue: int | None = None,
+    saturation: int | None = None,
+    brightness: int | None = None,
+) -> str:
+    """
+    Assign an appearance (frame/background color) to a grandMA2 pool object or cue.
+
+    Colors can be specified via RGB (0-100), HSB (hue 0-360, sat/bright 0-100),
+    hex color string, or by copying from a source object. Use reset to clear.
+
+    Args:
+        object_type: Object type (e.g., "group", "cue", "preset", "macro")
+        object_id: Object number or compound ID (e.g., 1 or "0.1")
+        end: (Optional) End ID for applying to a range of objects
+        source_type: (Optional) Source object type to copy appearance from
+        source_id: (Optional) Source object ID to copy appearance from
+        reset: Reset appearance to default
+        color: Hex color code (e.g., "FF0000") or gel name
+        red: Red component (0-100)
+        green: Green component (0-100)
+        blue: Blue component (0-100)
+        hue: Hue (0-360)
+        saturation: Saturation (0-100)
+        brightness: Brightness (0-100)
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Set group 1 to red: object_type="group", object_id=1, red=100, green=0, blue=0
+        - Set preset 0.1 to hex color: object_type="preset", object_id="0.1", color="FF0000"
+        - Copy appearance from macro 13 to macro 2: object_type="macro", object_id=2, source_type="macro", source_id=13
+        - Reset group 1 appearance: object_type="group", object_id=1, reset=True
+    """
+    client = await get_client()
+    cmd = cmd_appearance(
+        object_type,
+        object_id,
+        end=end,
+        source_type=source_type,
+        source_id=source_id,
+        reset=reset,
+        color=color,
+        red=red,
+        green=green,
+        blue=blue,
+        hue=hue,
+        saturation=saturation,
+        brightness=brightness,
+    )
+    await client.send_command(cmd)
+    return f"Applied appearance to {object_type} {object_id}"
 
 
 # ============================================================
