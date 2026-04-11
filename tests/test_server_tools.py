@@ -462,6 +462,105 @@ class TestLabelSequenceCueTool:
         assert "Opening+Childhood" in result
 
 
+class TestStoreCueAcrossSequencesTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_store_cue_across_sequences(self, mock_get):
+        from src.server import store_cue_across_sequences
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await store_cue_across_sequences(
+            cue_id=0.5,
+            sequence_start=101,
+            sequence_end=103,
+            cue_name="((LOADING SONG))",
+        )
+
+        assert result["count"] == 3
+        assert result["commands_sent"][0] == 'store sequence 101 cue 0.5 "((LOADING SONG))"'
+        assert result["commands_sent"][2] == 'store sequence 103 cue 0.5 "((LOADING SONG))"'
+        assert "3" in result["summary"]
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_store_cue_across_sequences_without_name(self, mock_get):
+        from src.server import store_cue_across_sequences
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await store_cue_across_sequences(
+            cue_id=1,
+            sequence_start=101,
+            sequence_end=101,
+        )
+
+        assert result["count"] == 1
+        assert result["commands_sent"][0] == "store sequence 101 cue 1"
+
+
+class TestLabelCueAcrossSequencesTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_label_cue_across_sequences(self, mock_get):
+        from src.server import label_cue_across_sequences
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await label_cue_across_sequences(
+            cue_id=0.5,
+            sequence_start=101,
+            sequence_end=103,
+            label="((LOADING SONG))",
+        )
+
+        assert result["count"] == 3
+        assert result["commands_sent"][0] == 'label sequence 101 cue 0.5 "((LOADING SONG))"'
+
+
+class TestAppearanceCueAcrossSequencesTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_appearance_cue_across_sequences_rgb(self, mock_get):
+        from src.server import appearance_cue_across_sequences
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await appearance_cue_across_sequences(
+            cue_id=0.5,
+            sequence_start=101,
+            sequence_end=102,
+            red=0,
+            green=0,
+            blue=0,
+        )
+
+        assert result["count"] == 2
+        assert result["commands_sent"][0] == "appearance sequence 101 cue 0.5 /r=0 /g=0 /b=0"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_appearance_cue_across_sequences_hex(self, mock_get):
+        from src.server import appearance_cue_across_sequences
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await appearance_cue_across_sequences(
+            cue_id=1,
+            sequence_start=101,
+            sequence_end=101,
+            color="FF0000",
+        )
+
+        assert result["count"] == 1
+        assert result["commands_sent"][0] == "appearance sequence 101 cue 1 /color=FF0000"
+
+
 class TestSetCueCmdTool:
     @pytest.mark.asyncio
     @patch("src.server.get_client")
