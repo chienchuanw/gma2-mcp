@@ -79,11 +79,38 @@
 |------|-------|----------|--------|--------|
 | Full suite after issue #12 | 823 tests | 823 pass | 823 pass | ✓ |
 
+## Session: 2026-04-11 (Session 4 -- Issues #13, #14, #15)
+
+### Issues #13, #14, #15: Macro line editing, sequence-scoped cue labeling, cue CMD assignment
+- **Status:** complete
+- Actions taken:
+  - Created OpenSpec change `issues-13-14-15-macro-cue-tools` with proposal, design, 3 specs, and tasks (TDD plan)
+  - Created GitHub linked branches via `gh issue develop` for all 3 issues
+  - Implemented all 3 features in parallel using worktree agents
+  - **Issue #13**: Added `assign_macro_cmd()` builder + `set_macro_line` MCP tool (3 builder tests + 2 tool tests)
+  - **Issue #14**: Added `label_sequence_cue()` builder + `label_sequence_cue` MCP tool (4 builder tests + 2 tool tests)
+  - **Issue #15**: Added `assign_cue_cmd()` builder + `set_cue_cmd` MCP tool (2 builder tests + 2 tool tests)
+  - Created PRs #23, #24, #25 targeting `issues/12` base branch
+  - Addressed PR review comments: lowercase casing consistency, `__all__` exports, stronger test assertions, numeric string handling
+  - Archived OpenSpec change to `openspec/changes/archive/2026-04-11-issues-13-14-15-macro-cue-tools/`
+  - Updated README (17→20 tools) and doc files
+- PRs:
+  - PR #23: `13-feat-add-macro-line-editing-mcp-tool` (issue #13)
+  - PR #24: `14-feat-add-sequence-scoped-cue-labeling-tool` (issue #14)
+  - PR #25: `15-feat-add-cue-cmd-assignment-mcp-tool` (issue #15)
+
+## Test Results
+| Test | Input | Expected | Actual | Status |
+|------|-------|----------|--------|--------|
+| Branch 13 tests | 47 tests | 47 pass | 47 pass | ✓ |
+| Branch 14 tests | 49 tests | 49 pass | 49 pass | ✓ |
+| Branch 15 tests | 46 tests | 46 pass | 46 pass | ✓ |
+
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | Phase 3 -- Issue #1 complete, #2 and #3 remaining |
+| Where am I? | Issues #1, #12, #13, #14, #15 complete; #2 and #3 remaining for P0 |
 | Where am I going? | Issue #2 (Telnet resilience) or #3 (legacy cleanup) next |
 | What's the goal? | Complete P0 issues, then move to P1 features |
-| What have I learned? | See findings.md -- manual confirms preset IDs, macros are powerful |
-| What have I done? | Investigation, 10 issues created, Issue #1 fixed with TDD |
+| What have I learned? | See findings.md -- manual confirms preset IDs; macro/cue CMD syntax verified from live session failures |
+| What have I done? | Investigation, 15 issues created, Issues #1/#12/#13/#14/#15 fixed with TDD, 20 MCP tools total |

@@ -14,7 +14,7 @@
 ## Architecture (4 Layers)
 
 ```
-Layer 4: MCP Server         (src/server.py)         -- FastMCP, 17 tools, stdio transport
+Layer 4: MCP Server         (src/server.py)         -- FastMCP, 20 tools, stdio transport
 Layer 3: Orchestration      (src/gma2_client.py,     -- GMA2Client workflows, CommandSequence batching
                              src/command_sequence.py)
 Layer 2: Command Builder    (src/commands/)          -- 200+ pure functions, returns command strings
@@ -82,8 +82,8 @@ src/commands/
 | `selection.py` | select_fixture, select_group, clear, clear_selection, clear_active, clear_all |
 | `playback.py` | go, go_executor, go_sequence, go_back, goto, goto_cue, pause_sequence, def_go_*, go_fast_* |
 | `edit.py` | copy, copy_cue, move, delete, delete_cue, delete_fixture, delete_group, delete_preset, remove, remove_* |
-| `labeling.py` | label, label_group, label_preset, appearance |
-| `assignment.py` | assign, assign_fade, assign_function, assign_to_layout, empty, temp_fader |
+| `labeling.py` | label, label_group, label_preset, label_sequence_cue, appearance |
+| `assignment.py` | assign, assign_fade, assign_function, assign_to_layout, assign_macro_cmd, assign_cue_cmd, empty, temp_fader |
 | `info.py` | list_objects, list_attribute, list_cue, list_group, list_preset, info, info_cue, info_group, info_preset |
 | `helping.py` | add_to_selection, remove_from_selection, at_relative, page_next, page_previous, condition_and, if_condition |
 | `blackout.py` | blackout, black, freeze, highlight, full_highlight, solo |
@@ -161,7 +161,7 @@ Builder-pattern for composing command batches:
 **Transport:** stdio
 **Framework:** FastMCP (`mcp.server.fastmcp`)
 
-### 17 MCP Tools
+### 20 MCP Tools
 
 | Category | Tool | Args |
 |----------|------|------|
@@ -180,6 +180,9 @@ Builder-pattern for composing command batches:
 | **Global State** | `toggle_blackout` | (none) |
 | | `toggle_highlight` | (none) |
 | **Labeling** | `label_object` | object_type, object_id, name |
+| | `label_sequence_cue` | sequence, cue_id, name, end_cue? |
+| **Macro Tools** | `set_macro_line` | macro_id, line, command, pool? |
+| **Cue CMD** | `set_cue_cmd` | cue_id, sequence_id, command |
 | **Sequence Playback** | `execute_sequence` | sequence_id, action (go/pause/goto), cue_id? |
 | **Raw Command** | `send_raw_command` | command |
 
@@ -244,7 +247,7 @@ GMA_PASSWORD=admin
 gma2-mcp/
 ├── src/
 │   ├── __init__.py
-│   ├── server.py               # MCP server (FastMCP, 17 tools)
+│   ├── server.py               # MCP server (FastMCP, 20 tools)
 │   ├── telnet_client.py        # Async Telnet client (telnetlib3)
 │   ├── gma2_client.py          # High-level workflow orchestration
 │   ├── command_sequence.py     # Command batch builder

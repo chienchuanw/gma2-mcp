@@ -43,9 +43,9 @@ Phase 3 (Issue #1 complete, remaining P0 issues next)
 
 ## Key Questions
 1. How many command builder functions exist? **200+ across 30+ modules (8,316 total lines)**
-2. How many MCP tools are exposed? **17 tools**
+2. How many MCP tools are exposed? **20 tools** (was 17, +3 from issues #13/#14/#15)
 3. What transport does the MCP server use? **stdio**
-4. What is the test coverage? **823 test cases across 48 test files** (was 808, +10 from issue #1, +5 from issue #12)
+4. What is the test coverage? **~836 test cases across 48 test files** (was 808, +10 from issue #1, +5 from issue #12, +13 from issues #13/#14/#15)
 5. Is there a legacy tools module? **Yes -- `src/tools.py` contains the original pre-MCP tool implementations, still used by some tests**
 
 ## Decisions Made
@@ -76,6 +76,9 @@ Phase 3 (Issue #1 complete, remaining P0 issues next)
 | 9 | P3 | HTTP/SSE transport | Open |
 | 10 | P3 | Update/remove main.py | Open |
 | 12 | P1 | Combine store + label into single commands (perf) | Fixed (PR #18) |
+| 13 | P2 | Add macro line editing MCP tool | Fixed (PR #23) |
+| 14 | P2 | Add sequence-scoped cue labeling tool | Fixed (PR #24) |
+| 15 | P2 | Add cue CMD assignment MCP tool | Fixed (PR #25) |
 
 ## Notes
 - Current branch: `issues/1` (2 commits ahead of `main`)
