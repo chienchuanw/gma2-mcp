@@ -128,6 +128,7 @@ from .functions import (
     temp_fader,
     # Label Function Keyword
     label,
+    label_sequence_cue,
     # Appearance Function Keyword
     appearance,
     # At Function Keyword
@@ -571,6 +572,7 @@ __all__ = [
     "clear_all",
     "label_group",
     "label_preset",
+    "label_sequence_cue",
     # Delete Function Keyword
     "delete",
     "delete_cue",

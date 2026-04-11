@@ -137,3 +137,31 @@ class TestAppearanceCommands:
 
         result = appearance("macro", [1, 3, 5], color="00FF00")
         assert result == "appearance macro 1 + 3 + 5 /color=00FF00"
+
+
+class TestLabelSequenceCueCommands:
+    """Tests for label_sequence_cue command."""
+
+    def test_label_cue_in_named_sequence(self):
+        """Test label cue in named sequence."""
+        from src.commands import label_sequence_cue
+        result = label_sequence_cue(sequence="Set List", cue_id=1, name="Opening+Childhood")
+        assert result == 'Label Sequence "Set List" Cue 1 "Opening+Childhood"'
+
+    def test_label_cue_in_numbered_sequence(self):
+        """Test label cue in numbered sequence."""
+        from src.commands import label_sequence_cue
+        result = label_sequence_cue(sequence=100, cue_id=1, name="Opening+Childhood")
+        assert result == 'Label Sequence 100 Cue 1 "Opening+Childhood"'
+
+    def test_label_cue_range_in_sequence(self):
+        """Test label cue range in sequence."""
+        from src.commands import label_sequence_cue
+        result = label_sequence_cue(sequence="Set List", cue_id=1, name="Act 1", end_cue=5)
+        assert result == 'Label Sequence "Set List" Cue 1 thru 5 "Act 1"'
+
+    def test_label_cue_with_quoted_name(self):
+        """Test label cue with already-quoted name."""
+        from src.commands import label_sequence_cue
+        result = label_sequence_cue(sequence=100, cue_id=3, name='"Finale"')
+        assert result == 'Label Sequence 100 Cue 3 "Finale"'
