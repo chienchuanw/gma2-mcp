@@ -113,6 +113,33 @@ mcp = FastMCP(
     """,
 )
 
+DESTRUCTIVE_WARNINGS: dict[str, list[str]] = {
+    "cue": [
+        "Executor handles assigned to the deleted cue's sequence may reference a missing cue",
+        "Any cue programming (values, timing, effects) is permanently lost",
+        "Sequences with only this cue will become empty",
+    ],
+    "sequence": [
+        "Executor assignments referencing this sequence will become orphaned",
+        "All cue data within this sequence is permanently lost",
+        "Pages referencing this sequence may need cleanup",
+    ],
+    "group": [
+        "Presets referencing this group may produce unexpected results",
+        "Macros targeting this group will reference a non-existent object",
+    ],
+}
+
+
+def _format_warnings(object_type: str) -> str:
+    """Format warning messages for a destructive operation on the given object type."""
+    warnings = DESTRUCTIVE_WARNINGS.get(object_type, [])
+    if not warnings:
+        return ""
+    lines = "\n".join(f"- {w}" for w in warnings)
+    return f"\n\n⚠ Warnings:\n{lines}"
+
+
 _client: GMA2TelnetClient | None = None
 _connected: bool = False
 
@@ -238,7 +265,7 @@ async def delete_cue(cue_id: int) -> str:
     client = await get_client()
     cmd = cmd_delete_cue(cue_id)
     await client.send_command(cmd)
-    return f"Deleted Cue {cue_id}"
+    return f"Deleted Cue {cue_id}" + _format_warnings("cue")
 
 
 @mcp.tool()
