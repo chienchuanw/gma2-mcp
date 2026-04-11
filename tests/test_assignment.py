@@ -144,3 +144,21 @@ class TestAssignMacroCmdCommands:
 
         result = assign_macro_cmd(macro_id=101, line=2, command="Macro 102")
         assert result == 'assign macro 1.101.2 /cmd="Macro 102"'
+
+
+class TestAssignCueCmdCommands:
+    """Tests for assign_cue_cmd command."""
+
+    def test_assign_cue_cmd_macro_trigger(self):
+        """Test cue CMD assignment with macro trigger."""
+        from src.commands import assign_cue_cmd
+
+        result = assign_cue_cmd(cue_id=1, sequence_id=100, command="Macro 101")
+        assert result == 'Assign Cue 1 Sequence 100 /CMD="Macro 101"'
+
+    def test_assign_cue_cmd_go_command(self):
+        """Test cue CMD assignment with go command."""
+        from src.commands import assign_cue_cmd
+
+        result = assign_cue_cmd(cue_id=5, sequence_id=200, command="Go Sequence 10")
+        assert result == 'Assign Cue 5 Sequence 200 /CMD="Go Sequence 10"'

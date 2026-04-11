@@ -120,6 +120,7 @@ from .objects import (
 from .functions import (
     # Assign Function Keyword
     assign,
+    assign_cue_cmd,
     assign_fade,
     assign_function,
     assign_macro_cmd,
@@ -526,6 +527,7 @@ __all__ = [
     "timer",
     # Assign Function Keyword
     "assign",
+    "assign_cue_cmd",
     "assign_fade",
     "assign_function",
     "assign_macro_cmd",

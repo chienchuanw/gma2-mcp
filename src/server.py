@@ -18,6 +18,7 @@ from src.telnet_client import GMA2TelnetClient
 from src.tools import set_gma2_client
 from src.commands import (
     assign,
+    assign_cue_cmd,
     assign_macro_cmd,
     attribute_at,
     blackout,
@@ -77,6 +78,7 @@ mcp = FastMCP(
       - store_cue: Store current programmer state as a cue
       - delete_cue: Delete a cue
       - goto_cue_tool: Jump to a specific cue in an executor or sequence
+      - set_cue_cmd: Assign a command to a cue's CMD field
 
     Fixture & Value Control:
       - set_fixture_value: Set fixture(s) to a dimmer value (0-100)
@@ -272,6 +274,41 @@ async def goto_cue_tool(
     elif sequence is not None:
         target = f" in Sequence {sequence}"
     return f"Jumped to Cue {cue_id}{target}"
+
+
+# ============================================================
+# Cue CMD Tools
+# ============================================================
+
+
+@mcp.tool()
+async def set_cue_cmd(
+    cue_id: int,
+    sequence_id: int,
+    command: str,
+) -> str:
+    """
+    Assign a command to a cue's CMD field.
+
+    When the cue fires, the assigned command will execute automatically.
+    Common use: trigger a macro when a cue runs.
+
+    Args:
+        cue_id: Cue number
+        sequence_id: Sequence number
+        command: Command to execute when cue fires (e.g., "Macro 101")
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Set cue 1 in sequence 100 to trigger "Macro 101"
+        - Set cue 5 in sequence 200 to run "Go Sequence 10"
+    """
+    client = await get_client()
+    cmd = assign_cue_cmd(cue_id, sequence_id, command)
+    await client.send_command(cmd)
+    return f'Set Cue {cue_id} Sequence {sequence_id} CMD to "{command}"'
 
 
 # ============================================================

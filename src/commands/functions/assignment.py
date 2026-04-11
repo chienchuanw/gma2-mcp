@@ -297,3 +297,30 @@ def assign_macro_cmd(
         'Assign Macro 2.50.3 /CMD="Go Sequence 5"'
     """
     return f'assign macro {pool}.{macro_id}.{line} /cmd="{command}"'
+
+
+def assign_cue_cmd(
+    cue_id: int,
+    sequence_id: int,
+    command: str,
+) -> str:
+    """
+    Construct an Assign Cue CMD command to set the command field on a cue.
+
+    This enables cue-triggered actions (e.g., firing a macro when a cue executes).
+
+    Args:
+        cue_id: Cue number
+        sequence_id: Sequence number
+        command: Command to execute when the cue fires (e.g., "Macro 101")
+
+    Returns:
+        str: MA command for cue CMD assignment
+
+    Examples:
+        >>> assign_cue_cmd(1, 100, "Macro 101")
+        'Assign Cue 1 Sequence 100 /CMD="Macro 101"'
+        >>> assign_cue_cmd(5, 200, "Go Sequence 10")
+        'Assign Cue 5 Sequence 200 /CMD="Go Sequence 10"'
+    """
+    return f'Assign Cue {cue_id} Sequence {sequence_id} /CMD="{command}"'
