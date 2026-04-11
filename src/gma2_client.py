@@ -23,12 +23,10 @@ from src.commands import (
     assign_fade,
     at,
     fixture_at,
-    label,
     preset,
     select_fixture,
     store_cue,
     store_group,
-    label_group,
 )
 
 logger = logging.getLogger(__name__)
@@ -125,8 +123,7 @@ class GMA2Client:
         sent: list[str] = []
 
         sent.append(await self._send(select_fixture(start, end)))
-        sent.append(await self._send(store_group(group_id)))
-        sent.append(await self._send(label_group(group_id, group_name)))
+        sent.append(await self._send(store_group(group_id, name=group_name)))
         sent.append(await self._send(preset(preset_type, preset_id)))
 
         return {
