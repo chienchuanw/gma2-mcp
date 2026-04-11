@@ -269,3 +269,31 @@ def temp_fader(value: Optional[int] = None) -> str:
     if value is None:
         return "tempfader"
     return f"tempfader {value}"
+
+
+def assign_macro_cmd(
+    macro_id: int,
+    line: int,
+    command: str,
+    *,
+    pool: int = 1,
+) -> str:
+    """
+    Construct an Assign Macro command to set a macro line's command.
+
+    Args:
+        macro_id: Macro number
+        line: Line number within the macro
+        command: The command string for that line
+        pool: Macro pool number (default: 1)
+
+    Returns:
+        str: MA command for macro line assignment
+
+    Examples:
+        >>> assign_macro_cmd(101, 1, "SetVar $song='Opening+Childhood'")
+        'Assign Macro 1.101.1 /CMD="SetVar $song=\\'Opening+Childhood\\'"'
+        >>> assign_macro_cmd(50, 3, "Go Sequence 5", pool=2)
+        'Assign Macro 2.50.3 /CMD="Go Sequence 5"'
+    """
+    return f'Assign Macro {pool}.{macro_id}.{line} /CMD="{command}"'
