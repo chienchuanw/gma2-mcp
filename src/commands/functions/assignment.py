@@ -296,4 +296,4 @@ def assign_macro_cmd(
         >>> assign_macro_cmd(50, 3, "Go Sequence 5", pool=2)
         'Assign Macro 2.50.3 /CMD="Go Sequence 5"'
     """
-    return f'Assign Macro {pool}.{macro_id}.{line} /CMD="{command}"'
+    return f'assign macro {pool}.{macro_id}.{line} /cmd="{command}"'
