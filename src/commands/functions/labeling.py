@@ -213,6 +213,9 @@ def appearance(
         >>> appearance("group", 1, end=5, color="FF0000")
         'appearance group 1 thru 5 /color=FF0000'
     """
+    if reset and any(v is not None for v in [color, red, green, blue, hue, saturation, brightness]):
+        raise ValueError("Cannot combine reset=True with color parameters")
+
     # Build object reference
     if isinstance(object_id, list):
         obj_str = " + ".join(str(i) for i in object_id)

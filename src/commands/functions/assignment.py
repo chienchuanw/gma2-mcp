@@ -297,9 +297,9 @@ def assign_macro_cmd(
 
     Examples:
         >>> assign_macro_cmd(101, 1, "SetVar $song='Opening+Childhood'")
-        'Assign Macro 1.101.1 /CMD="SetVar $song=\\'Opening+Childhood\\'"'
+        'assign macro 1.101.1 /cmd="SetVar $song=\\'Opening+Childhood\\'"'
         >>> assign_macro_cmd(50, 3, "Go Sequence 5", pool=2)
-        'Assign Macro 2.50.3 /CMD="Go Sequence 5"'
+        'assign macro 2.50.3 /cmd="Go Sequence 5"'
     """
     return f'assign macro {pool}.{macro_id}.{line} /cmd="{command}"'
 

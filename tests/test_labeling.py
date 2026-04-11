@@ -120,6 +120,12 @@ class TestAppearanceCommands:
         result = appearance("preset", 1, reset=True)
         assert result == "appearance preset 1 /reset"
 
+    def test_appearance_reset_with_color_raises(self):
+        from src.commands import appearance
+
+        with pytest.raises(ValueError, match="Cannot combine reset=True with color parameters"):
+            appearance("group", 1, reset=True, red=50)
+
     # ---- Range ----
 
     def test_appearance_range(self):
