@@ -50,6 +50,44 @@ class TestStoreCueTool:
         assert "/noconfirm" in cmd
 
 
+class TestCreateFixtureGroupTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_create_fixture_group_with_name(self, mock_get):
+        from src.server import create_fixture_group
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await create_fixture_group(
+            start_fixture=1, end_fixture=10, group_id=1, group_name="Front Wash"
+        )
+
+        calls = [c[0][0] for c in client.send_command.call_args_list]
+        assert len(calls) == 2
+        assert calls[0] == "selfix fixture 1 thru 10"
+        assert calls[1] == 'store group 1 "Front Wash"'
+        assert "Front Wash" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_create_fixture_group_without_name(self, mock_get):
+        from src.server import create_fixture_group
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await create_fixture_group(
+            start_fixture=1, end_fixture=10, group_id=1
+        )
+
+        calls = [c[0][0] for c in client.send_command.call_args_list]
+        assert len(calls) == 2
+        assert calls[0] == "selfix fixture 1 thru 10"
+        assert calls[1] == "store group 1"
+        assert "Group 1" in result
+
+
 class TestDeleteCueTool:
     @pytest.mark.asyncio
     @patch("src.server.get_client")
