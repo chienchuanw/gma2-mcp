@@ -101,6 +101,59 @@ def label(
     return cmd
 
 
+def label_sequence_cue(
+    sequence: Union[int, str],
+    cue_id: int,
+    name: str,
+    *,
+    end_cue: Optional[int] = None,
+) -> str:
+    """
+    Construct a command to label a cue within a specific sequence.
+
+    Args:
+        sequence: Sequence ID (int) or name (str). Strings are quoted automatically.
+        cue_id: Cue number within the sequence
+        name: Label to assign
+        end_cue: End cue for range labeling
+
+    Returns:
+        str: MA command to label a sequence cue
+
+    Examples:
+        >>> label_sequence_cue("Set List", 1, "Opening+Childhood")
+        'Label Sequence "Set List" Cue 1 "Opening+Childhood"'
+        >>> label_sequence_cue(100, 1, "Opening+Childhood")
+        'Label Sequence 100 Cue 1 "Opening+Childhood"'
+        >>> label_sequence_cue("Set List", 1, "Act 1", end_cue=5)
+        'Label Sequence "Set List" Cue 1 thru 5 "Act 1"'
+    """
+    # Build sequence reference - quote strings, leave ints bare
+    if isinstance(sequence, str):
+        # Check if it's a numeric string
+        try:
+            int(sequence)
+            seq_ref = str(sequence)
+        except ValueError:
+            seq_ref = f'"{sequence}"'
+    else:
+        seq_ref = str(sequence)
+
+    # Build cue reference
+    if end_cue is not None:
+        cue_ref = f"Cue {cue_id} thru {end_cue}"
+    else:
+        cue_ref = f"Cue {cue_id}"
+
+    # Build name (ensure quotes)
+    if name.startswith('"') and name.endswith('"'):
+        name_part = f" {name}"
+    else:
+        name_part = f' "{name}"'
+
+    return f"Label Sequence {seq_ref} {cue_ref}{name_part}"
+
+
 # ============================================================================
 # APPEARANCE FUNCTION KEYWORD
 # ============================================================================
