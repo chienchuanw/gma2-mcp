@@ -409,3 +409,32 @@ class TestLabelObjectTool:
         result = await label_object(object_type="cue", object_id=5, name="Intro")
 
         client.send_command.assert_called_once_with('label cue 5 "Intro"')
+
+
+class TestSetMacroLineTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_set_macro_line_basic(self, mock_get):
+        from src.server import set_macro_line
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_macro_line(macro_id=101, line=1, command="SetVar $song='Opening+Childhood'")
+
+        client.send_command.assert_called_once_with('Assign Macro 1.101.1 /CMD="SetVar $song=\'Opening+Childhood\'"')
+        assert "101" in result
+        assert "1" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_set_macro_line_custom_pool(self, mock_get):
+        from src.server import set_macro_line
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_macro_line(macro_id=50, line=3, command="Go Sequence 5", pool=2)
+
+        client.send_command.assert_called_once_with('Assign Macro 2.50.3 /CMD="Go Sequence 5"')
+        assert "50" in result

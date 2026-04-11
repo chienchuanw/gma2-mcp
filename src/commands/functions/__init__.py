@@ -80,6 +80,7 @@ from .assignment import (
     assign,
     assign_function,
     assign_fade,
+    assign_macro_cmd,
     assign_to_layout,
     empty,
     temp_fader,
