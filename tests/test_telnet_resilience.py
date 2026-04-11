@@ -1,5 +1,3 @@
-import time
-
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
 
@@ -211,3 +209,30 @@ class TestHealthCheckTTL:
 
                 await client.send_command("cmd2")
                 assert mock_check.call_count > first_check_count  # health check triggered
+
+    @pytest.mark.asyncio
+    async def test_send_command_with_response_updates_ttl(self):
+        """send_command_with_response() should also update the TTL timestamp."""
+        import asyncio
+
+        client = GMA2TelnetClient(host="127.0.0.1", health_check_ttl=5.0, max_retries=3, retry_base_delay=0.01)
+        mock_reader = MagicMock()
+        mock_writer = MagicMock()
+        # Return data once for each read phase, then timeout to break the loop
+        mock_reader.read = AsyncMock(
+            side_effect=["[user]>", "[user]>", "response data", asyncio.TimeoutError()]
+        )
+
+        with patch("telnetlib3.open_connection", new_callable=AsyncMock) as mock_conn:
+            mock_conn.return_value = (mock_reader, mock_writer)
+            await client.connect()
+            await client.login()
+
+            with patch.object(client, "check_connection", new_callable=AsyncMock, return_value=True) as mock_check:
+                # First call with response triggers health check
+                await client.send_command_with_response("list")
+                first_check_count = mock_check.call_count
+
+                # Second call (regular send_command) within TTL should skip
+                await client.send_command("cmd2")
+                assert mock_check.call_count == first_check_count  # TTL from response cmd still valid

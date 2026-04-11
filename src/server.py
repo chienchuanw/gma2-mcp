@@ -183,7 +183,7 @@ _client: GMA2TelnetClient | None = None
 async def get_client() -> GMA2TelnetClient:
     """Get or create the shared telnet client instance."""
     global _client
-    if _client is None or _client.state != ConnectionState.CONNECTED:
+    if _client is None or _client.state == ConnectionState.DISCONNECTED:
         _client = GMA2TelnetClient(
             host=GMA_HOST,
             port=GMA_PORT,
