@@ -518,6 +518,7 @@ __all__ = [
     "move",
     # Assign
     "assign",
+    "assign_cue_cmd",
     "assign_function",
     "assign_fade",
     "assign_macro_cmd",

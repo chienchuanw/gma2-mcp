@@ -474,7 +474,7 @@ class TestSetCueCmdTool:
         result = await set_cue_cmd(cue_id=1, sequence_id=100, command="Macro 101")
 
         client.send_command.assert_called_once_with(
-            'Assign Cue 1 Sequence 100 /CMD="Macro 101"'
+            'assign cue 1 sequence 100 /cmd="Macro 101"'
         )
         assert "Cue 1" in result
         assert "Sequence 100" in result
@@ -490,6 +490,6 @@ class TestSetCueCmdTool:
         result = await set_cue_cmd(cue_id=5, sequence_id=200, command="Go Sequence 10")
 
         client.send_command.assert_called_once_with(
-            'Assign Cue 5 Sequence 200 /CMD="Go Sequence 10"'
+            'assign cue 5 sequence 200 /cmd="Go Sequence 10"'
         )
         assert "Cue 5" in result
