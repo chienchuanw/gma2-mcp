@@ -217,6 +217,7 @@ class GMA2TelnetClient:
                 await self.login()
                 return  # success
             except Exception:
+                self._state = ConnectionState.RECONNECTING
                 logger.warning(
                     f"Reconnection attempt {attempt + 1}/{self.max_retries} failed, "
                     f"retrying in {delay}s"
@@ -319,6 +320,7 @@ class GMA2TelnetClient:
             logger.warning(f"Error reading response: {e}")
 
         response = "".join(response_parts)
+        self._last_successful_command_time = time.monotonic()
         logger.debug(f"Response received: {len(response)} characters")
         return response
 
