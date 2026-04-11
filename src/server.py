@@ -622,7 +622,11 @@ async def label_sequence_cue(
         - Label cues 1 thru 5 in "Set List" as "Act 1"
     """
     client = await get_client()
-    cmd = cmd_label_sequence_cue(sequence, cue_id, name, end_cue=end_cue)
+    try:
+        seq_param = int(sequence)
+    except (ValueError, TypeError):
+        seq_param = sequence
+    cmd = cmd_label_sequence_cue(seq_param, cue_id, name, end_cue=end_cue)
     await client.send_command(cmd)
     range_part = f" thru {end_cue}" if end_cue else ""
     return f'Labeled Sequence "{sequence}" Cue {cue_id}{range_part} as "{name}"'

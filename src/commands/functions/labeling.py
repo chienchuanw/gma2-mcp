@@ -122,11 +122,11 @@ def label_sequence_cue(
 
     Examples:
         >>> label_sequence_cue("Set List", 1, "Opening+Childhood")
-        'Label Sequence "Set List" Cue 1 "Opening+Childhood"'
+        'label sequence "Set List" cue 1 "Opening+Childhood"'
         >>> label_sequence_cue(100, 1, "Opening+Childhood")
-        'Label Sequence 100 Cue 1 "Opening+Childhood"'
+        'label sequence 100 cue 1 "Opening+Childhood"'
         >>> label_sequence_cue("Set List", 1, "Act 1", end_cue=5)
-        'Label Sequence "Set List" Cue 1 thru 5 "Act 1"'
+        'label sequence "Set List" cue 1 thru 5 "Act 1"'
     """
     # Build sequence reference - quote strings, leave ints bare
     if isinstance(sequence, str):
@@ -141,9 +141,9 @@ def label_sequence_cue(
 
     # Build cue reference
     if end_cue is not None:
-        cue_ref = f"Cue {cue_id} thru {end_cue}"
+        cue_ref = f"cue {cue_id} thru {end_cue}"
     else:
-        cue_ref = f"Cue {cue_id}"
+        cue_ref = f"cue {cue_id}"
 
     # Build name (ensure quotes)
     if name.startswith('"') and name.endswith('"'):
@@ -151,7 +151,7 @@ def label_sequence_cue(
     else:
         name_part = f' "{name}"'
 
-    return f"Label Sequence {seq_ref} {cue_ref}{name_part}"
+    return f"label sequence {seq_ref} {cue_ref}{name_part}"
 
 
 # ============================================================================
