@@ -77,7 +77,12 @@ def assign(
         cmd = f"assign {source_type} {source_id}"
 
     # Build target part (if provided)
-    if target_type is not None and target_id is not None:
+    # When target_id is a quoted page path (e.g., '"Set List".61'), the object
+    # type is implicit in the path and target_type must be omitted (design D1).
+    _quoted_path = isinstance(target_id, str) and target_id.startswith('"')
+    if _quoted_path:
+        cmd += f" at {target_id}"
+    elif target_type is not None and target_id is not None:
         if isinstance(target_id, list):
             target_str = " + ".join(str(t) for t in target_id)
             cmd += f" at {target_type} {target_str}"
