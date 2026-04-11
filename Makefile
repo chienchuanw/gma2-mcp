@@ -1,8 +1,15 @@
+-include .env
+export
+
+GMA_HOST ?= 127.0.0.1
+
+.PHONY: server log test
+
 server:
 	./connect.sh
 
 log:
-	telnet 2.0.0.166 30001
+	telnet $(GMA_HOST) 30001
 
 test:
 	uv run pytest -v

@@ -96,10 +96,12 @@ cp .env.template .env
 
 | Variable       | Description                          | Default         |
 |----------------|--------------------------------------|-----------------|
-| `GMA_HOST`     | IP address of the grandMA2 console   | `127.0.0.1`     |
+| `GMA_HOST`     | IP address of the grandMA2 onPC      | `127.0.0.1`     |
 | `GMA_PORT`     | Telnet port                          | `30000`         |
 | `GMA_USER`     | Login username                       | `administrator` |
 | `GMA_PASSWORD`  | Login password                       | `admin`         |
+
+`GMA_HOST` should be set to the IP address of the machine running grandMA2 onPC. You can find this in the onPC network settings or by checking the machine's network configuration.
 
 Port 30000 is the standard command port. Port 30001 is read-only (log output).
 
