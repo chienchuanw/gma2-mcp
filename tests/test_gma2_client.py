@@ -152,6 +152,132 @@ class TestAssignSequencesToExecutors:
         assert "3 sequences" in result["summary"]
 
 
+class TestStoreCueAcrossSequences:
+    @pytest.mark.asyncio
+    async def test_range_with_name(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.store_cue_across_sequences(
+            cue_id=0.5,
+            sequence_start=101,
+            sequence_end=125,
+            cue_name="((LOADING SONG))",
+        )
+
+        cmds = result["commands_sent"]
+        assert result["count"] == 25
+        assert cmds[0] == 'store sequence 101 cue 0.5 "((LOADING SONG))"'
+        assert cmds[24] == 'store sequence 125 cue 0.5 "((LOADING SONG))"'
+        assert "25" in result["summary"]
+
+    @pytest.mark.asyncio
+    async def test_single_sequence(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.store_cue_across_sequences(
+            cue_id=1,
+            sequence_start=101,
+            sequence_end=101,
+        )
+
+        cmds = result["commands_sent"]
+        assert result["count"] == 1
+        assert cmds[0] == "store sequence 101 cue 1"
+
+    @pytest.mark.asyncio
+    async def test_without_name(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.store_cue_across_sequences(
+            cue_id=3,
+            sequence_start=1,
+            sequence_end=3,
+        )
+
+        cmds = result["commands_sent"]
+        assert result["count"] == 3
+        assert cmds[0] == "store sequence 1 cue 3"
+        assert cmds[1] == "store sequence 2 cue 3"
+        assert cmds[2] == "store sequence 3 cue 3"
+
+
+class TestLabelCueAcrossSequences:
+    @pytest.mark.asyncio
+    async def test_range(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.label_cue_across_sequences(
+            cue_id=0.5,
+            sequence_start=101,
+            sequence_end=125,
+            label="((LOADING SONG))",
+        )
+
+        cmds = result["commands_sent"]
+        assert result["count"] == 25
+        assert cmds[0] == 'label sequence 101 cue 0.5 "((LOADING SONG))"'
+        assert cmds[24] == 'label sequence 125 cue 0.5 "((LOADING SONG))"'
+
+    @pytest.mark.asyncio
+    async def test_single_sequence(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.label_cue_across_sequences(
+            cue_id=1,
+            sequence_start=50,
+            sequence_end=50,
+            label="Intro",
+        )
+
+        cmds = result["commands_sent"]
+        assert result["count"] == 1
+        assert cmds[0] == 'label sequence 50 cue 1 "Intro"'
+
+
+class TestAppearanceCueAcrossSequences:
+    @pytest.mark.asyncio
+    async def test_rgb_range(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.appearance_cue_across_sequences(
+            cue_id=0.5,
+            sequence_start=101,
+            sequence_end=103,
+            red=0,
+            green=0,
+            blue=0,
+        )
+
+        cmds = result["commands_sent"]
+        assert result["count"] == 3
+        assert cmds[0] == "appearance sequence 101 cue 0.5 /r=0 /g=0 /b=0"
+        assert cmds[1] == "appearance sequence 102 cue 0.5 /r=0 /g=0 /b=0"
+        assert cmds[2] == "appearance sequence 103 cue 0.5 /r=0 /g=0 /b=0"
+
+    @pytest.mark.asyncio
+    async def test_hex_variant(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.appearance_cue_across_sequences(
+            cue_id=1,
+            sequence_start=101,
+            sequence_end=102,
+            color="FF0000",
+        )
+
+        cmds = result["commands_sent"]
+        assert result["count"] == 2
+        assert cmds[0] == "appearance sequence 101 cue 1 /color=FF0000"
+        assert cmds[1] == "appearance sequence 102 cue 1 /color=FF0000"
+
+
 class TestGMA2ClientResultStructure:
     @pytest.mark.asyncio
     async def test_result_has_required_keys(self):

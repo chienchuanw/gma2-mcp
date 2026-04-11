@@ -19,12 +19,15 @@ from typing import Any
 
 from src.telnet_client import GMA2TelnetClient
 from src.commands import (
+    appearance,
     assign,
     assign_fade,
     at,
     fixture_at,
+    label_sequence_cue,
     preset,
     select_fixture,
+    store,
     store_cue,
     store_group,
 )
@@ -192,4 +195,103 @@ class GMA2Client:
             "commands_sent": sent,
             "count": len(sent),
             "summary": f"Assigned {len(assignments)} sequences to executors",
+        }
+
+    async def store_cue_across_sequences(
+        self,
+        cue_id: int | float,
+        sequence_start: int,
+        sequence_end: int,
+        cue_name: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Store a cue across a range of sequences.
+
+        Args:
+            cue_id: Cue number to store
+            sequence_start: First sequence number
+            sequence_end: Last sequence number (inclusive)
+            cue_name: Optional name for the cue
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        sent: list[str] = []
+
+        for seq in range(sequence_start, sequence_end + 1):
+            cmd = store("sequence", f"{seq} cue {cue_id}", name=cue_name)
+            sent.append(await self._send(cmd))
+
+        count = sequence_end - sequence_start + 1
+        return {
+            "commands_sent": sent,
+            "count": len(sent),
+            "summary": f"Stored cue {cue_id} across {count} sequences ({sequence_start}-{sequence_end})",
+        }
+
+    async def label_cue_across_sequences(
+        self,
+        cue_id: int | float,
+        sequence_start: int,
+        sequence_end: int,
+        label: str,
+    ) -> dict[str, Any]:
+        """
+        Label a cue across a range of sequences.
+
+        Args:
+            cue_id: Cue number to label
+            sequence_start: First sequence number
+            sequence_end: Last sequence number (inclusive)
+            label: Label to assign
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        sent: list[str] = []
+
+        for seq in range(sequence_start, sequence_end + 1):
+            cmd = label_sequence_cue(seq, cue_id, label)
+            sent.append(await self._send(cmd))
+
+        count = sequence_end - sequence_start + 1
+        return {
+            "commands_sent": sent,
+            "count": len(sent),
+            "summary": f"Labeled cue {cue_id} across {count} sequences ({sequence_start}-{sequence_end})",
+        }
+
+    async def appearance_cue_across_sequences(
+        self,
+        cue_id: int | float,
+        sequence_start: int,
+        sequence_end: int,
+        **color_kwargs: Any,
+    ) -> dict[str, Any]:
+        """
+        Set appearance on a cue across a range of sequences.
+
+        Args:
+            cue_id: Cue number
+            sequence_start: First sequence number
+            sequence_end: Last sequence number (inclusive)
+            **color_kwargs: Color arguments passed to appearance builder
+                (red, green, blue, hue, saturation, brightness, color)
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        sent: list[str] = []
+
+        for seq in range(sequence_start, sequence_end + 1):
+            cmd = appearance(
+                f"sequence {seq} cue", str(cue_id), **color_kwargs
+            )
+            sent.append(await self._send(cmd))
+
+        count = sequence_end - sequence_start + 1
+        return {
+            "commands_sent": sent,
+            "count": len(sent),
+            "summary": f"Set appearance on cue {cue_id} across {count} sequences ({sequence_start}-{sequence_end})",
         }
