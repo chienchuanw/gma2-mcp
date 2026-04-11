@@ -8,13 +8,15 @@ Usage:
     uv run python -m src.server
 """
 
+import functools
 import logging
 import os
+from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
-from src.telnet_client import GMA2TelnetClient
+from src.telnet_client import ConnectionState, GMA2TelnetClient
 from src.commands import (
     appearance as cmd_appearance,
     assign,
@@ -65,8 +67,34 @@ GMA_PORT = int(os.getenv("GMA_PORT", "30000"))
 GMA_USER = os.getenv("GMA_USER", "administrator")
 GMA_PASSWORD = os.getenv("GMA_PASSWORD", "admin")
 
+@asynccontextmanager
+async def server_lifespan(app):
+    """manage server lifecycle — disconnect telnet on shutdown."""
+    yield
+    if _client is not None:
+        await _client.disconnect()
+        logger.info("Telnet connection closed on shutdown")
+
+
+def handle_connection_error(func):
+    """wrap an MCP tool to catch ConnectionError and return a user-friendly message."""
+
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except ConnectionError as e:
+            return (
+                f"Connection lost: {e}. "
+                f"Check that grandMA2 is running and reachable at {GMA_HOST}:{GMA_PORT}."
+            )
+
+    return wrapper
+
+
 mcp = FastMCP(
     name="grandMA2-MCP",
+    lifespan=server_lifespan,
     instructions="""
     MCP server for controlling grandMA2 lighting consoles via Telnet.
 
@@ -150,13 +178,12 @@ def _format_warnings(object_type: str) -> str:
 
 
 _client: GMA2TelnetClient | None = None
-_connected: bool = False
 
 
 async def get_client() -> GMA2TelnetClient:
     """Get or create the shared telnet client instance."""
-    global _client, _connected
-    if _client is None or not _connected:
+    global _client
+    if _client is None or _client.state != ConnectionState.CONNECTED:
         _client = GMA2TelnetClient(
             host=GMA_HOST,
             port=GMA_PORT,
@@ -165,7 +192,6 @@ async def get_client() -> GMA2TelnetClient:
         )
         await _client.connect()
         await _client.login()
-        _connected = True
         logger.info(f"Connected to grandMA2: {GMA_HOST}:{GMA_PORT}")
     return _client
 
@@ -176,6 +202,7 @@ async def get_client() -> GMA2TelnetClient:
 
 
 @mcp.tool()
+@handle_connection_error
 async def create_fixture_group(
     start_fixture: int,
     end_fixture: int,
@@ -223,6 +250,7 @@ async def create_fixture_group(
 
 
 @mcp.tool()
+@handle_connection_error
 async def store_cue(
     cue_id: int,
     name: str | None = None,
@@ -257,6 +285,7 @@ async def store_cue(
 
 
 @mcp.tool()
+@handle_connection_error
 async def delete_cue(cue_id: int) -> str:
     """
     Delete a cue from the current sequence.
@@ -277,6 +306,7 @@ async def delete_cue(cue_id: int) -> str:
 
 
 @mcp.tool()
+@handle_connection_error
 async def goto_cue_tool(
     cue_id: int,
     executor: int | None = None,
@@ -317,6 +347,7 @@ async def goto_cue_tool(
 
 
 @mcp.tool()
+@handle_connection_error
 async def set_cue_cmd(
     cue_id: int,
     sequence_id: int,
@@ -352,6 +383,7 @@ async def set_cue_cmd(
 
 
 @mcp.tool()
+@handle_connection_error
 async def set_fixture_value(
     fixture_id: int,
     value: int,
@@ -380,6 +412,7 @@ async def set_fixture_value(
 
 
 @mcp.tool()
+@handle_connection_error
 async def set_fixture_attribute(
     fixture_id: int,
     attribute: str,
@@ -417,6 +450,7 @@ async def set_fixture_attribute(
 
 
 @mcp.tool()
+@handle_connection_error
 async def clear_programmer(
     mode: str = "all",
 ) -> str:
@@ -453,6 +487,7 @@ async def clear_programmer(
 
 
 @mcp.tool()
+@handle_connection_error
 async def store_preset(
     preset_type: str,
     preset_id: int,
@@ -488,6 +523,7 @@ async def store_preset(
 
 
 @mcp.tool()
+@handle_connection_error
 async def apply_preset(
     preset_type: str,
     preset_id: int,
@@ -518,6 +554,7 @@ async def apply_preset(
 
 
 @mcp.tool()
+@handle_connection_error
 async def control_executor(
     executor_id: int,
     action: str,
@@ -554,6 +591,7 @@ async def control_executor(
 
 
 @mcp.tool()
+@handle_connection_error
 async def set_executor_fader(
     executor_id: int,
     value: int,
@@ -578,6 +616,7 @@ async def set_executor_fader(
 
 
 @mcp.tool()
+@handle_connection_error
 async def assign_to_executor(
     sequence_id: int,
     executor_id: int,
@@ -607,6 +646,7 @@ async def assign_to_executor(
 
 
 @mcp.tool()
+@handle_connection_error
 async def toggle_blackout() -> str:
     """
     Toggle the grand blackout state.
@@ -621,6 +661,7 @@ async def toggle_blackout() -> str:
 
 
 @mcp.tool()
+@handle_connection_error
 async def toggle_highlight() -> str:
     """
     Toggle highlight mode for fixture programming.
@@ -640,6 +681,7 @@ async def toggle_highlight() -> str:
 
 
 @mcp.tool()
+@handle_connection_error
 async def label_object(
     object_type: str,
     object_id: int,
@@ -667,6 +709,7 @@ async def label_object(
 
 
 @mcp.tool()
+@handle_connection_error
 async def label_sequence_cue(
     sequence: str,
     cue_id: int,
@@ -710,6 +753,7 @@ async def label_sequence_cue(
 
 
 @mcp.tool()
+@handle_connection_error
 async def assign_appearance(
     object_type: str,
     object_id: int | str,
@@ -781,6 +825,7 @@ async def assign_appearance(
 
 
 @mcp.tool()
+@handle_connection_error
 async def set_macro_line(
     macro_id: int,
     line: int,
@@ -815,6 +860,7 @@ async def set_macro_line(
 
 
 @mcp.tool()
+@handle_connection_error
 async def store_cue_across_sequences(
     cue_id: float,
     sequence_start: int,
@@ -851,6 +897,7 @@ async def store_cue_across_sequences(
 
 
 @mcp.tool()
+@handle_connection_error
 async def label_cue_across_sequences(
     cue_id: float,
     sequence_start: int,
@@ -885,6 +932,7 @@ async def label_cue_across_sequences(
 
 
 @mcp.tool()
+@handle_connection_error
 async def appearance_cue_across_sequences(
     cue_id: float,
     sequence_start: int,
@@ -941,6 +989,7 @@ async def appearance_cue_across_sequences(
 
 
 @mcp.tool()
+@handle_connection_error
 async def execute_sequence(
     sequence_id: int,
     action: str,
@@ -990,6 +1039,7 @@ async def execute_sequence(
 
 
 @mcp.tool()
+@handle_connection_error
 async def send_raw_command(command: str) -> str:
     """
     Send a raw MA command to grandMA2.
