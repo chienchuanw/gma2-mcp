@@ -78,6 +78,7 @@ from .edit import (
 # Assignment Function Keywords
 from .assignment import (
     assign,
+    assign_cue_cmd,
     assign_function,
     assign_fade,
     assign_macro_cmd,

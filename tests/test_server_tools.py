@@ -460,3 +460,36 @@ class TestLabelSequenceCueTool:
         result = await label_sequence_cue_tool(sequence="100", cue_id=1, name="Opening+Childhood")
         client.send_command.assert_called_once_with('label sequence 100 cue 1 "Opening+Childhood"')
         assert "Opening+Childhood" in result
+
+
+class TestSetCueCmdTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_set_cue_cmd_macro(self, mock_get):
+        from src.server import set_cue_cmd
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_cue_cmd(cue_id=1, sequence_id=100, command="Macro 101")
+
+        client.send_command.assert_called_once_with(
+            'Assign Cue 1 Sequence 100 /CMD="Macro 101"'
+        )
+        assert "Cue 1" in result
+        assert "Sequence 100" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_set_cue_cmd_go(self, mock_get):
+        from src.server import set_cue_cmd
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_cue_cmd(cue_id=5, sequence_id=200, command="Go Sequence 10")
+
+        client.send_command.assert_called_once_with(
+            'Assign Cue 5 Sequence 200 /CMD="Go Sequence 10"'
+        )
+        assert "Cue 5" in result
