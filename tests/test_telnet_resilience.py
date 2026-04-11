@@ -108,8 +108,13 @@ class TestAutoReconnect:
                     return False  # first check fails
                 return True  # after reconnect, check succeeds
 
+            async def reconnect_side_effect():
+                client._state = ConnectionState.CONNECTED
+                client._reader = mock_reader
+                client._writer = mock_writer
+
             with patch.object(client, "check_connection", side_effect=check_side_effect):
-                with patch.object(client, "connect", new_callable=AsyncMock) as mock_reconnect:
+                with patch.object(client, "connect", side_effect=reconnect_side_effect) as mock_reconnect:
                     with patch.object(client, "login", new_callable=AsyncMock):
                         await client.send_command("test command")
                         mock_reconnect.assert_called_once()
