@@ -46,7 +46,7 @@ The command builder covers all grandMA2 command-line keywords organized by categ
 
 - **17 MCP tools** -- Cue management (store/delete/goto), fixture control (set values, set attributes, clear programmer), preset management (store/apply), executor control (on/off/go/kill/toggle, fader level, sequence assignment), global state (blackout, highlight), object labeling, sequence playback, and raw command execution.
 - **Complete command builder** -- Over 200 Python functions covering all grandMA2 command-line keywords across 30+ modules, each returning a correctly formatted command string.
-- **High-level client** -- `GMA2Client` provides workflow-level methods: build cue lists, set up fixture groups with presets, quick look programming, batch executor assignments.
+- **High-level client** -- `GMA2Client` provides workflow-level methods: build cue lists, set up fixture groups with presets, quick look programming, batch executor assignments. Uses grandMA2's inline naming syntax to minimize Telnet round-trips.
 - **Command chaining** -- `CommandSequence` lets you compose multiple commands, preview them, and execute them as a batch.
 - **Async Telnet client** -- Built on `telnetlib3` with automatic login handling and persistent connections.
 - **Configurable via environment** -- Host, port, user, and password set through `.env` or environment variables.
@@ -245,7 +245,7 @@ The server exposes 17 tools:
 
 | Tool                   | Description                                              |
 |------------------------|----------------------------------------------------------|
-| `create_fixture_group` | Select a range of fixtures and store as a group          |
+| `create_fixture_group` | Select fixtures and store as a named group (2 commands)  |
 | `store_cue`            | Store current programmer state as a cue                  |
 | `delete_cue`           | Delete a cue                                             |
 | `goto_cue_tool`        | Jump to a specific cue (executor or sequence)            |
@@ -273,25 +273,29 @@ from src.commands import fixture, at_full, store_group, label_group
 fixture(1, end=10)              # "fixture 1 thru 10"
 at_full()                       # "at full"
 store_group(5)                  # "store group 5"
-label_group(5, "Front Wash")    # 'label group 5 "Front Wash"'
+store_group(5, name="Front Wash")  # 'store group 5 "Front Wash"' (inline naming)
+label_group(5, "Front Wash")    # 'label group 5 "Front Wash"' (separate label command)
 ```
 
 ### GMA2Client (Workflow Orchestration)
 
-The `GMA2Client` class provides high-level workflow methods that compose multiple commands:
+The `GMA2Client` class provides high-level workflow methods that compose multiple commands. These methods use grandMA2's inline naming syntax to minimize the number of Telnet round-trips:
 
 ```python
 from src.gma2_client import GMA2Client
 
 async with GMA2Client.create("192.168.1.100") as client:
     # Build a cue list with names and fade times
+    # Uses inline naming: 1 command per named cue (store cue N "Name"),
+    # plus 1 command per fade time
     await client.build_cue_list(1, [
         {"id": 1, "name": "Preset", "fade": 0},
         {"id": 2, "name": "Look 1", "fade": 3.0},
         {"id": 3, "name": "Blackout", "fade": 2.0},
     ])
 
-    # Select fixtures, store as group, apply a preset
+    # Select fixtures, store as named group, apply a preset (3 commands)
+    # Uses inline naming: store group N "Name" in a single command
     await client.setup_group_with_preset(
         fixtures=(1, 10), group_id=1,
         group_name="Front Wash", preset_type="color", preset_id=3,
@@ -374,9 +378,9 @@ Perform a task or function, often followed by the object they apply to.
 | Function            | Description                | Example                                              |
 |---------------------|----------------------------|------------------------------------------------------|
 | `store()`           | Store objects in show file | `store("macro", 5)` -> `store macro 5`               |
-| `store_cue()`       | Store cue with options     | `store_cue(1, merge=True)` -> `store cue 1 /merge`   |
+| `store_cue()`       | Store cue with optional inline name | `store_cue(1, name="Look")` -> `store cue 1 "Look"`  |
 | `store_preset()`    | Store preset with options  | `store_preset("dimmer", 3)` -> `store preset 1.3`    |
-| `store_group()`     | Store a group              | `store_group(1)` -> `store group 1`                  |
+| `store_group()`     | Store a group (with optional inline name) | `store_group(1, name="Front")` -> `store group 1 "Front"` |
 | `label_group()`     | Label a group              | `label_group(1, "Front")` -> `label group 1 "Front"` |
 | `delete_group()`    | Delete a group             | `delete_group(1)` -> `delete group 1`                |
 | `select_fixture()`  | SelFix function            | `select_fixture(1, 10)` -> `selfix fixture 1 thru 10`|

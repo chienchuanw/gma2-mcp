@@ -58,6 +58,27 @@
 | PRESET_TYPES mapping | 10 assertions | All pass | All pass | ✓ |
 | Full suite after fix | 818 tests | 818 pass | 818 pass | ✓ |
 
+## Session: 2026-04-11 (Session 3 -- Issue #12 Performance)
+
+### Issue #12: Combine store + label into single commands (PR #18)
+- **Status:** complete
+- Actions taken:
+  - Updated `store_group()` in `src/commands/functions/store.py` to accept optional `name` parameter, generating `store group {id} "name"` inline
+  - Updated `create_fixture_group()` MCP tool in `src/server.py` to send 2 commands (select + store-with-name) instead of 3 (select + store + label)
+  - Updated `build_cue_list()` in `src/gma2_client.py` to use `store_cue(id, name=name)` inline instead of separate `label()` call (1 command per named cue instead of 2)
+  - Updated `setup_group_with_preset()` in `src/gma2_client.py` to use `store_group(id, name=name)` inline instead of separate `label_group()` call (3 commands instead of 4)
+  - Removed unused `label` and `label_group` imports from `gma2_client.py`
+  - 5 new tests added, full suite: **823 tests passing**
+- Files modified:
+  - src/commands/functions/store.py (optional `name` parameter on `store_group`)
+  - src/server.py (`create_fixture_group` reduced from 3 to 2 commands)
+  - src/gma2_client.py (`build_cue_list` and `setup_group_with_preset` use inline naming, removed unused label imports)
+
+## Test Results
+| Test | Input | Expected | Actual | Status |
+|------|-------|----------|--------|--------|
+| Full suite after issue #12 | 823 tests | 823 pass | 823 pass | ✓ |
+
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|

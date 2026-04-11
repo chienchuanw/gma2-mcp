@@ -45,7 +45,7 @@ Phase 3 (Issue #1 complete, remaining P0 issues next)
 1. How many command builder functions exist? **200+ across 30+ modules (8,316 total lines)**
 2. How many MCP tools are exposed? **17 tools**
 3. What transport does the MCP server use? **stdio**
-4. What is the test coverage? **818 test cases across 48 test files** (was 808, +10 from issue #1)
+4. What is the test coverage? **823 test cases across 48 test files** (was 808, +10 from issue #1, +5 from issue #12)
 5. Is there a legacy tools module? **Yes -- `src/tools.py` contains the original pre-MCP tool implementations, still used by some tests**
 
 ## Decisions Made
@@ -75,6 +75,7 @@ Phase 3 (Issue #1 complete, remaining P0 issues next)
 | 8 | P2 | Expand GMA2Client workflows | Open |
 | 9 | P3 | HTTP/SSE transport | Open |
 | 10 | P3 | Update/remove main.py | Open |
+| 12 | P1 | Combine store + label into single commands (perf) | Fixed (PR #18) |
 
 ## Notes
 - Current branch: `issues/1` (2 commits ahead of `main`)
