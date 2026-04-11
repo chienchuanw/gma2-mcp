@@ -4,7 +4,7 @@
 Investigate, prioritize, and implement improvements to the gma2-mcp project -- an MCP server that enables AI assistants to control grandMA2 lighting consoles via Telnet.
 
 ## Current Phase
-Phase 5 (Issues #19-22 complete, P0 issues #2/#3 remaining)
+Phase 5 (Issues #19-22, #2, #3 complete -- all P0 issues resolved)
 
 ## Phases
 
@@ -26,9 +26,9 @@ Phase 5 (Issues #19-22 complete, P0 issues #2/#3 remaining)
 
 ### Phase 3: P0 Bugfixes & Reliability
 - [x] Issue #1: Fix PRESET_TYPES mapping (branch `issues/1`, TDD, 818 tests passing)
-- [ ] Issue #2: Telnet connection resilience
-- [ ] Issue #3: Clean up legacy src/tools.py
-- **Status:** in_progress
+- [x] Issue #2: Telnet connection resilience (branch `issues/2`, PR #31, 884 tests passing)
+- [x] Issue #3: Clean up legacy src/tools.py (branch `issues/3`, PR #30, 884 tests passing)
+- **Status:** complete
 
 ### Phase 4: P1 Query & Show Management
 - [ ] Issue #4: Add query/introspection MCP tools
@@ -49,8 +49,8 @@ Phase 5 (Issues #19-22 complete, P0 issues #2/#3 remaining)
 1. How many command builder functions exist? **200+ across 30+ modules (8,316 total lines)**
 2. How many MCP tools are exposed? **24 tools** (was 20, +1 appearance tool, +3 bulk cue tools from issues #19-22)
 3. What transport does the MCP server use? **stdio**
-4. What is the test coverage? **~850+ test cases across 48+ test files** (was ~836, +4 from #19, +6 from #20, +4 from #21, +12 from #22)
-5. Is there a legacy tools module? **Yes -- `src/tools.py` contains the original pre-MCP tool implementations, still used by some tests**
+4. What is the test coverage? **~884 test cases across 48+ test files** (was ~850, +15 resilience tests from #2, +3 server tool tests from #2, -16 removed tests from #3)
+5. Is there a legacy tools module? **No -- `src/tools.py` was removed in issue #3 (PR #30). All tools are in `src/server.py`.**
 
 ## Decisions Made
 | Decision | Rationale |
@@ -70,8 +70,8 @@ Phase 5 (Issues #19-22 complete, P0 issues #2/#3 remaining)
 | # | Priority | Title | Status |
 |---|----------|-------|--------|
 | 1 | P0 | Fix PRESET_TYPES mapping | Fixed (branch `issues/1`) |
-| 2 | P0 | Telnet connection resilience | Open |
-| 3 | P0 | Clean up legacy src/tools.py | Open |
+| 2 | P0 | Telnet connection resilience | Fixed (PR #31) |
+| 3 | P0 | Clean up legacy src/tools.py | Fixed (PR #30) |
 | 4 | P1 | Query/introspection MCP tools | Open |
 | 5 | P1 | Show file management MCP tools | Open |
 | 6 | P2 | Macro management MCP tools | Open |
@@ -89,7 +89,7 @@ Phase 5 (Issues #19-22 complete, P0 issues #2/#3 remaining)
 | 22 | P2 | Add bulk cue operations across sequence ranges | Fixed (PR #29) |
 
 ## Notes
-- Current branch: `issues/1` (2 commits ahead of `main`)
+- All P0 issues resolved (issues #1, #2, #3). Next: P1 issues (#4, #5).
 - Uses `uv` as package manager with Python 3.12
 - grandMA2 manual PDF is stored at `doc/2024-09-30_grandMA2_User_Manual_v3-9.pdf`
-- OpenSpec change artifacts at `openspec/changes/fix-preset-types/`
+- OpenSpec change artifacts archived at `openspec/changes/archive/`

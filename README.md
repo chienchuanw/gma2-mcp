@@ -49,7 +49,8 @@ The command builder covers all grandMA2 command-line keywords organized by categ
 - **Complete command builder** -- Over 200 Python functions covering all grandMA2 command-line keywords across 30+ modules, each returning a correctly formatted command string.
 - **High-level client** -- `GMA2Client` provides workflow-level methods: build cue lists, set up fixture groups with presets, quick look programming, batch executor assignments. Uses grandMA2's inline naming syntax to minimize Telnet round-trips.
 - **Command chaining** -- `CommandSequence` lets you compose multiple commands, preview them, and execute them as a batch.
-- **Async Telnet client** -- Built on `telnetlib3` with automatic login handling and persistent connections.
+- **Resilient Telnet client** -- Built on `telnetlib3` with automatic login, persistent connections, connection health checking, auto-reconnection with bounded exponential backoff, and graceful shutdown. If the console restarts or the network drops, the client detects the failure and reconnects transparently before the next command.
+- **Connection error surfacing** -- MCP tools catch connection failures and return human-readable error messages instead of unhandled exceptions, so the AI assistant knows when commands are not reaching the console.
 - **Configurable via environment** -- Host, port, user, and password set through `.env` or environment variables.
 
 ## Getting Started
@@ -533,8 +534,7 @@ gma2-mcp/
 │   ├── command_sequence.py     # CommandSequence for multi-command batching
 │   ├── gma2_client.py          # High-level workflow orchestration client
 │   ├── server.py               # MCP server (FastMCP, 24 tools, stdio transport)
-│   ├── telnet_client.py        # Async Telnet connection management
-│   └── tools.py                # Legacy tool implementations (used by tests)
+│   └── telnet_client.py        # Async Telnet client with health check, auto-reconnect, state tracking
 ├── tests/                      # Pytest test suite (one file per module)
 ├── doc/                        # grandMA2 user manual (PDF)
 ├── main.py                     # Standalone login test script
@@ -578,7 +578,7 @@ uv run pytest tests/test_playback.py -v
 
 The project has four layers:
 
-1. **Telnet Client** (`src/telnet_client.py`) -- Low-level async Telnet communication with the console.
+1. **Telnet Client** (`src/telnet_client.py`) -- Low-level async Telnet communication with the console. Includes `ConnectionState` tracking (DISCONNECTED/CONNECTING/CONNECTED/RECONNECTING), health check probing, auto-reconnection with bounded exponential backoff (configurable retries and delay), health check TTL to skip redundant probes during rapid command sequences, and graceful shutdown via the server lifespan hook.
 2. **Command Builder** (`src/commands/`) -- Pure functions that construct command strings. No network access.
 3. **Orchestration** (`src/gma2_client.py`, `src/command_sequence.py`) -- High-level workflow methods and command batching that compose builders + telnet.
 4. **MCP Server** (`src/server.py`) -- FastMCP server that exposes 24 tools over stdio, connecting the builder to the Telnet client.
@@ -589,7 +589,11 @@ All console communication goes through the Telnet client layer.
 
 **Connection fails** -- Verify the console IP and port. Ensure Telnet is enabled on the console. Test manually with `make server`.
 
-**Authentication errors** -- Check username/password in `.env`. Confirm the user account exists on the console.
+**Connection drops mid-session** -- The Telnet client auto-reconnects with up to 3 retries (exponential backoff: 1s, 2s, 4s). If all retries fail, tools return a clear error message. Check that the console is running and reachable.
+
+**Authentication errors** -- Check username/password in `.env`. Confirm the user account exists on the console. Login is case-sensitive.
+
+**Fixture setup locked by stale connection** -- If a previous session crashed without calling `disconnect()`, the console may still hold a Telnet lock. Restart the console or wait for its session timeout. The MCP server now calls `disconnect()` on shutdown to prevent this.
 
 **Command not working** -- Verify the syntax against the grandMA2 manual. Ensure referenced objects (fixtures, groups, presets) exist in the current show file.
 

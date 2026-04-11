@@ -299,9 +299,9 @@ gma2-mcp/
 ## Observations & Potential Improvements
 
 1. ~~**`PRESET_TYPES` collision**: Both "position" and "color" map to ID 2.~~ **FIXED** in issue #1 -- color is now correctly 4, all types shifted to match manual.
-2. **Legacy `src/tools.py`**: Contains functions that don't `await` async calls. These appear to be pre-MCP implementations that were superseded by `src/server.py`. Could be cleaned up. (Issue #3)
+2. ~~**Legacy `src/tools.py`**: Contains functions that don't `await` async calls.~~ **FIXED** in issue #3 (PR #30) -- deleted `src/tools.py` and `tests/test_tools.py`, removed `set_gma2_client` import from `server.py`.
 3. **`main.py` uses deprecated `telnetlib`**: This standalone test script uses the stdlib `telnetlib` (removed in Python 3.13), unlike the main codebase which uses `telnetlib3`. (Issue #10)
-4. **No error handling in MCP tools**: Most tools don't handle cases where the telnet connection drops mid-session. The `get_client()` lazy init only checks initial connection. (Issue #2)
+4. ~~**No error handling in MCP tools**: Most tools don't handle cases where the telnet connection drops mid-session.~~ **FIXED** in issue #2 (PR #31) -- added `ConnectionState` enum, `check_connection()` health probe, `_ensure_connected()` with bounded exponential backoff, health check TTL, graceful shutdown via `server_lifespan`, and `handle_connection_error` decorator on all 24 MCP tools.
 5. **No response parsing**: `send_command()` is fire-and-forget. The server never confirms whether a command was accepted by the console. (Issue #4)
 6. **GMA2Client.create() is not a context manager factory**: The `create()` classmethod returns a `GMA2Client` but you need to wrap it in `async with` separately. The README example `async with GMA2Client.create(...) as client:` works because `__aenter__` returns `self`.
 

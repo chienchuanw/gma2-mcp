@@ -137,11 +137,52 @@
 | Branch 21 tests | 842 tests | 842 pass | 842 pass | ✓ |
 | Branch 22 tests | 851 tests | 851 pass | 851 pass | ✓ |
 
+## Session: 2026-04-12 (Session 6 -- Issues #2, #3: Connection Resilience & Legacy Cleanup)
+
+### Issue #3: Clean up legacy src/tools.py (PR #30)
+- **Status:** complete (merged)
+- Actions taken:
+  - Created OpenSpec change `connection-resilience-and-tools-cleanup` with proposal, design, 2 specs, and tasks (30 items, TDD plan)
+  - Created GitHub linked branch `issues/3` via `gh issue develop`
+  - Deleted `src/tools.py` (159 lines) and `tests/test_tools.py` (132 lines)
+  - Removed `from src.tools import set_gma2_client` import and `set_gma2_client(_client)` call from `src/server.py`
+  - Verified zero remaining references to legacy tools module
+  - Created PR #30, approved and merged into `dev`
+- Files removed: `src/tools.py`, `tests/test_tools.py`
+- Files modified: `src/server.py` (2 lines removed)
+
+### Issue #2: Telnet connection resilience (PR #31)
+- **Status:** complete (merged)
+- Actions taken:
+  - Created GitHub linked branch `issues/2` via `gh issue develop`
+  - Implemented in parallel with issue #3 using worktree agents
+  - **TDD**: Wrote 15 new tests in `tests/test_telnet_resilience.py` covering state transitions, health check, auto-reconnect, TTL optimization
+  - Added `ConnectionState` enum (DISCONNECTED/CONNECTING/CONNECTED/RECONNECTING) and `state` property to `GMA2TelnetClient`
+  - Added `check_connection()` health probe (sends newline, reads with timeout)
+  - Added `_ensure_connected()` with bounded exponential backoff (default 3 retries, 1s base delay)
+  - Added health check TTL optimization (skip probe if last command within 5s)
+  - Added `server_lifespan` async context manager for graceful shutdown
+  - Added `handle_connection_error` decorator on all 24 MCP tools
+  - Replaced `_connected` boolean with `ConnectionState` check in `get_client()`
+  - Code review caught 2 critical issues: missing TTL update in `send_command_with_response()`, overly strict `get_client()` guard. Fixed in follow-up commit.
+  - Created PR #31, approved and merged into `dev`
+- PRs:
+  - PR #30: `issues/3` (issue #3) -- 2 commits, approved and merged
+  - PR #31: `issues/2` (issue #2) -- 6 commits, approved and merged
+- Files created: `tests/test_telnet_resilience.py` (238 lines), `openspec/specs/connection-resilience/spec.md`
+- Files modified: `src/telnet_client.py` (+80 lines), `src/server.py` (+60/-7 lines), `tests/test_server_tools.py` (+50 lines)
+
+## Test Results
+| Test | Input | Expected | Actual | Status |
+|------|-------|----------|--------|--------|
+| Issue #3 full suite | 859 tests | 859 pass | 859 pass | ✓ |
+| Issue #2 full suite | 884 tests | 884 pass | 884 pass | ✓ |
+
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | Issues #1, #12, #13-#15, #19-#22 complete; P0 issues #2 and #3 remaining |
-| Where am I going? | Issue #2 (Telnet resilience) or #3 (legacy cleanup) next |
-| What's the goal? | Complete P0 issues, then continue P1/P2 features |
-| What have I learned? | See findings.md -- named page executor paths require omitting type keyword; appearance reset+color is mutually exclusive; bulk ops need client-layer iteration (MA2 has no native cross-sequence cue range syntax) |
-| What have I done? | Investigation, 22 issues created/resolved, Issues #1/#12/#13-#15/#19-#22 fixed with TDD, 24 MCP tools total |
+| Where am I? | All P0 issues complete (#1, #2, #3). Issues #12-#15, #19-#22 also complete. |
+| Where am I going? | P1 issues next: #4 (query/introspection tools), #5 (show file management) |
+| What's the goal? | Continue P1/P2 features now that reliability is solid |
+| What have I learned? | See findings.md -- telnetlib3 writer doesn't reliably raise on dead connections (pre-flight health check needed); newline is the lightest MA2 probe; get_client() must allow RECONNECTING state; send_command_with_response must also update TTL timestamp |
+| What have I done? | Investigation, 22 issues created/resolved, Issues #1-#3/#12-#15/#19-#22 fixed with TDD, 24 MCP tools, connection resilience layer |
