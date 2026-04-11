@@ -1,6 +1,6 @@
 # GMA2 MCP
 
-An MCP server that lets AI assistants control grandMA2 lighting consoles via Telnet. It exposes 20 high-level tools for cue management, fixture control, preset management, executor control, macro editing, and more through the Model Context Protocol.
+An MCP server that lets AI assistants control grandMA2 lighting consoles via Telnet. It exposes 24 high-level tools for cue management, fixture control, preset management, executor control, macro editing, appearance assignment, bulk operations, and more through the Model Context Protocol.
 
 ## Table of Contents
 
@@ -36,7 +36,7 @@ An MCP server that lets AI assistants control grandMA2 lighting consoles via Tel
 grandMA2 consoles accept commands over Telnet, but building correct command strings requires knowledge of the MA2 syntax rules -- keyword ordering, preset type mappings, option flags, and object hierarchies. This project handles that complexity in two layers:
 
 1. **Command Builder** (`src/commands/`) -- Python functions that construct valid grandMA2 command strings following the official syntax rules. Each function is a thin wrapper that returns a string; it never touches the network.
-2. **MCP Server** (`src/server.py`) -- A FastMCP server that exposes 20 tools covering cue management, fixture control, presets, executors, global state, labeling, macro editing, sequence playback, and raw commands over stdio transport. It manages a persistent Telnet connection to the console and delegates command construction to the builder layer.
+2. **MCP Server** (`src/server.py`) -- A FastMCP server that exposes 24 tools covering cue management, fixture control, presets, executors, global state, labeling, appearance assignment, macro editing, bulk cue operations, sequence playback, and raw commands over stdio transport. It manages a persistent Telnet connection to the console and delegates command construction to the builder layer.
 3. **GMA2Client** (`src/gma2_client.py`) -- A high-level orchestration class that composes multiple command builder calls into workflow-level methods (e.g., build an entire cue list, set up a fixture group with a preset).
 4. **CommandSequence** (`src/command_sequence.py`) -- A builder-pattern class for composing multiple commands into an ordered batch that can be previewed and executed as a unit.
 
@@ -44,7 +44,8 @@ The command builder covers all grandMA2 command-line keywords organized by categ
 
 ## Features
 
-- **20 MCP tools** -- Cue management (store/delete/goto, CMD assignment), fixture control (set values, set attributes, clear programmer), preset management (store/apply), executor control (on/off/go/kill/toggle, fader level, sequence assignment), global state (blackout, highlight), object labeling (generic + sequence-scoped cue labeling), macro line editing, sequence playback, and raw command execution.
+- **24 MCP tools** -- Cue management (store/delete/goto, CMD assignment), fixture control (set values, set attributes, clear programmer), preset management (store/apply), executor control (on/off/go/kill/toggle, fader level, sequence assignment), global state (blackout, highlight), object labeling (generic + sequence-scoped cue labeling), appearance assignment (RGB, HSB, hex, source copy), macro line editing, bulk cue operations across sequence ranges (store, label, appearance), sequence playback, and raw command execution.
+- **Destructive command safety warnings** -- Delete tools include informational warnings about downstream effects (orphaned executor handles, lost cue programming) to help AI assistants understand impact before confirming.
 - **Complete command builder** -- Over 200 Python functions covering all grandMA2 command-line keywords across 30+ modules, each returning a correctly formatted command string.
 - **High-level client** -- `GMA2Client` provides workflow-level methods: build cue lists, set up fixture groups with presets, quick look programming, batch executor assignments. Uses grandMA2's inline naming syntax to minimize Telnet round-trips.
 - **Command chaining** -- `CommandSequence` lets you compose multiple commands, preview them, and execute them as a batch.
@@ -241,30 +242,34 @@ claude mcp add gma2 \
 
 ### MCP Tools
 
-The server exposes 20 tools:
+The server exposes 24 tools:
 
-| Tool                   | Description                                              |
-|------------------------|----------------------------------------------------------|
-| `create_fixture_group` | Select fixtures and store as a named group (2 commands)  |
-| `store_cue`            | Store current programmer state as a cue                  |
-| `delete_cue`           | Delete a cue                                             |
-| `goto_cue_tool`        | Jump to a specific cue (executor or sequence)            |
-| `set_fixture_value`    | Set fixture(s) to a dimmer value (0-100)                 |
-| `set_fixture_attribute`| Set a specific attribute (Pan, Tilt, etc.) on fixture(s) |
-| `clear_programmer`     | Clear the programmer (all, selection, active, default)   |
-| `store_preset`         | Store current values as a preset                         |
-| `apply_preset`         | Apply an existing preset to the current selection        |
-| `control_executor`     | On/off/go/kill/toggle an executor                        |
-| `set_executor_fader`   | Set executor fader level (0-100)                         |
-| `assign_to_executor`   | Assign a sequence to an executor                         |
-| `toggle_blackout`      | Toggle grand blackout                                    |
-| `toggle_highlight`     | Toggle highlight mode                                    |
-| `label_object`         | Assign a name label to any MA2 object                    |
-| `label_sequence_cue`  | Label a cue within a specific sequence                   |
-| `set_macro_line`       | Set the command for a specific macro line                 |
-| `set_cue_cmd`          | Assign a command to a cue's CMD field                    |
-| `execute_sequence`     | Go, pause, or goto a cue in a sequence                   |
-| `send_raw_command`     | Send any grandMA2 command-line instruction                |
+| Tool                              | Description                                                          |
+|-----------------------------------|----------------------------------------------------------------------|
+| `create_fixture_group`            | Select fixtures and store as a named group (2 commands)              |
+| `store_cue`                       | Store current programmer state as a cue                              |
+| `delete_cue`                      | Delete a cue (includes downstream safety warnings)                   |
+| `goto_cue_tool`                   | Jump to a specific cue (executor or sequence)                        |
+| `set_fixture_value`               | Set fixture(s) to a dimmer value (0-100)                             |
+| `set_fixture_attribute`           | Set a specific attribute (Pan, Tilt, etc.) on fixture(s)             |
+| `clear_programmer`                | Clear the programmer (all, selection, active, default)               |
+| `store_preset`                    | Store current values as a preset                                     |
+| `apply_preset`                    | Apply an existing preset to the current selection                    |
+| `control_executor`                | On/off/go/kill/toggle an executor                                    |
+| `set_executor_fader`              | Set executor fader level (0-100)                                     |
+| `assign_to_executor`              | Assign a sequence to an executor (supports named page paths)         |
+| `toggle_blackout`                 | Toggle grand blackout                                                |
+| `toggle_highlight`                | Toggle highlight mode                                                |
+| `label_object`                    | Assign a name label to any MA2 object                                |
+| `label_sequence_cue`              | Label a cue within a specific sequence                               |
+| `assign_appearance`               | Set frame/background colors on pool objects and cues (RGB/HSB/hex)   |
+| `set_macro_line`                  | Set the command for a specific macro line                            |
+| `set_cue_cmd`                     | Assign a command to a cue's CMD field                                |
+| `store_cue_across_sequences`      | Store a cue across a range of sequences in one call                  |
+| `label_cue_across_sequences`      | Label a cue across a range of sequences in one call                  |
+| `appearance_cue_across_sequences` | Set cue appearance across a range of sequences in one call           |
+| `execute_sequence`                | Go, pause, or goto a cue in a sequence                               |
+| `send_raw_command`                | Send any grandMA2 command-line instruction                           |
 
 ### Command Builder
 
@@ -527,7 +532,7 @@ gma2-mcp/
 │   │       └── variables.py        # Variable functions
 │   ├── command_sequence.py     # CommandSequence for multi-command batching
 │   ├── gma2_client.py          # High-level workflow orchestration client
-│   ├── server.py               # MCP server (FastMCP, 20 tools, stdio transport)
+│   ├── server.py               # MCP server (FastMCP, 24 tools, stdio transport)
 │   ├── telnet_client.py        # Async Telnet connection management
 │   └── tools.py                # Legacy tool implementations (used by tests)
 ├── tests/                      # Pytest test suite (one file per module)
@@ -576,7 +581,7 @@ The project has four layers:
 1. **Telnet Client** (`src/telnet_client.py`) -- Low-level async Telnet communication with the console.
 2. **Command Builder** (`src/commands/`) -- Pure functions that construct command strings. No network access.
 3. **Orchestration** (`src/gma2_client.py`, `src/command_sequence.py`) -- High-level workflow methods and command batching that compose builders + telnet.
-4. **MCP Server** (`src/server.py`) -- FastMCP server that exposes 20 tools over stdio, connecting the builder to the Telnet client.
+4. **MCP Server** (`src/server.py`) -- FastMCP server that exposes 24 tools over stdio, connecting the builder to the Telnet client.
 
 All console communication goes through the Telnet client layer.
 

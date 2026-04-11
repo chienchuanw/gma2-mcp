@@ -14,7 +14,7 @@
 ## Architecture (4 Layers)
 
 ```
-Layer 4: MCP Server         (src/server.py)         -- FastMCP, 20 tools, stdio transport
+Layer 4: MCP Server         (src/server.py)         -- FastMCP, 24 tools, stdio transport
 Layer 3: Orchestration      (src/gma2_client.py,     -- GMA2Client workflows, CommandSequence batching
                              src/command_sequence.py)
 Layer 2: Command Builder    (src/commands/)          -- 200+ pure functions, returns command strings
@@ -161,7 +161,7 @@ Builder-pattern for composing command batches:
 **Transport:** stdio
 **Framework:** FastMCP (`mcp.server.fastmcp`)
 
-### 20 MCP Tools
+### 24 MCP Tools
 
 | Category | Tool | Args |
 |----------|------|------|
@@ -184,6 +184,10 @@ Builder-pattern for composing command batches:
 | **Macro Tools** | `set_macro_line` | macro_id, line, command, pool? |
 | **Cue CMD** | `set_cue_cmd` | cue_id, sequence_id, command |
 | **Sequence Playback** | `execute_sequence` | sequence_id, action (go/pause/goto), cue_id? |
+| **Appearance** | `assign_appearance` | object_type, object_id, end?, red?, green?, blue?, hue?, saturation?, brightness?, color?, source_type?, source_id?, reset? |
+| **Bulk Cue Ops** | `store_cue_across_sequences` | cue_id, sequence_start, sequence_end, cue_name? |
+| | `label_cue_across_sequences` | cue_id, sequence_start, sequence_end, label |
+| | `appearance_cue_across_sequences` | cue_id, sequence_start, sequence_end, red?, green?, blue?, color? |
 | **Raw Command** | `send_raw_command` | command |
 
 ### Connection Management
@@ -206,7 +210,7 @@ Original tool implementations before MCP migration. Contains:
 
 ## Test Suite
 
-- **823 test cases** across **48 test files**
+- **850+ test cases** across **48+ test files**
 - Config: `pytest.ini` with `asyncio_mode = auto`
 - Tests cover:
   - Every command builder module (unit tests for string output)
@@ -247,7 +251,7 @@ GMA_PASSWORD=admin
 gma2-mcp/
 ├── src/
 │   ├── __init__.py
-│   ├── server.py               # MCP server (FastMCP, 20 tools)
+│   ├── server.py               # MCP server (FastMCP, 24 tools)
 │   ├── telnet_client.py        # Async Telnet client (telnetlib3)
 │   ├── gma2_client.py          # High-level workflow orchestration
 │   ├── command_sequence.py     # Command batch builder

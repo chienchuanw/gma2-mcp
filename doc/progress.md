@@ -106,11 +106,42 @@
 | Branch 14 tests | 49 tests | 49 pass | 49 pass | ✓ |
 | Branch 15 tests | 46 tests | 46 pass | 46 pass | ✓ |
 
+## Session: 2026-04-12 (Session 5 -- Issues #19, #20, #21, #22)
+
+### Issues #19-22: Named page fix, appearance tool, destructive warnings, bulk cue ops
+- **Status:** complete
+- Actions taken:
+  - Created OpenSpec change `issues-19-22-assign-appearance-warnings-bulk` with proposal, design, 4 specs (3 new + 1 modified), and tasks (25 items, TDD plan)
+  - Created GitHub linked branches via `gh issue develop` for all 4 issues
+  - Implemented all 4 features in parallel using worktree agents
+  - **Issue #19** (P1 bug): Fixed `assign()` in `assignment.py` to detect quoted page names (leading `"`) and omit target type keyword. 4 tests added.
+  - **Issue #20** (P2 feat): Registered `assign_appearance` MCP tool wrapping existing `appearance()` builder. Supports RGB, HSB, hex, range, source-copy, reset. Added `reset=True` + color params guard. 6+1 tests added.
+  - **Issue #21** (P2 feat): Added `DESTRUCTIVE_WARNINGS` registry and `_format_warnings()` helper. `delete_cue` now returns warnings about orphaned executors, lost programming, empty sequences. 4 tests added.
+  - **Issue #22** (P2 feat): Added 3 `GMA2Client` methods (`store_cue_across_sequences`, `label_cue_across_sequences`, `appearance_cue_across_sequences`) + 3 MCP tool wrappers. 12 tests added.
+  - Created PRs #26, #27, #28, #29 targeting `dev` base branch
+  - Addressed PR review comments on #27 (docstring casing, reset+color guard) and #29 (docstring casing, end_cue test)
+  - Synced delta specs to main openspec/specs/
+  - Updated README (20->24 tools) and doc files
+  - Archived OpenSpec change to `openspec/changes/archive/2026-04-12-issues-19-22-assign-appearance-warnings-bulk/`
+- PRs:
+  - PR #26: `19-fix-assign-named-page-executor-addressing` (issue #19) -- Approved
+  - PR #27: `20-feat-add-appearance-assignment-mcp-tool` (issue #20) -- Review addressed
+  - PR #28: `21-feat-add-destructive-command-safety-warnings` (issue #21) -- Approved
+  - PR #29: `22-feat-add-bulk-cue-operations-across-sequence-ranges` (issue #22) -- Review addressed
+
+## Test Results
+| Test | Input | Expected | Actual | Status |
+|------|-------|----------|--------|--------|
+| Branch 19 tests | 842 tests | 842 pass | 842 pass | ✓ |
+| Branch 20 tests | 845 tests | 845 pass | 845 pass | ✓ |
+| Branch 21 tests | 842 tests | 842 pass | 842 pass | ✓ |
+| Branch 22 tests | 851 tests | 851 pass | 851 pass | ✓ |
+
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | Issues #1, #12, #13, #14, #15 complete; #2 and #3 remaining for P0 |
+| Where am I? | Issues #1, #12, #13-#15, #19-#22 complete; P0 issues #2 and #3 remaining |
 | Where am I going? | Issue #2 (Telnet resilience) or #3 (legacy cleanup) next |
-| What's the goal? | Complete P0 issues, then move to P1 features |
-| What have I learned? | See findings.md -- manual confirms preset IDs; macro/cue CMD syntax verified from live session failures |
-| What have I done? | Investigation, 15 issues created, Issues #1/#12/#13/#14/#15 fixed with TDD, 20 MCP tools total |
+| What's the goal? | Complete P0 issues, then continue P1/P2 features |
+| What have I learned? | See findings.md -- named page executor paths require omitting type keyword; appearance reset+color is mutually exclusive; bulk ops need client-layer iteration (MA2 has no native cross-sequence cue range syntax) |
+| What have I done? | Investigation, 22 issues created/resolved, Issues #1/#12/#13-#15/#19-#22 fixed with TDD, 24 MCP tools total |

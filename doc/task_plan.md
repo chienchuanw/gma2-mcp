@@ -4,7 +4,7 @@
 Investigate, prioritize, and implement improvements to the gma2-mcp project -- an MCP server that enables AI assistants to control grandMA2 lighting consoles via Telnet.
 
 ## Current Phase
-Phase 3 (Issue #1 complete, remaining P0 issues next)
+Phase 5 (Issues #19-22 complete, P0 issues #2/#3 remaining)
 
 ## Phases
 
@@ -36,16 +36,20 @@ Phase 3 (Issue #1 complete, remaining P0 issues next)
 - **Status:** pending
 
 ### Phase 5: P2 Expanded Workflows
+- [x] Issue #19: Fix assign() named page executor addressing (PR #26)
+- [x] Issue #20: Add appearance assignment MCP tool (PR #27)
+- [x] Issue #21: Add destructive command safety warnings (PR #28)
+- [x] Issue #22: Add bulk cue operations across sequence ranges (PR #29)
 - [ ] Issue #6: Macro management MCP tools
 - [ ] Issue #7: Effect/chaser MCP tools
 - [ ] Issue #8: Expand GMA2Client workflows
-- **Status:** pending
+- **Status:** in_progress
 
 ## Key Questions
 1. How many command builder functions exist? **200+ across 30+ modules (8,316 total lines)**
-2. How many MCP tools are exposed? **20 tools** (was 17, +3 from issues #13/#14/#15)
+2. How many MCP tools are exposed? **24 tools** (was 20, +1 appearance tool, +3 bulk cue tools from issues #19-22)
 3. What transport does the MCP server use? **stdio**
-4. What is the test coverage? **~836 test cases across 48 test files** (was 808, +10 from issue #1, +5 from issue #12, +13 from issues #13/#14/#15)
+4. What is the test coverage? **~850+ test cases across 48+ test files** (was ~836, +4 from #19, +6 from #20, +4 from #21, +12 from #22)
 5. Is there a legacy tools module? **Yes -- `src/tools.py` contains the original pre-MCP tool implementations, still used by some tests**
 
 ## Decisions Made
@@ -79,6 +83,10 @@ Phase 3 (Issue #1 complete, remaining P0 issues next)
 | 13 | P2 | Add macro line editing MCP tool | Fixed (PR #23) |
 | 14 | P2 | Add sequence-scoped cue labeling tool | Fixed (PR #24) |
 | 15 | P2 | Add cue CMD assignment MCP tool | Fixed (PR #25) |
+| 19 | P1 | Fix assign() named page executor addressing | Fixed (PR #26) |
+| 20 | P2 | Add appearance assignment MCP tool | Fixed (PR #27) |
+| 21 | P2 | Add destructive command safety warnings | Fixed (PR #28) |
+| 22 | P2 | Add bulk cue operations across sequence ranges | Fixed (PR #29) |
 
 ## Notes
 - Current branch: `issues/1` (2 commits ahead of `main`)
