@@ -460,6 +460,118 @@ class TestLabelObjectTool:
         client.send_command.assert_called_once_with('label cue 5 "Intro"')
 
 
+class TestAssignAppearanceTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_appearance_rgb(self, mock_get):
+        from src.server import assign_appearance
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await assign_appearance(
+            object_type="group", object_id=1, red=100, green=0, blue=0
+        )
+
+        client.send_command.assert_called_once_with(
+            "appearance group 1 /r=100 /g=0 /b=0"
+        )
+        assert "group" in result
+        assert "1" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_appearance_hex_color(self, mock_get):
+        from src.server import assign_appearance
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await assign_appearance(
+            object_type="preset", object_id="0.1", color="FF0000"
+        )
+
+        client.send_command.assert_called_once_with(
+            "appearance preset 0.1 /color=FF0000"
+        )
+        assert "preset" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_appearance_hsb(self, mock_get):
+        from src.server import assign_appearance
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await assign_appearance(
+            object_type="cue",
+            object_id=5,
+            hue=240,
+            saturation=100,
+            brightness=50,
+        )
+
+        client.send_command.assert_called_once_with(
+            "appearance cue 5 /h=240 /s=100 /br=50"
+        )
+        assert "cue" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_appearance_range(self, mock_get):
+        from src.server import assign_appearance
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await assign_appearance(
+            object_type="group", object_id=1, end=5, red=0, green=100, blue=0
+        )
+
+        client.send_command.assert_called_once_with(
+            "appearance group 1 thru 5 /r=0 /g=100 /b=0"
+        )
+        assert "group" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_appearance_source_copy(self, mock_get):
+        from src.server import assign_appearance
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await assign_appearance(
+            object_type="macro",
+            object_id=2,
+            source_type="macro",
+            source_id=13,
+        )
+
+        client.send_command.assert_called_once_with(
+            "appearance macro 2 at macro 13"
+        )
+        assert "macro" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_appearance_reset(self, mock_get):
+        from src.server import assign_appearance
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await assign_appearance(
+            object_type="group", object_id=1, reset=True
+        )
+
+        client.send_command.assert_called_once_with(
+            "appearance group 1 /reset"
+        )
+        assert "group" in result
+
+
 class TestSetMacroLineTool:
     @pytest.mark.asyncio
     @patch("src.server.get_client")
