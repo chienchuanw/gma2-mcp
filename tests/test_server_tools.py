@@ -763,3 +763,53 @@ class TestSetCueCmdTool:
             'assign cue 5 sequence 200 /cmd="Go Sequence 10"'
         )
         assert "Cue 5" in result
+
+
+class TestGracefulShutdown:
+    @pytest.mark.asyncio
+    async def test_lifespan_disconnects_on_exit(self):
+        """Server lifespan should call disconnect() on shutdown."""
+        from src.server import server_lifespan
+        import src.server as server_module
+
+        mock_client = MagicMock()
+        mock_client.disconnect = AsyncMock()
+
+        original_client = server_module._client
+        server_module._client = mock_client
+        try:
+            async with server_lifespan(None):
+                pass  # simulate server running
+            mock_client.disconnect.assert_called_once()
+        finally:
+            server_module._client = original_client
+
+
+class TestConnectionErrorHandling:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_tool_returns_error_on_connection_lost(self, mock_get):
+        from src.server import store_cue
+
+        client = _mock_client()
+        client.send_command = AsyncMock(
+            side_effect=ConnectionError(
+                "failed to reconnect after 3 attempts to 127.0.0.1:30000"
+            )
+        )
+        mock_get.return_value = client
+
+        result = await store_cue(cue_id=1)
+        assert "connection lost" in result.lower() or "failed to reconnect" in result.lower()
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_tool_returns_normal_on_success(self, mock_get):
+        from src.server import store_cue
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await store_cue(cue_id=1)
+        assert "Cue 1" in result
+        assert "connection" not in result.lower()
