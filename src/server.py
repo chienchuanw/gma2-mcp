@@ -71,7 +71,6 @@ from src.commands import (
     preset,
     select_fixture,
     save_show as cmd_save_show,
-    store,
     store_cue as cmd_store_cue,
     store_group,
     store_macro as cmd_store_macro,
@@ -1859,10 +1858,10 @@ async def create_song_objects(song_id: int, song_name: str) -> str:
     Examples:
         - Create sequence 101 and page 101 named "Opening+Childhood"
     """
-    client = await get_client()
-    await client.send_command(store("sequence", song_id, name=song_name))
-    await client.send_command(store("page", song_id, name=song_name))
-    return f'Created Sequence {song_id} and Page {song_id} "{song_name}"'
+    telnet = await get_client()
+    gma2 = GMA2Client(telnet)
+    result = await gma2.create_song_objects(song_id=song_id, song_name=song_name)
+    return result["summary"]
 
 
 @mcp.tool()
@@ -1890,12 +1889,12 @@ async def setup_song_macro(
     Examples:
         - Create macro 101 that sets $song to "Opening+Childhood"
     """
-    client = await get_client()
-    await client.send_command(cmd_store_macro(macro_id))
-    await client.send_command(cmd_label_macro(macro_id, song_name))
-    setvar_cmd = f"SetVar {var_name}='{song_name}'"
-    await client.send_command(assign_macro_cmd(macro_id, 1, setvar_cmd))
-    return f'Created Macro {macro_id} "{song_name}" with {var_name} assignment'
+    telnet = await get_client()
+    gma2 = GMA2Client(telnet)
+    result = await gma2.setup_song_macro(
+        macro_id=macro_id, song_name=song_name, var_name=var_name
+    )
+    return result["summary"]
 
 
 @mcp.tool()
@@ -1925,19 +1924,12 @@ async def build_set_list(
     Examples:
         - Build a set list with 3 songs linking cues to macros
     """
-    client = await get_client()
-    await client.send_command(store("sequence", sequence_id, name=sequence_name))
-    for song in songs:
-        cue_id = song["cue_id"]
-        macro_id = song["macro_id"]
-        name = song["name"]
-        await client.send_command(
-            store("sequence", f"{sequence_id} cue {cue_id}", name=name)
-        )
-        await client.send_command(
-            assign_cue_cmd(cue_id, sequence_id, f"Macro {macro_id}")
-        )
-    return f'Built set list "{sequence_name}" with {len(songs)} songs'
+    telnet = await get_client()
+    gma2 = GMA2Client(telnet)
+    result = await gma2.build_set_list(
+        sequence_id=sequence_id, sequence_name=sequence_name, songs=songs
+    )
+    return result["summary"]
 
 
 # ============================================================
