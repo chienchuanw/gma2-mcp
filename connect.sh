@@ -5,8 +5,13 @@ if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
-# Set default values (use defaults if .env is not set or values are empty)
-GMA_HOST="${GMA_HOST:-2.0.0.166}"
+# GMA_HOST is required — no fallback
+if [ -z "$GMA_HOST" ]; then
+    echo "Error: GMA_HOST is not set. Please configure it in your .env file." >&2
+    exit 1
+fi
+
+# Set default port if not specified
 GMA_PORT="${GMA_PORT:-30000}"
 
 # Username and password: prioritize .env settings, otherwise use defaults
