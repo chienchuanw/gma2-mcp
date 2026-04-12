@@ -124,7 +124,7 @@ class TestSystemWithArgs:
     def test_load_show(self):
         from src.commands import load_show
 
-        assert load_show("myshow") == "loadshow myshow"
+        assert load_show("myshow") == 'loadshow "myshow"'
 
     def test_set_hostname(self):
         from src.commands import set_hostname
