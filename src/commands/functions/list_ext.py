@@ -29,17 +29,26 @@ def list_plugin_library() -> str:
     return "listpluginlibrary"
 
 
-def list_shows() -> str:
-    return "listshows"
+def list_shows(filter: str | None = None) -> str:
+    cmd = "listshows"
+    if filter:
+        cmd = f"{cmd} {filter}"
+    return cmd
 
 
 def list_update() -> str:
     return "listupdate"
 
 
-def list_user_var() -> str:
-    return "listuservar"
+def list_user_var(filter: str | None = None) -> str:
+    cmd = "listuservar"
+    if filter:
+        cmd = f"{cmd} {filter}"
+    return cmd
 
 
-def list_var() -> str:
-    return "listvar"
+def list_var(filter: str | None = None) -> str:
+    cmd = "listvar"
+    if filter:
+        cmd = f"{cmd} {filter}"
+    return cmd
