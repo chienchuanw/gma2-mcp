@@ -21,6 +21,7 @@ from src.telnet_client import GMA2TelnetClient
 from src.commands import (
     appearance,
     assign,
+    assign_cue_cmd,
     assign_fade,
     assign_macro_cmd,
     at,
@@ -513,4 +514,98 @@ class GMA2Client:
             "commands_sent": sent,
             "count": len(sent),
             "summary": f"{action} Macro {macro_id} with {len(commands)} lines",
+        }
+
+    async def create_song_objects(
+        self,
+        song_id: int,
+        song_name: str,
+    ) -> dict[str, Any]:
+        """
+        Create and label a Sequence + Page pair for a song.
+
+        Args:
+            song_id: ID for both the sequence and page
+            song_name: Name to assign to both objects
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        sent: list[str] = []
+        sent.append(await self._send(store("sequence", song_id, name=song_name)))
+        sent.append(await self._send(store("page", song_id, name=song_name)))
+        return {
+            "commands_sent": sent,
+            "count": len(sent),
+            "summary": f'Created Sequence {song_id} and Page {song_id} "{song_name}"',
+        }
+
+    async def setup_song_macro(
+        self,
+        macro_id: int,
+        song_name: str,
+        var_name: str = "$song",
+    ) -> dict[str, Any]:
+        """
+        Create a macro with a SetVar command on line 1.
+
+        Args:
+            macro_id: Macro number to create
+            song_name: Song name used for label and variable value
+            var_name: Variable name for the SetVar command (default: "$song")
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        sent: list[str] = []
+        sent.append(await self._send(cmd_store_macro(macro_id)))
+        sent.append(await self._send(cmd_label_macro(macro_id, song_name)))
+        setvar_cmd = f"SetVar {var_name}='{song_name}'"
+        sent.append(await self._send(assign_macro_cmd(macro_id, 1, setvar_cmd)))
+        return {
+            "commands_sent": sent,
+            "count": len(sent),
+            "summary": f'Created Macro {macro_id} "{song_name}" with {var_name} assignment',
+        }
+
+    async def build_set_list(
+        self,
+        sequence_id: int,
+        sequence_name: str,
+        songs: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """
+        Create a set-list sequence with cue-to-macro links.
+
+        Each song dict must contain:
+            cue_id (int): Cue number in the set-list sequence
+            macro_id (int): Macro to trigger via cue CMD
+            name (str): Name for the cue
+
+        Args:
+            sequence_id: Sequence number for the set list
+            sequence_name: Label for the set-list sequence
+            songs: List of song definition dicts
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        sent: list[str] = []
+        sent.append(await self._send(store("sequence", sequence_id, name=sequence_name)))
+        for song in songs:
+            cue_id = song["cue_id"]
+            macro_id = song["macro_id"]
+            name = song["name"]
+            sent.append(
+                await self._send(
+                    store("sequence", f"{sequence_id} cue {cue_id}", name=name)
+                )
+            )
+            sent.append(
+                await self._send(assign_cue_cmd(cue_id, sequence_id, f"Macro {macro_id}"))
+            )
+        return {
+            "commands_sent": sent,
+            "count": len(sent),
+            "summary": f'Built set list "{sequence_name}" with {len(songs)} songs',
         }

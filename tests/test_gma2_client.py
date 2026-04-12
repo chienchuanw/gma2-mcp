@@ -461,6 +461,106 @@ class TestCreateAndRunMacro:
         assert "executed" in result["summary"].lower()
 
 
+class TestCreateSongObjects:
+    @pytest.mark.asyncio
+    async def test_creates_sequence_and_page(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.create_song_objects(song_id=101, song_name="Opening+Childhood")
+
+        cmds = result["commands_sent"]
+        assert cmds[0] == 'store sequence 101 "Opening+Childhood"'
+        assert cmds[1] == 'store page 101 "Opening+Childhood"'
+        assert result["count"] == 2
+        assert "Sequence 101" in result["summary"]
+        assert "Page 101" in result["summary"]
+        assert "Opening+Childhood" in result["summary"]
+
+    @pytest.mark.asyncio
+    async def test_sends_two_commands(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        await client.create_song_objects(song_id=5, song_name="Finale")
+
+        assert telnet.send_command.call_count == 2
+
+
+class TestSetupSongMacro:
+    @pytest.mark.asyncio
+    async def test_creates_macro_with_setvar(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.setup_song_macro(macro_id=101, song_name="Opening+Childhood")
+
+        cmds = result["commands_sent"]
+        assert cmds[0] == "store macro 101"
+        assert cmds[1] == 'label macro 101 "Opening+Childhood"'
+        assert "SetVar $song='Opening+Childhood'" in cmds[2]
+        assert result["count"] == 3
+        assert "Macro 101" in result["summary"]
+        assert "$song" in result["summary"]
+
+    @pytest.mark.asyncio
+    async def test_custom_var_name(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.setup_song_macro(
+            macro_id=10, song_name="Test", var_name="$current"
+        )
+
+        cmds = result["commands_sent"]
+        assert "SetVar $current='Test'" in cmds[2]
+        assert "$current" in result["summary"]
+
+
+class TestBuildSetList:
+    @pytest.mark.asyncio
+    async def test_builds_set_list_with_songs(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        songs = [
+            {"cue_id": 1, "macro_id": 101, "name": "Opening"},
+            {"cue_id": 2, "macro_id": 102, "name": "Finale"},
+        ]
+        result = await client.build_set_list(
+            sequence_id=100, sequence_name="Main Set", songs=songs
+        )
+
+        cmds = result["commands_sent"]
+        # First command: store the set-list sequence
+        assert cmds[0] == 'store sequence 100 "Main Set"'
+        # Song 1: store cue + assign cmd
+        assert cmds[1] == 'store sequence 100 cue 1 "Opening"'
+        assert cmds[2] == 'assign cue 1 sequence 100 /cmd="Macro 101"'
+        # Song 2: store cue + assign cmd
+        assert cmds[3] == 'store sequence 100 cue 2 "Finale"'
+        assert cmds[4] == 'assign cue 2 sequence 100 /cmd="Macro 102"'
+        # 1 store seq + 2 * (store cue + assign) = 5
+        assert result["count"] == 5
+        assert "Main Set" in result["summary"]
+        assert "2 songs" in result["summary"]
+
+    @pytest.mark.asyncio
+    async def test_empty_songs_list(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.build_set_list(
+            sequence_id=100, sequence_name="Empty Set", songs=[]
+        )
+
+        cmds = result["commands_sent"]
+        assert len(cmds) == 1
+        assert cmds[0] == 'store sequence 100 "Empty Set"'
+        assert result["count"] == 1
+        assert "0 songs" in result["summary"]
+
+
 class TestGMA2ClientResultStructure:
     @pytest.mark.asyncio
     async def test_result_has_required_keys(self):
