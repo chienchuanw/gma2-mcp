@@ -270,3 +270,53 @@ class TestInfoCommands:
 
         result = info_preset(4, 5, text="deep blue")
         assert result == 'info preset 4.5 "deep blue"'
+
+
+class TestListMacro:
+    """Tests for list_macro command builder."""
+
+    def test_list_macro_default_pool(self):
+        """Test list macro with default pool: list macro 1.101"""
+        from src.commands import list_macro
+
+        result = list_macro(101)
+        assert result == "list macro 1.101"
+
+    def test_list_macro_custom_pool(self):
+        """Test list macro with custom pool: list macro 2.5"""
+        from src.commands import list_macro
+
+        result = list_macro(5, pool=2)
+        assert result == "list macro 2.5"
+
+    def test_list_macro_pool_1_explicit(self):
+        """Test list macro with pool=1 explicit: list macro 1.10"""
+        from src.commands import list_macro
+
+        result = list_macro(10, pool=1)
+        assert result == "list macro 1.10"
+
+
+class TestListSequenceCue:
+    """Tests for list_sequence_cue command builder."""
+
+    def test_list_sequence_cue_basic(self):
+        """Test list sequence cue: list cue 1 sequence 101"""
+        from src.commands import list_sequence_cue
+
+        result = list_sequence_cue(101, 1)
+        assert result == "list cue 1 sequence 101"
+
+    def test_list_sequence_cue_string_cue_id(self):
+        """Test list sequence cue with string cue id: list cue 2.5 sequence 10"""
+        from src.commands import list_sequence_cue
+
+        result = list_sequence_cue(10, "2.5")
+        assert result == "list cue 2.5 sequence 10"
+
+    def test_list_sequence_cue_integer_cue_id(self):
+        """Test list sequence cue with integer cue id: list cue 5 sequence 3"""
+        from src.commands import list_sequence_cue
+
+        result = list_sequence_cue(3, 5)
+        assert result == "list cue 5 sequence 3"

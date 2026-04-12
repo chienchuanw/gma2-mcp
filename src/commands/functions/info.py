@@ -448,3 +448,48 @@ def info_preset(
         cmd = f'{cmd} "{text}"'
 
     return cmd
+
+
+# ============================================================================
+# LIST MACRO / LIST SEQUENCE CUE
+# ============================================================================
+
+
+def list_macro(macro_id: int, *, pool: int = 1) -> str:
+    """
+    Construct a List command for a specific macro's lines.
+
+    Args:
+        macro_id: Macro ID
+        pool: Macro pool number (default 1)
+
+    Returns:
+        str: MA List command for macro
+
+    Examples:
+        >>> list_macro(101)
+        'list macro 1.101'
+        >>> list_macro(5, pool=2)
+        'list macro 2.5'
+    """
+    return f"list macro {pool}.{macro_id}"
+
+
+def list_sequence_cue(sequence_id: int, cue_id: int | str) -> str:
+    """
+    Construct a List command for a specific cue in a sequence.
+
+    Args:
+        sequence_id: Sequence ID
+        cue_id: Cue ID (int or str for decimal cue numbers like "2.5")
+
+    Returns:
+        str: MA List command for a sequence cue
+
+    Examples:
+        >>> list_sequence_cue(101, 1)
+        'list cue 1 sequence 101'
+        >>> list_sequence_cue(10, "2.5")
+        'list cue 2.5 sequence 10'
+    """
+    return f"list cue {cue_id} sequence {sequence_id}"
