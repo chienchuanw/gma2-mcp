@@ -34,7 +34,7 @@ class TestSaveShowTool:
 
         result = await save_show_tool()
 
-        client.send_command.assert_called_once_with("saveshow")
+        client.send_command.assert_called_once_with("saveshow /noconfirm")
         assert "saved" in result.lower()
 
     @pytest.mark.asyncio
@@ -47,7 +47,7 @@ class TestSaveShowTool:
 
         result = await save_show_tool(show_name="MyShow")
 
-        client.send_command.assert_called_once_with('saveshow "MyShow"')
+        client.send_command.assert_called_once_with('saveshow "MyShow" /noconfirm')
         assert "MyShow" in result
 
     @pytest.mark.asyncio
@@ -94,7 +94,7 @@ class TestLoadShowTool:
         result = await load_show_tool(show_name="Macbeth", save_first=True)
 
         calls = [c[0][0] for c in client.send_command.call_args_list]
-        assert calls[0] == "saveshow"
+        assert calls[0] == "saveshow /noconfirm"
         assert calls[1] == 'loadshow "Macbeth" /noconfirm'
 
     @pytest.mark.asyncio
@@ -153,7 +153,7 @@ class TestNewShowTool:
         result = await new_show_tool(show_name="NewProject", save_first=True)
 
         calls = [c[0][0] for c in client.send_command.call_args_list]
-        assert calls[0] == "saveshow"
+        assert calls[0] == "saveshow /noconfirm"
         assert calls[1] == 'newshow "NewProject" /noconfirm'
 
     @pytest.mark.asyncio

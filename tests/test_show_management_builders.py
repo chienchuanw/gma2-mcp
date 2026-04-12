@@ -17,6 +17,16 @@ class TestSaveShowBuilder:
 
         assert save_show("MyShow") == 'saveshow "MyShow"'
 
+    def test_with_noconfirm(self):
+        from src.commands import save_show
+
+        assert save_show(noconfirm=True) == "saveshow /noconfirm"
+
+    def test_with_name_and_noconfirm(self):
+        from src.commands import save_show
+
+        assert save_show("MyShow", noconfirm=True) == 'saveshow "MyShow" /noconfirm'
+
 
 class TestLoadShowBuilder:
     def test_basic(self):
