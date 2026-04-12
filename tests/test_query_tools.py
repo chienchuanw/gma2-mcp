@@ -229,32 +229,32 @@ class TestListPresetsTool:
 
 
 # ============================================================
-# get_cue_info
+# get_cue_annotation
 # ============================================================
 
 
-class TestGetCueInfoTool:
+class TestGetCueAnnotationTool:
     @pytest.mark.asyncio
     @patch("src.server.get_client")
-    async def test_get_cue_info_basic(self, mock_get):
-        from src.server import get_cue_info
+    async def test_get_cue_annotation_basic(self, mock_get):
+        from src.server import get_cue_annotation
 
-        client = _mock_client("Cue 3: Fade 2s")
+        client = _mock_client("opening look")
         mock_get.return_value = client
 
-        result = await get_cue_info(cue_id=3)
+        result = await get_cue_annotation(cue_id=3)
 
         client.send_command_with_response.assert_called_once_with("info cue 3")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
-    async def test_get_cue_info_with_sequence(self, mock_get):
-        from src.server import get_cue_info
+    async def test_get_cue_annotation_with_sequence(self, mock_get):
+        from src.server import get_cue_annotation
 
-        client = _mock_client("Cue 3 Seq 1")
+        client = _mock_client("scene note")
         mock_get.return_value = client
 
-        result = await get_cue_info(cue_id=3, sequence_id=1)
+        result = await get_cue_annotation(cue_id=3, sequence_id=1)
 
         client.send_command_with_response.assert_called_once_with(
             "info cue 3 sequence 1"
@@ -262,44 +262,44 @@ class TestGetCueInfoTool:
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
-    async def test_get_cue_info_empty_response(self, mock_get):
-        from src.server import get_cue_info
+    async def test_get_cue_annotation_empty_response(self, mock_get):
+        from src.server import get_cue_annotation
 
         client = _mock_client("")
         mock_get.return_value = client
 
-        result = await get_cue_info(cue_id=99)
+        result = await get_cue_annotation(cue_id=99)
 
         assert "no data" in result.lower() or "empty" in result.lower()
 
 
 # ============================================================
-# get_group_info
+# get_group_annotation
 # ============================================================
 
 
-class TestGetGroupInfoTool:
+class TestGetGroupAnnotationTool:
     @pytest.mark.asyncio
     @patch("src.server.get_client")
-    async def test_get_group_info_basic(self, mock_get):
-        from src.server import get_group_info
+    async def test_get_group_annotation_basic(self, mock_get):
+        from src.server import get_group_annotation
 
-        client = _mock_client("Group 5: Front Wash fixtures")
+        client = _mock_client("these fixtures are in the backtruss")
         mock_get.return_value = client
 
-        result = await get_group_info(group_id=5)
+        result = await get_group_annotation(group_id=5)
 
         client.send_command_with_response.assert_called_once_with("info group 5")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
-    async def test_get_group_info_empty_response(self, mock_get):
-        from src.server import get_group_info
+    async def test_get_group_annotation_empty_response(self, mock_get):
+        from src.server import get_group_annotation
 
         client = _mock_client("")
         mock_get.return_value = client
 
-        result = await get_group_info(group_id=99)
+        result = await get_group_annotation(group_id=99)
 
         assert "no data" in result.lower() or "empty" in result.lower()
 
@@ -404,14 +404,14 @@ class TestQueryObjectTool:
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
-    async def test_info_mode(self, mock_get):
+    async def test_annotation_mode(self, mock_get):
         from src.server import query_object
 
-        client = _mock_client("Sequence 1 details")
+        client = _mock_client("user annotation text")
         mock_get.return_value = client
 
         result = await query_object(
-            object_type="sequence", object_id=1, mode="info"
+            object_type="sequence", object_id=1, mode="annotation"
         )
 
         client.send_command_with_response.assert_called_once_with("info sequence 1")
