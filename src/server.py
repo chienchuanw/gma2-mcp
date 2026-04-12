@@ -1757,9 +1757,25 @@ async def send_raw_command(command: str) -> str:
 
 def main():
     """MCP Server entry point."""
-    logger.info("Starting grandMA2 MCP Server...")
+    transport = os.environ.get("MCP_TRANSPORT", "stdio")
+    valid_transports = {"stdio", "streamable-http"}
+    if transport not in valid_transports:
+        logger.warning(
+            f"Invalid MCP_TRANSPORT '{transport}'. "
+            f"Valid: {', '.join(sorted(valid_transports))}. Falling back to stdio."
+        )
+        transport = "stdio"
+
+    logger.info(f"Starting grandMA2 MCP Server (transport: {transport})...")
     logger.info(f"Connecting to grandMA2: {GMA_HOST}:{GMA_PORT}")
-    mcp.run(transport="stdio")
+
+    kwargs = {"transport": transport}
+    if transport == "streamable-http":
+        kwargs["host"] = os.environ.get("MCP_HOST", "127.0.0.1")
+        kwargs["port"] = int(os.environ.get("MCP_PORT", "8000"))
+        logger.info(f"HTTP server binding to {kwargs['host']}:{kwargs['port']}")
+
+    mcp.run(**kwargs)
 
 
 if __name__ == "__main__":
