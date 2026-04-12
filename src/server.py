@@ -1264,6 +1264,8 @@ async def save_show_tool(show_name: str | None = None) -> str:
     save the current show file on the grandMA2 console.
 
     if no name is provided, saves under the current show name.
+    uses /noconfirm to suppress the overwrite confirmation popup
+    that would otherwise block Telnet when a show with the same name exists.
 
     Args:
         show_name: name to save the show as (optional)
@@ -1272,7 +1274,7 @@ async def save_show_tool(show_name: str | None = None) -> str:
         str: confirmation message
     """
     client = await get_client()
-    cmd = cmd_save_show(show_name)
+    cmd = cmd_save_show(show_name, noconfirm=True)
     await client.send_command(cmd)
     if show_name:
         return f"Show saved as '{show_name}'."
@@ -1297,7 +1299,7 @@ async def load_show_tool(show_name: str, save_first: bool = False) -> str:
     """
     client = await get_client()
     if save_first:
-        await client.send_command(cmd_save_show())
+        await client.send_command(cmd_save_show(noconfirm=True))
     cmd = cmd_load_show(show_name, noconfirm=True)
     await client.send_command(cmd)
     msg = f"Loading show '{show_name}'."
@@ -1317,8 +1319,12 @@ async def new_show_tool(show_name: str | None = None, save_first: bool = False) 
     WARNING: this is a DESTRUCTIVE operation. any unsaved changes to the current
     show will be lost. set save_first=True to save the current show before creating a new one.
 
+    note: per the grandMA2 manual, NewShow requires a show name. omitting the
+    name may work on some console versions but this behavior is undocumented.
+    providing a name is recommended.
+
     Args:
-        show_name: name for the new show (optional)
+        show_name: name for the new show (recommended — required per official manual)
         save_first: if True, saves the current show before creating a new one
 
     Returns:
@@ -1326,7 +1332,7 @@ async def new_show_tool(show_name: str | None = None, save_first: bool = False) 
     """
     client = await get_client()
     if save_first:
-        await client.send_command(cmd_save_show())
+        await client.send_command(cmd_save_show(noconfirm=True))
     cmd = cmd_new_show(show_name, noconfirm=True)
     await client.send_command(cmd)
     name_part = f" '{show_name}'" if show_name else ""

@@ -79,10 +79,12 @@ def restart() -> str:
     return "restart"
 
 
-def save_show(name: str | None = None) -> str:
+def save_show(name: str | None = None, *, noconfirm: bool = False) -> str:
     cmd = "saveshow"
     if name:
         cmd = f'{cmd} "{name}"'
+    if noconfirm:
+        cmd = f"{cmd} /noconfirm"
     return cmd
 
 
