@@ -71,6 +71,7 @@ from src.commands import (
     preset,
     select_fixture,
     save_show as cmd_save_show,
+    store,
     store_cue as cmd_store_cue,
     store_group,
     store_macro as cmd_store_macro,
@@ -1832,6 +1833,111 @@ async def read_object_label(object_type: str, object_id: int | str) -> dict:
     result["object_id"] = object_id
     result["raw_response"] = raw
     return result
+
+
+# ============================================================
+# Music Show Workflow Tools
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def create_song_objects(song_id: int, song_name: str) -> str:
+    """
+    Create and label a Sequence + Page pair for a song.
+
+    Stores a sequence and a page with the same ID and name, which is the
+    standard pattern for per-song programming in music show workflows.
+
+    Args:
+        song_id: ID for both the sequence and page
+        song_name: Name to assign to both objects
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Create sequence 101 and page 101 named "Opening+Childhood"
+    """
+    client = await get_client()
+    await client.send_command(store("sequence", song_id, name=song_name))
+    await client.send_command(store("page", song_id, name=song_name))
+    return f'Created Sequence {song_id} and Page {song_id} "{song_name}"'
+
+
+@mcp.tool()
+@handle_connection_error
+async def setup_song_macro(
+    macro_id: int,
+    song_name: str,
+    var_name: str = "$song",
+) -> str:
+    """
+    Create a macro that sets a user variable to the song name.
+
+    Stores a macro, labels it with the song name, and assigns a SetVar
+    command on line 1. This is used to track the current song in
+    music show workflows.
+
+    Args:
+        macro_id: Macro number to create
+        song_name: Song name used for label and variable value
+        var_name: Variable name for the SetVar command (default: "$song")
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Create macro 101 that sets $song to "Opening+Childhood"
+    """
+    client = await get_client()
+    await client.send_command(cmd_store_macro(macro_id))
+    await client.send_command(cmd_label_macro(macro_id, song_name))
+    setvar_cmd = f"SetVar {var_name}='{song_name}'"
+    await client.send_command(assign_macro_cmd(macro_id, 1, setvar_cmd))
+    return f'Created Macro {macro_id} "{song_name}" with {var_name} assignment'
+
+
+@mcp.tool()
+@handle_connection_error
+async def build_set_list(
+    sequence_id: int,
+    sequence_name: str,
+    songs: list[dict],
+) -> str:
+    """
+    Create a set-list sequence with cue-to-macro links.
+
+    Stores a sequence, then for each song creates a cue and assigns a
+    macro trigger to its CMD field. Each song dict must contain:
+        cue_id (int): Cue number in the set-list sequence
+        macro_id (int): Macro to trigger via cue CMD
+        name (str): Name for the cue
+
+    Args:
+        sequence_id: Sequence number for the set list
+        sequence_name: Label for the set-list sequence
+        songs: List of song definition dicts
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Build a set list with 3 songs linking cues to macros
+    """
+    client = await get_client()
+    await client.send_command(store("sequence", sequence_id, name=sequence_name))
+    for song in songs:
+        cue_id = song["cue_id"]
+        macro_id = song["macro_id"]
+        name = song["name"]
+        await client.send_command(
+            store("sequence", f"{sequence_id} cue {cue_id}", name=name)
+        )
+        await client.send_command(
+            assign_cue_cmd(cue_id, sequence_id, f"Macro {macro_id}")
+        )
+    return f'Built set list "{sequence_name}" with {len(songs)} songs'
 
 
 # ============================================================
