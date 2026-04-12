@@ -78,7 +78,7 @@ Phase 7 (Issues #6, #7, #8 complete -- all P0, P1, and P2 issues resolved)
 | 7 | P2 | Effect/chaser MCP tools | Fixed (PR #34) |
 | 8 | P2 | Expand GMA2Client workflows | Fixed (PR #34) |
 | 9 | P3 | HTTP/SSE transport | Open |
-| 10 | P3 | Update/remove main.py | Open |
+| 10 | P3 | Update/remove main.py | Fixed |
 | 12 | P1 | Combine store + label into single commands (perf) | Fixed (PR #18) |
 | 13 | P2 | Add macro line editing MCP tool | Fixed (PR #23) |
 | 14 | P2 | Add sequence-scoped cue labeling tool | Fixed (PR #24) |

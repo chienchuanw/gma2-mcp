@@ -604,7 +604,6 @@ gma2-mcp/
 │   └── telnet_client.py        # Async Telnet client with health check, auto-reconnect, state tracking
 ├── tests/                      # Pytest test suite (one file per module)
 ├── doc/                        # grandMA2 user manual (PDF)
-├── main.py                     # Standalone login test script
 ├── connect.sh                  # Telnet connection script with auto-login
 ├── Makefile                    # Utility commands (server, log, test)
 ├── pyproject.toml              # Project metadata and dependencies

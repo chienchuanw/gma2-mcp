@@ -252,7 +252,7 @@ GMA_PASSWORD=admin
 
 ### Entry Points
 - MCP server: `uv run python -m src.server` or `gma2-mcp` (via pyproject.toml `[project.scripts]`)
-- Login test: `python main.py` (standalone, uses deprecated `telnetlib`)
+- Telnet test: `./connect.sh` (interactive, uses `expect`)
 
 ---
 
@@ -292,7 +292,6 @@ gma2-mcp/
 ├── tests/                      # 48 test files, 808 tests
 ├── doc/
 │   └── 2024-09-30_grandMA2_User_Manual_v3-9.pdf
-├── main.py                     # Standalone login test
 ├── connect.sh                  # Telnet auto-login script (expect)
 ├── Makefile                    # server, log, test targets
 ├── pyproject.toml              # Project metadata, deps, entry point
@@ -311,7 +310,7 @@ gma2-mcp/
 
 1. ~~**`PRESET_TYPES` collision**: Both "position" and "color" map to ID 2.~~ **FIXED** in issue #1 -- color is now correctly 4, all types shifted to match manual.
 2. ~~**Legacy `src/tools.py`**: Contains functions that don't `await` async calls.~~ **FIXED** in issue #3 (PR #30) -- deleted `src/tools.py` and `tests/test_tools.py`, removed `set_gma2_client` import from `server.py`.
-3. **`main.py` uses deprecated `telnetlib`**: This standalone test script uses the stdlib `telnetlib` (removed in Python 3.13), unlike the main codebase which uses `telnetlib3`. (Issue #10)
+3. ~~**`main.py` uses deprecated `telnetlib`**: This standalone test script uses the stdlib `telnetlib` (removed in Python 3.13), unlike the main codebase which uses `telnetlib3`.~~ **FIXED** in issue #10 -- deleted `main.py`; connectivity testing covered by `connect.sh` and the MCP server's `get_client()`.
 4. ~~**No error handling in MCP tools**: Most tools don't handle cases where the telnet connection drops mid-session.~~ **FIXED** in issue #2 (PR #31) -- added `ConnectionState` enum, `check_connection()` health probe, `_ensure_connected()` with bounded exponential backoff, health check TTL, graceful shutdown via `server_lifespan`, and `handle_connection_error` decorator on all 24 MCP tools.
 5. ~~**No response parsing**: `send_command()` is fire-and-forget. The server never confirms whether a command was accepted by the console.~~ **PARTIALLY FIXED** in issue #4 (PR #32) -- 7 query tools now use `send_command_with_response()` to read console output. Responses are returned as raw text since the Telnet wire format is undocumented by MA Lighting. Structured parsing can be added once tested against a live console.
 6. **GMA2Client.create() is not a context manager factory**: The `create()` classmethod returns a `GMA2Client` but you need to wrap it in `async with` separately. The README example `async with GMA2Client.create(...) as client:` works because `__aenter__` returns `self`.
