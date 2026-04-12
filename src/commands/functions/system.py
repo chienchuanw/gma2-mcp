@@ -35,8 +35,11 @@ def help_keyword() -> str:
     return "help"
 
 
-def load_show(name: str) -> str:
-    return f"loadshow {name}"
+def load_show(name: str, *, noconfirm: bool = False) -> str:
+    cmd = f'loadshow "{name}"'
+    if noconfirm:
+        cmd = f"{cmd} /noconfirm"
+    return cmd
 
 
 def lock() -> str:
@@ -51,8 +54,13 @@ def logout() -> str:
     return "logout"
 
 
-def new_show() -> str:
-    return "newshow"
+def new_show(name: str | None = None, *, noconfirm: bool = False) -> str:
+    cmd = "newshow"
+    if name:
+        cmd = f'{cmd} "{name}"'
+    if noconfirm:
+        cmd = f"{cmd} /noconfirm"
+    return cmd
 
 
 def normal() -> str:
@@ -71,8 +79,11 @@ def restart() -> str:
     return "restart"
 
 
-def save_show() -> str:
-    return "saveshow"
+def save_show(name: str | None = None) -> str:
+    cmd = "saveshow"
+    if name:
+        cmd = f'{cmd} "{name}"'
+    return cmd
 
 
 def select_drive() -> str:
