@@ -6,7 +6,7 @@
 - **Status:** complete
 - **Started:** 2026-04-10
 - Actions taken:
-  - Read all root config files: pyproject.toml, Makefile, pytest.ini, .gitignore, connect.sh, main.py
+  - Read all root config files: pyproject.toml, Makefile, pytest.ini, .gitignore, connect.sh
   - Read all core source: server.py, telnet_client.py, gma2_client.py, command_sequence.py, tools.py
   - Read commands/__init__.py (862 lines, 200+ exports), constants.py, helpers.py
   - Counted 8,316 total lines across command function/object modules
