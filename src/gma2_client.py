@@ -421,21 +421,23 @@ class GMA2Client:
         for entry in assignments:
             exec_id = entry["executor_id"]
             seq_id = entry["sequence_id"]
+            # Use page-qualified executor addressing: Executor [Page].[ID]
+            page_exec = f"{page}.{exec_id}"
 
             sent.append(
                 await self._send(
-                    assign("sequence", seq_id, "executor", exec_id)
+                    assign("sequence", seq_id, "executor", page_exec)
                 )
             )
 
             if "label" in entry:
                 sent.append(
-                    await self._send(label("executor", exec_id, entry["label"]))
+                    await self._send(label("executor", page_exec, entry["label"]))
                 )
 
             if "fader_level" in entry:
                 sent.append(
-                    await self._send(executor_at(exec_id, entry["fader_level"]))
+                    await self._send(executor_at(page_exec, entry["fader_level"]))
                 )
 
         return {

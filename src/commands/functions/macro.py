@@ -59,24 +59,30 @@ def label_macro(macro_id: int, name: str) -> str:
     return f'label macro {macro_id} "{name}"'
 
 
-def delete_macro(macro_id: int, pool: int = 1) -> str:
+def delete_macro(macro_id: int, pool: int = 1, noconfirm: bool = True) -> str:
     """
     Construct a Delete Macro command.
 
     Args:
         macro_id: Macro number to delete
         pool: Macro pool number (default: 1)
+        noconfirm: Suppress confirmation pop-up (default: True, required for telnet)
 
     Returns:
         str: MA command string
 
     Examples:
         >>> delete_macro(5)
-        'delete macro 1.5'
+        'delete macro 1.5 /noconfirm'
         >>> delete_macro(5, pool=2)
-        'delete macro 2.5'
+        'delete macro 2.5 /noconfirm'
+        >>> delete_macro(5, noconfirm=False)
+        'delete macro 1.5'
     """
-    return f"delete macro {pool}.{macro_id}"
+    cmd = f"delete macro {pool}.{macro_id}"
+    if noconfirm:
+        cmd += " /noconfirm"
+    return cmd
 
 
 def macro_with_input_after(command: str) -> str:

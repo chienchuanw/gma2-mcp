@@ -69,10 +69,16 @@ class TestDeleteMacro:
         from src.commands import delete_macro
 
         result = delete_macro(macro_id=5)
-        assert result == "delete macro 1.5"
+        assert result == "delete macro 1.5 /noconfirm"
 
     def test_delete_macro_custom_pool(self):
         from src.commands import delete_macro
 
         result = delete_macro(macro_id=5, pool=2)
-        assert result == "delete macro 2.5"
+        assert result == "delete macro 2.5 /noconfirm"
+
+    def test_delete_macro_without_noconfirm(self):
+        from src.commands import delete_macro
+
+        result = delete_macro(macro_id=5, noconfirm=False)
+        assert result == "delete macro 1.5"
