@@ -104,6 +104,7 @@ class GMA2TelnetClient:
         self._connection: Optional[Any] = None  # Kept for compatibility checks
         self._state = ConnectionState.DISCONNECTED
         self._last_successful_command_time: float = 0.0
+        self._lock = asyncio.Lock()
 
         logger.debug(
             f"GMA2TelnetClient initialized: host={host}, port={port}, user={user}"
@@ -243,21 +244,22 @@ class GMA2TelnetClient:
             RuntimeError: Connection not established
             ConnectionError: Failed to reconnect after retries
         """
-        await self._ensure_connected()
+        async with self._lock:
+            await self._ensure_connected()
 
-        if self._writer is None:
-            raise RuntimeError("Connection not established, call connect() first")
+            if self._writer is None:
+                raise RuntimeError("Connection not established, call connect() first")
 
-        logger.debug(f"Sending command: {command}")
+            logger.debug(f"Sending command: {command}")
 
-        # Send command (automatically add newline)
-        full_command = f"{command}\r\n"
-        self._writer.write(full_command)
+            # Send command (automatically add newline)
+            full_command = f"{command}\r\n"
+            self._writer.write(full_command)
 
-        # Wait for grandMA2 to process command
-        await asyncio.sleep(delay)
-        self._last_successful_command_time = time.monotonic()
-        logger.debug(f"Command sent, waiting {delay} seconds")
+            # Wait for grandMA2 to process command
+            await asyncio.sleep(delay)
+            self._last_successful_command_time = time.monotonic()
+            logger.debug(f"Command sent, waiting {delay} seconds")
 
     async def send_command_with_response(
         self, command: str, timeout: float = 2.0, delay: float = 0.3
@@ -279,50 +281,51 @@ class GMA2TelnetClient:
         Raises:
             RuntimeError: Connection not established
         """
-        await self._ensure_connected()
+        async with self._lock:
+            await self._ensure_connected()
 
-        if self._writer is None or self._reader is None:
-            raise RuntimeError("Connection not established, call connect() first")
+            if self._writer is None or self._reader is None:
+                raise RuntimeError("Connection not established, call connect() first")
 
-        logger.debug(f"Sending command with response: {command}")
+            logger.debug(f"Sending command with response: {command}")
 
-        # Clear any pending data
-        try:
-            await asyncio.wait_for(self._reader.read(4096), timeout=0.1)
-        except asyncio.TimeoutError:
-            pass
+            # Clear any pending data
+            try:
+                await asyncio.wait_for(self._reader.read(4096), timeout=0.1)
+            except asyncio.TimeoutError:
+                pass
 
-        # Send command
-        full_command = f"{command}\r\n"
-        self._writer.write(full_command)
+            # Send command
+            full_command = f"{command}\r\n"
+            self._writer.write(full_command)
 
-        # Wait for grandMA2 to process
-        await asyncio.sleep(delay)
+            # Wait for grandMA2 to process
+            await asyncio.sleep(delay)
 
-        # Read response
-        response_parts = []
-        try:
-            # Continue reading until no more data
-            while True:
-                try:
-                    chunk = await asyncio.wait_for(
-                        self._reader.read(4096), timeout=timeout
-                    )
-                    if chunk:
-                        response_parts.append(chunk)
-                        # Shorten timeout for subsequent reads
-                        timeout = 0.3
-                    else:
+            # Read response
+            response_parts = []
+            try:
+                # Continue reading until no more data
+                while True:
+                    try:
+                        chunk = await asyncio.wait_for(
+                            self._reader.read(4096), timeout=timeout
+                        )
+                        if chunk:
+                            response_parts.append(chunk)
+                            # Shorten timeout for subsequent reads
+                            timeout = 0.3
+                        else:
+                            break
+                    except asyncio.TimeoutError:
                         break
-                except asyncio.TimeoutError:
-                    break
-        except Exception as e:
-            logger.warning(f"Error reading response: {e}")
+            except Exception as e:
+                logger.warning(f"Error reading response: {e}")
 
-        response = "".join(response_parts)
-        self._last_successful_command_time = time.monotonic()
-        logger.debug(f"Response received: {len(response)} characters")
-        return response
+            response = "".join(response_parts)
+            self._last_successful_command_time = time.monotonic()
+            logger.debug(f"Response received: {len(response)} characters")
+            return response
 
     async def disconnect(self) -> None:
         """Close the Telnet connection (async)."""

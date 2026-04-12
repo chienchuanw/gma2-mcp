@@ -130,6 +130,149 @@ class TestGMA2TelnetClientConnection:
         assert client._connection is None
 
 
+class TestGMA2TelnetClientCommandLock:
+    """Tests for asyncio.Lock command serialization in GMA2TelnetClient."""
+
+    def _setup_client_skip_health_check(self, client):
+        """Set last successful command time to skip health check in _ensure_connected."""
+        import time
+
+        client._last_successful_command_time = time.monotonic()
+
+    @pytest.mark.asyncio
+    @patch("src.telnet_client.telnetlib3.open_connection")
+    async def test_concurrent_send_command_serialized(self, mock_open_connection):
+        """Test that concurrent send_command() calls are serialized via lock."""
+        from src.telnet_client import GMA2TelnetClient
+
+        mock_reader = MagicMock()
+        mock_writer = MagicMock()
+        mock_open_connection.return_value = (mock_reader, mock_writer)
+
+        client = GMA2TelnetClient(host="192.168.1.100")
+        await client.connect()
+        self._setup_client_skip_health_check(client)
+
+        # Track the order of command execution
+        execution_order = []
+
+        original_write = mock_writer.write
+
+        def tracking_write(cmd):
+            execution_order.append(cmd.strip())
+            return original_write(cmd)
+
+        mock_writer.write = tracking_write
+
+        # Send two commands concurrently
+        await asyncio.gather(
+            client.send_command("command1", delay=0.01),
+            client.send_command("command2", delay=0.01),
+        )
+
+        # Both commands should have been sent (serialized, not interleaved)
+        assert len(execution_order) == 2
+        assert "command1" in execution_order
+        assert "command2" in execution_order
+
+    @pytest.mark.asyncio
+    @patch("src.telnet_client.telnetlib3.open_connection")
+    async def test_concurrent_send_command_with_response_serialized(
+        self, mock_open_connection
+    ):
+        """Test that concurrent send_command_with_response() calls are serialized."""
+        from src.telnet_client import GMA2TelnetClient
+
+        mock_reader = MagicMock()
+        mock_writer = MagicMock()
+        mock_reader.read = AsyncMock(side_effect=asyncio.TimeoutError)
+        mock_open_connection.return_value = (mock_reader, mock_writer)
+
+        client = GMA2TelnetClient(host="192.168.1.100")
+        await client.connect()
+        self._setup_client_skip_health_check(client)
+
+        execution_order = []
+        original_write = mock_writer.write
+
+        def tracking_write(cmd):
+            execution_order.append(cmd.strip())
+            return original_write(cmd)
+
+        mock_writer.write = tracking_write
+
+        await asyncio.gather(
+            client.send_command_with_response("cmd1", timeout=0.1, delay=0.01),
+            client.send_command_with_response("cmd2", timeout=0.1, delay=0.01),
+        )
+
+        assert len(execution_order) == 2
+        assert "cmd1" in execution_order
+        assert "cmd2" in execution_order
+
+    @pytest.mark.asyncio
+    @patch("src.telnet_client.telnetlib3.open_connection")
+    async def test_mixed_concurrent_calls_serialized(self, mock_open_connection):
+        """Test mixed concurrent send_command + send_command_with_response are serialized."""
+        from src.telnet_client import GMA2TelnetClient
+
+        mock_reader = MagicMock()
+        mock_writer = MagicMock()
+        mock_reader.read = AsyncMock(side_effect=asyncio.TimeoutError)
+        mock_open_connection.return_value = (mock_reader, mock_writer)
+
+        client = GMA2TelnetClient(host="192.168.1.100")
+        await client.connect()
+        self._setup_client_skip_health_check(client)
+
+        execution_order = []
+        original_write = mock_writer.write
+
+        def tracking_write(cmd):
+            execution_order.append(cmd.strip())
+            return original_write(cmd)
+
+        mock_writer.write = tracking_write
+
+        await asyncio.gather(
+            client.send_command("fire_cmd", delay=0.01),
+            client.send_command_with_response("resp_cmd", timeout=0.1, delay=0.01),
+        )
+
+        assert len(execution_order) == 2
+        assert "fire_cmd" in execution_order
+        assert "resp_cmd" in execution_order
+
+    @pytest.mark.asyncio
+    @patch("src.telnet_client.telnetlib3.open_connection")
+    async def test_lock_no_deadlock_single_call(self, mock_open_connection):
+        """Test that single-client usage works normally with the lock (no deadlock)."""
+        from src.telnet_client import GMA2TelnetClient
+
+        mock_reader = MagicMock()
+        mock_writer = MagicMock()
+        mock_open_connection.return_value = (mock_reader, mock_writer)
+
+        client = GMA2TelnetClient(host="192.168.1.100")
+        await client.connect()
+        self._setup_client_skip_health_check(client)
+
+        # Should complete without deadlock
+        await client.send_command("test", delay=0.01)
+
+        mock_writer.write.assert_called_with("test\r\n")
+
+    @pytest.mark.asyncio
+    @patch("src.telnet_client.telnetlib3.open_connection")
+    async def test_lock_exists_on_client(self, mock_open_connection):
+        """Test that the client has an asyncio.Lock attribute."""
+        from src.telnet_client import GMA2TelnetClient
+
+        client = GMA2TelnetClient(host="192.168.1.100")
+        assert hasattr(client, "_lock")
+        assert isinstance(client._lock, asyncio.Lock)
+
+
 class TestGMA2TelnetClientContextManager:
     """Tests for GMA2TelnetClient as an async context manager."""
 
