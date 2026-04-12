@@ -56,8 +56,10 @@ from src.commands import (
     label_sequence_cue as cmd_label_sequence_cue,
     list_cue as cmd_list_cue,
     list_group as cmd_list_group,
+    list_macro as cmd_list_macro,
     list_objects as cmd_list_objects,
     list_preset as cmd_list_preset,
+    list_sequence_cue as cmd_list_sequence_cue,
     list_shows as cmd_list_shows,
     list_user_var,
     list_var,
@@ -78,6 +80,7 @@ from src.commands import (
 )
 from src.commands.constants import PRESET_TYPES
 from src.gma2_client import GMA2Client
+from src.response_parser import parse_macro_lines, parse_cue_info, parse_object_label
 
 load_dotenv()
 
@@ -1748,6 +1751,83 @@ async def send_raw_command(command: str) -> str:
     client = await get_client()
     await client.send_command(command)
     return f"Sent command: {command}"
+
+
+# ============================================================
+# Read-Back Tools
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def read_macro_lines(macro_id: int, pool: int = 1) -> dict:
+    """Read macro line content for a given macro.
+
+    Retrieves and parses all lines of a macro, returning each line's
+    number and command string.
+
+    Args:
+        macro_id: Macro ID to read
+        pool: Macro pool number (default 1)
+
+    Returns:
+        dict with parsed macro lines and raw response
+    """
+    client = await get_client()
+    cmd = cmd_list_macro(macro_id, pool=pool)
+    raw = await client.send_command_with_response(cmd)
+    result = parse_macro_lines(raw)
+    result["macro_id"] = macro_id
+    result["raw_response"] = raw
+    return result
+
+
+@mcp.tool()
+@handle_connection_error
+async def read_cue_info(sequence_id: int, cue_id: int | str) -> dict:
+    """Read cue information for a specific cue in a sequence.
+
+    Retrieves and parses cue data including label, fade time, and CMD field.
+
+    Args:
+        sequence_id: Sequence ID containing the cue
+        cue_id: Cue ID (int or str for decimal cue numbers like "2.5")
+
+    Returns:
+        dict with parsed cue info and raw response
+    """
+    client = await get_client()
+    cmd = cmd_list_sequence_cue(sequence_id, cue_id)
+    raw = await client.send_command_with_response(cmd)
+    result = parse_cue_info(raw)
+    result["sequence_id"] = sequence_id
+    result["cue_id"] = cue_id
+    result["raw_response"] = raw
+    return result
+
+
+@mcp.tool()
+@handle_connection_error
+async def read_object_label(object_type: str, object_id: int) -> dict:
+    """Read the label/name of any grandMA2 show object.
+
+    Uses the generic list command to retrieve an object's name field.
+
+    Args:
+        object_type: Object type (e.g., "group", "sequence", "macro")
+        object_id: Object ID
+
+    Returns:
+        dict with parsed label and raw response
+    """
+    client = await get_client()
+    cmd = cmd_list_objects(object_type, object_id)
+    raw = await client.send_command_with_response(cmd)
+    result = parse_object_label(raw)
+    result["object_type"] = object_type
+    result["object_id"] = object_id
+    result["raw_response"] = raw
+    return result
 
 
 # ============================================================
