@@ -37,10 +37,19 @@ from src.commands import (
     goto,
     goto_cue,
     highlight,
+    info as cmd_info,
+    info_cue as cmd_info_cue,
+    info_group as cmd_info_group,
     kill,
     label,
     label_group,
     label_sequence_cue as cmd_label_sequence_cue,
+    list_cue as cmd_list_cue,
+    list_group as cmd_list_group,
+    list_objects as cmd_list_objects,
+    list_preset as cmd_list_preset,
+    list_user_var,
+    list_var,
     off,
     on,
     pause_sequence,
@@ -1031,6 +1040,199 @@ async def execute_sequence(
         return f"Jumped to Cue {cue_id} of Sequence {sequence_id}"
 
     return f"Unknown action: {action}, use go, pause, or goto"
+
+
+# ============================================================
+# Query / Introspection Tools (Issue #4)
+# ============================================================
+
+EMPTY_RESPONSE_MSG = (
+    "No data returned. The list may be empty or the console did not respond."
+)
+
+
+@mcp.tool()
+@handle_connection_error
+async def list_groups(
+    group_id: int | None = None, end_group_id: int | None = None
+) -> str:
+    """
+    list all defined groups on the grandMA2 console.
+
+    returns raw console output from the List Group command.
+
+    Args:
+        group_id: specific group ID or start of range (optional)
+        end_group_id: end group ID for range query (optional, requires group_id)
+
+    Returns:
+        str: raw console response with group listing
+    """
+    client = await get_client()
+    cmd = cmd_list_group(group_id, end=end_group_id)
+    response = await client.send_command_with_response(cmd)
+    return response if response.strip() else EMPTY_RESPONSE_MSG
+
+
+@mcp.tool()
+@handle_connection_error
+async def list_cues(
+    cue_id: int | float | None = None,
+    end_cue_id: int | float | None = None,
+    sequence_id: int | None = None,
+) -> str:
+    """
+    list cues on the grandMA2 console.
+
+    lists cues of the selected executor, or a specific sequence if sequence_id is provided.
+
+    Args:
+        cue_id: specific cue ID or start of range (optional)
+        end_cue_id: end cue ID for range query (optional)
+        sequence_id: sequence to list cues from (optional)
+
+    Returns:
+        str: raw console response with cue listing
+    """
+    client = await get_client()
+    cmd = cmd_list_cue(cue_id, end=end_cue_id, sequence_id=sequence_id)
+    response = await client.send_command_with_response(cmd)
+    return response if response.strip() else EMPTY_RESPONSE_MSG
+
+
+@mcp.tool()
+@handle_connection_error
+async def list_presets(
+    preset_type: str,
+    preset_id: int | None = None,
+    end_preset_id: int | None = None,
+) -> str:
+    """
+    list presets of a given type on the grandMA2 console.
+
+    valid preset types: dimmer, position, gobo, color, beam, focus, control, shapers, video.
+
+    Args:
+        preset_type: type of preset (e.g. "color", "position", "dimmer")
+        preset_id: specific preset ID (optional)
+        end_preset_id: end preset ID for range (optional)
+
+    Returns:
+        str: raw console response with preset listing
+    """
+    valid_types = set(PRESET_TYPES.keys())
+    if preset_type.lower() not in valid_types:
+        return (
+            f"Invalid preset type '{preset_type}'. "
+            f"Valid types: {', '.join(sorted(valid_types))}"
+        )
+
+    client = await get_client()
+    cmd = cmd_list_preset(preset_type, preset_id)
+    response = await client.send_command_with_response(cmd)
+    return response if response.strip() else EMPTY_RESPONSE_MSG
+
+
+@mcp.tool()
+@handle_connection_error
+async def get_cue_info(
+    cue_id: int | float, sequence_id: int | None = None
+) -> str:
+    """
+    get detailed info about a specific cue on the grandMA2 console.
+
+    Args:
+        cue_id: cue ID to query
+        sequence_id: sequence containing the cue (optional)
+
+    Returns:
+        str: raw console response with cue details
+    """
+    client = await get_client()
+    cmd = cmd_info_cue(cue_id, sequence_id=sequence_id)
+    response = await client.send_command_with_response(cmd)
+    return response if response.strip() else EMPTY_RESPONSE_MSG
+
+
+@mcp.tool()
+@handle_connection_error
+async def get_group_info(group_id: int) -> str:
+    """
+    get detailed info about a specific group on the grandMA2 console.
+
+    Args:
+        group_id: group ID to query
+
+    Returns:
+        str: raw console response with group details
+    """
+    client = await get_client()
+    cmd = cmd_info_group(group_id)
+    response = await client.send_command_with_response(cmd)
+    return response if response.strip() else EMPTY_RESPONSE_MSG
+
+
+@mcp.tool()
+@handle_connection_error
+async def list_variables(
+    variable_type: str, filter: str | None = None
+) -> str:
+    """
+    list show variables or user variables on the grandMA2 console.
+
+    Args:
+        variable_type: "show" for show variables (ListVar), "user" for user variables (ListUserVar)
+        filter: optional filter pattern (e.g. "f*" to list variables starting with f)
+
+    Returns:
+        str: raw console response with variable listing
+    """
+    if variable_type.lower() == "show":
+        cmd = list_var(filter)
+    elif variable_type.lower() == "user":
+        cmd = list_user_var(filter)
+    else:
+        return (
+            f"Invalid variable type '{variable_type}'. "
+            f"Valid types: show, user"
+        )
+
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return response if response.strip() else EMPTY_RESPONSE_MSG
+
+
+@mcp.tool()
+@handle_connection_error
+async def query_object(
+    object_type: str,
+    object_id: int | str | None = None,
+    mode: str = "list",
+) -> str:
+    """
+    generic query for any grandMA2 object type.
+
+    use this for object types without a dedicated tool (e.g. executors, sequences, effects).
+    for groups, cues, and presets, prefer the specific tools.
+
+    Args:
+        object_type: MA2 object type (e.g. "executor", "sequence", "effect", "macro")
+        object_id: object ID to query (optional)
+        mode: "list" to list objects, "info" to get detailed info (default: "list")
+
+    Returns:
+        str: raw console response
+    """
+    client = await get_client()
+    if mode == "info":
+        if object_id is None:
+            return "object_id is required when using info mode."
+        cmd = cmd_info(object_type, object_id)
+    else:
+        cmd = cmd_list_objects(object_type, object_id)
+
+    response = await client.send_command_with_response(cmd)
+    return response if response.strip() else EMPTY_RESPONSE_MSG
 
 
 # ============================================================
