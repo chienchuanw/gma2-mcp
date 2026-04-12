@@ -178,11 +178,58 @@
 | Issue #3 full suite | 859 tests | 859 pass | 859 pass | ✓ |
 | Issue #2 full suite | 884 tests | 884 pass | 884 pass | ✓ |
 
+## Session: 2026-04-12 (Session 7 -- Issues #4, #5: Query/Introspection & Show Management)
+
+### Issue #4: Query/introspection MCP tools (PR #32)
+- **Status:** complete
+- Actions taken:
+  - Created OpenSpec change `add-query-and-show-management-tools` with proposal, design, 2 specs, and tasks (34 items, TDD plan)
+  - Read grandMA2 User Manual v3.9 for List (p521), Info (p506), ListShows (p530), ListVar (p533), ListUserVar (p532), SaveShow (p667), LoadShow (p537), NewShow (p577), DeleteShow (p419), Backup (p368) keyword documentation
+  - Created GitHub linked branch `issues/4` via `gh issue develop`
+  - **TDD Red**: Wrote 29 command builder tests and 31 MCP tool tests (60 total)
+  - Updated `list_var`, `list_user_var`, `list_shows` builders to accept optional filter parameter (per manual syntax `ListVar [Filter]`)
+  - **TDD Green**: Implemented 7 query MCP tools: `list_groups`, `list_cues`, `list_presets`, `get_cue_annotation`, `get_group_annotation`, `list_variables`, `query_object`
+  - All tools use `send_command_with_response()` to capture Telnet output, return raw text (wire format undocumented by MA)
+  - Code review caught 2 issues: (1) `Info` keyword misuse -- renamed `get_cue_info`/`get_group_info` to `get_cue_annotation`/`get_group_annotation` since Info reads user annotations not object properties; (2) `end_preset_id` parameter silently ignored -- removed it
+  - Created PR #32
+- PRs:
+  - PR #32: `issues/4` (issue #4) -- 4 commits, review addressed
+
+### Issue #5: Show file management MCP tools (PR #33)
+- **Status:** complete
+- Actions taken:
+  - Created GitHub linked branch `issues/5` via `gh issue develop`, based on `issues/4`
+  - Updated `save_show`, `load_show`, `new_show` builders to accept `name` and `/noconfirm` parameters per manual syntax
+  - **TDD Red**: Wrote 10 builder tests and 16 MCP tool tests + 2 negative tests (28 total)
+  - **TDD Green**: Implemented 4 show management MCP tools: `save_show_tool`, `load_show_tool`, `new_show_tool`, `list_shows_tool`
+  - Destructive operations (`load_show`, `new_show`) use `/noconfirm` to suppress GUI popups and include `save_first` parameter
+  - `delete_show` excluded (irreversible, too dangerous for AI); `create_backup` excluded (`Backup` opens GUI menu per Manual p368)
+  - Code review caught: `save_show` missing `/noconfirm` -- added it for consistency (same Telnet-blocking risk as load/new)
+  - Updated README (24 -> 35 tools) with new tool categories and descriptions
+  - Created PR #33
+- PRs:
+  - PR #33: `issues/5` (issue #5) -- 5 commits, review addressed
+- Files created:
+  - tests/test_query_builders.py, tests/test_query_tools.py, tests/test_show_management_builders.py, tests/test_show_management_tools.py
+  - openspec/specs/query-introspection-tools/spec.md, openspec/specs/show-file-management-tools/spec.md
+- Files modified:
+  - src/server.py (+312 lines: 11 new tools, imports, EMPTY_RESPONSE_MSG)
+  - src/commands/functions/list_ext.py (filter params on list_var, list_user_var, list_shows)
+  - src/commands/functions/system.py (name/noconfirm params on save_show, load_show, new_show)
+  - README.md (24 -> 35 tools, new query and show management sections)
+
+## Test Results
+| Test | Input | Expected | Actual | Status |
+|------|-------|----------|--------|--------|
+| Issue #4 query tests | 60 tests | 60 pass | 60 pass | pass |
+| Issue #5 show mgmt tests | 28 tests | 28 pass | 28 pass | pass |
+| Full suite after both | 965 tests | 965 pass | 965 pass | pass |
+
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | All P0 issues complete (#1, #2, #3). Issues #12-#15, #19-#22 also complete. |
-| Where am I going? | P1 issues next: #4 (query/introspection tools), #5 (show file management) |
-| What's the goal? | Continue P1/P2 features now that reliability is solid |
-| What have I learned? | See findings.md -- telnetlib3 writer doesn't reliably raise on dead connections (pre-flight health check needed); newline is the lightest MA2 probe; get_client() must allow RECONNECTING state; send_command_with_response must also update TTL timestamp |
-| What have I done? | Investigation, 22 issues created/resolved, Issues #1-#3/#12-#15/#19-#22 fixed with TDD, 24 MCP tools, connection resilience layer |
+| Where am I? | All P0 and P1 issues complete. Issues #1-#5, #12-#15, #19-#22 resolved. |
+| Where am I going? | P2 issues next: #6 (macro management), #7 (effect/chaser), #8 (expanded workflows) |
+| What's the goal? | Continue P2 features -- more tool coverage for production lighting workflows |
+| What have I learned? | See findings.md -- grandMA2 Info keyword reads user annotations not object properties; Backup command opens GUI menu (not programmatic); LoadShow/NewShow/SaveShow need /noconfirm for Telnet; Telnet response format for List commands is undocumented |
+| What have I done? | Investigation, 22 issues created/resolved, Issues #1-#5/#12-#15/#19-#22 fixed with TDD, 35 MCP tools, connection resilience layer, query/introspection + show management |

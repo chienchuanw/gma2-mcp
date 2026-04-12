@@ -14,7 +14,7 @@
 ## Architecture (4 Layers)
 
 ```
-Layer 4: MCP Server         (src/server.py)         -- FastMCP, 24 tools, stdio transport
+Layer 4: MCP Server         (src/server.py)         -- FastMCP, 35 tools, stdio transport
 Layer 3: Orchestration      (src/gma2_client.py,     -- GMA2Client workflows, CommandSequence batching
                              src/command_sequence.py)
 Layer 2: Command Builder    (src/commands/)          -- 200+ pure functions, returns command strings
@@ -161,7 +161,7 @@ Builder-pattern for composing command batches:
 **Transport:** stdio
 **Framework:** FastMCP (`mcp.server.fastmcp`)
 
-### 24 MCP Tools
+### 35 MCP Tools
 
 | Category | Tool | Args |
 |----------|------|------|
@@ -188,6 +188,17 @@ Builder-pattern for composing command batches:
 | **Bulk Cue Ops** | `store_cue_across_sequences` | cue_id, sequence_start, sequence_end, cue_name? |
 | | `label_cue_across_sequences` | cue_id, sequence_start, sequence_end, label |
 | | `appearance_cue_across_sequences` | cue_id, sequence_start, sequence_end, red?, green?, blue?, color? |
+| **Query/Introspection** | `list_groups` | group_id?, end_group_id? |
+| | `list_cues` | cue_id?, end_cue_id?, sequence_id? |
+| | `list_presets` | preset_type, preset_id? |
+| | `get_cue_annotation` | cue_id, sequence_id? |
+| | `get_group_annotation` | group_id |
+| | `list_variables` | variable_type (show/user), filter? |
+| | `query_object` | object_type, object_id?, mode (list/annotation) |
+| **Show Management** | `save_show_tool` | show_name? |
+| | `load_show_tool` | show_name, save_first? |
+| | `new_show_tool` | show_name?, save_first? |
+| | `list_shows_tool` | filter? |
 | **Raw Command** | `send_raw_command` | command |
 
 ### Connection Management
@@ -210,7 +221,7 @@ Original tool implementations before MCP migration. Contains:
 
 ## Test Suite
 
-- **850+ test cases** across **48+ test files**
+- **965 test cases** across **52 test files**
 - Config: `pytest.ini` with `asyncio_mode = auto`
 - Tests cover:
   - Every command builder module (unit tests for string output)
@@ -302,8 +313,28 @@ gma2-mcp/
 2. ~~**Legacy `src/tools.py`**: Contains functions that don't `await` async calls.~~ **FIXED** in issue #3 (PR #30) -- deleted `src/tools.py` and `tests/test_tools.py`, removed `set_gma2_client` import from `server.py`.
 3. **`main.py` uses deprecated `telnetlib`**: This standalone test script uses the stdlib `telnetlib` (removed in Python 3.13), unlike the main codebase which uses `telnetlib3`. (Issue #10)
 4. ~~**No error handling in MCP tools**: Most tools don't handle cases where the telnet connection drops mid-session.~~ **FIXED** in issue #2 (PR #31) -- added `ConnectionState` enum, `check_connection()` health probe, `_ensure_connected()` with bounded exponential backoff, health check TTL, graceful shutdown via `server_lifespan`, and `handle_connection_error` decorator on all 24 MCP tools.
-5. **No response parsing**: `send_command()` is fire-and-forget. The server never confirms whether a command was accepted by the console. (Issue #4)
+5. ~~**No response parsing**: `send_command()` is fire-and-forget. The server never confirms whether a command was accepted by the console.~~ **PARTIALLY FIXED** in issue #4 (PR #32) -- 7 query tools now use `send_command_with_response()` to read console output. Responses are returned as raw text since the Telnet wire format is undocumented by MA Lighting. Structured parsing can be added once tested against a live console.
 6. **GMA2Client.create() is not a context manager factory**: The `create()` classmethod returns a `GMA2Client` but you need to wrap it in `async with` separately. The README example `async with GMA2Client.create(...) as client:` works because `__aenter__` returns `self`.
+
+## grandMA2 Telnet Query Findings (Session 7)
+
+### Info Keyword Misunderstanding
+The grandMA2 `Info` keyword does NOT return object properties. It reads/writes **user-added text annotations** on objects. For example:
+- `Info Group 3 "backtruss fixtures"` -- SETS the annotation text
+- `Info Group 3` -- READS the annotation text (may be empty if never set)
+
+To get actual object properties (composition, timing, values), use the `List` keyword with a specific ID:
+- `List Group 3` -- shows group details
+- `List Cue 5` -- shows cue properties
+
+### Telnet Response Format
+The grandMA2 manual documents that `List` output appears in the "Command Line Feedback window" (p521) but does NOT document the exact text format returned over Telnet. Response parsing would require testing against a live console.
+
+### Show File Commands Over Telnet
+- `SaveShow`, `LoadShow`, `NewShow` all support `/noconfirm` to suppress GUI popups. Without it, these commands trigger dialogs that block Telnet indefinitely.
+- `Backup` (p368) opens a GUI menu -- it is NOT a command-line backup operation. Over Telnet it would open a popup on the console display.
+- `DeleteShow` supports `/noconfirm`, `/backup`, `/show` options. It was excluded from MCP tools due to irreversibility.
+- Per the manual, `NewShow` requires a show name (`NewShow "Showname"`). Running `newshow` without a name is undocumented behavior.
 
 ## grandMA2 Manual Key Findings (v3.9)
 

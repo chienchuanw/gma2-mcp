@@ -4,7 +4,7 @@
 Investigate, prioritize, and implement improvements to the gma2-mcp project -- an MCP server that enables AI assistants to control grandMA2 lighting consoles via Telnet.
 
 ## Current Phase
-Phase 5 (Issues #19-22, #2, #3 complete -- all P0 issues resolved)
+Phase 6 (Issues #4, #5 complete -- all P0 and P1 issues resolved)
 
 ## Phases
 
@@ -31,9 +31,9 @@ Phase 5 (Issues #19-22, #2, #3 complete -- all P0 issues resolved)
 - **Status:** complete
 
 ### Phase 4: P1 Query & Show Management
-- [ ] Issue #4: Add query/introspection MCP tools
-- [ ] Issue #5: Add show file management MCP tools
-- **Status:** pending
+- [x] Issue #4: Add query/introspection MCP tools (branch `issues/4`, PR #32, 7 tools, 60 tests)
+- [x] Issue #5: Add show file management MCP tools (branch `issues/5`, PR #33, 4 tools, 28 tests)
+- **Status:** complete
 
 ### Phase 5: P2 Expanded Workflows
 - [x] Issue #19: Fix assign() named page executor addressing (PR #26)
@@ -47,9 +47,9 @@ Phase 5 (Issues #19-22, #2, #3 complete -- all P0 issues resolved)
 
 ## Key Questions
 1. How many command builder functions exist? **200+ across 30+ modules (8,316 total lines)**
-2. How many MCP tools are exposed? **24 tools** (was 20, +1 appearance tool, +3 bulk cue tools from issues #19-22)
+2. How many MCP tools are exposed? **35 tools** (was 24, +7 query/introspection tools from #4, +4 show management tools from #5)
 3. What transport does the MCP server use? **stdio**
-4. What is the test coverage? **~884 test cases across 48+ test files** (was ~850, +15 resilience tests from #2, +3 server tool tests from #2, -16 removed tests from #3)
+4. What is the test coverage? **965 test cases across 52 test files** (was ~884, +60 query tests from #4, +28 show management tests from #5, -7 adjusted)
 5. Is there a legacy tools module? **No -- `src/tools.py` was removed in issue #3 (PR #30). All tools are in `src/server.py`.**
 
 ## Decisions Made
@@ -72,8 +72,8 @@ Phase 5 (Issues #19-22, #2, #3 complete -- all P0 issues resolved)
 | 1 | P0 | Fix PRESET_TYPES mapping | Fixed (branch `issues/1`) |
 | 2 | P0 | Telnet connection resilience | Fixed (PR #31) |
 | 3 | P0 | Clean up legacy src/tools.py | Fixed (PR #30) |
-| 4 | P1 | Query/introspection MCP tools | Open |
-| 5 | P1 | Show file management MCP tools | Open |
+| 4 | P1 | Query/introspection MCP tools | Fixed (PR #32) |
+| 5 | P1 | Show file management MCP tools | Fixed (PR #33) |
 | 6 | P2 | Macro management MCP tools | Open |
 | 7 | P2 | Effect/chaser MCP tools | Open |
 | 8 | P2 | Expand GMA2Client workflows | Open |
@@ -89,7 +89,10 @@ Phase 5 (Issues #19-22, #2, #3 complete -- all P0 issues resolved)
 | 22 | P2 | Add bulk cue operations across sequence ranges | Fixed (PR #29) |
 
 ## Notes
-- All P0 issues resolved (issues #1, #2, #3). Next: P1 issues (#4, #5).
+- All P0 and P1 issues resolved (issues #1-#5). Next: P2 issues (#6, #7, #8).
 - Uses `uv` as package manager with Python 3.12
 - grandMA2 manual PDF is stored at `doc/2024-09-30_grandMA2_User_Manual_v3-9.pdf`
 - OpenSpec change artifacts archived at `openspec/changes/archive/`
+- grandMA2 `Info` keyword reads user annotations, not object properties -- tools renamed accordingly
+- `Backup` command opens GUI menu, not functional over Telnet -- excluded from MCP tools
+- `SaveShow`/`LoadShow`/`NewShow` require `/noconfirm` for Telnet to avoid GUI popup blocking
