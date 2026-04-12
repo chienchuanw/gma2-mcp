@@ -720,7 +720,7 @@ All console communication goes through the Telnet client layer.
 
 ## License
 
-This project does not currently include a license file.
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
 
 ## Contributing
 
