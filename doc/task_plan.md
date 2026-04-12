@@ -4,7 +4,7 @@
 Investigate, prioritize, and implement improvements to the gma2-mcp project -- an MCP server that enables AI assistants to control grandMA2 lighting consoles via Telnet.
 
 ## Current Phase
-Phase 7 (Issues #6, #7, #8 complete -- all P0, P1, and P2 issues resolved)
+Phase 8 (Issues #9, #10 complete -- all P0, P1, P2, and P3 issues resolved)
 
 ## Phases
 
@@ -45,11 +45,16 @@ Phase 7 (Issues #6, #7, #8 complete -- all P0, P1, and P2 issues resolved)
 - [x] Issue #8: Expand GMA2Client workflows (PR #34)
 - **Status:** complete
 
+### Phase 6: P3 Transport & Cleanup
+- [x] Issue #9: Add HTTP/SSE transport option (PR #35, TDD, 1016 tests passing)
+- [x] Issue #10: Remove main.py using deprecated telnetlib (PR #36, 1005 tests passing)
+- **Status:** complete
+
 ## Key Questions
 1. How many command builder functions exist? **200+ across 30+ modules (8,316 total lines)**
 2. How many MCP tools are exposed? **49 tools** (was 35, +6 macro tools from #6, +8 effect tools from #7)
-3. What transport does the MCP server use? **stdio**
-4. What is the test coverage? **1005 test cases across 55 test files** (was 965, +44 tests from #6/#7/#8)
+3. What transport does the MCP server use? **stdio (default) or streamable-http** (configurable via `MCP_TRANSPORT` env var)
+4. What is the test coverage? **1016 test cases across 57 test files** (was 1005, +11 tests from #9)
 5. Is there a legacy tools module? **No -- `src/tools.py` was removed in issue #3 (PR #30). All tools are in `src/server.py`.**
 
 ## Decisions Made
@@ -77,8 +82,8 @@ Phase 7 (Issues #6, #7, #8 complete -- all P0, P1, and P2 issues resolved)
 | 6 | P2 | Macro management MCP tools | Fixed (PR #34) |
 | 7 | P2 | Effect/chaser MCP tools | Fixed (PR #34) |
 | 8 | P2 | Expand GMA2Client workflows | Fixed (PR #34) |
-| 9 | P3 | HTTP/SSE transport | Open |
-| 10 | P3 | Update/remove main.py | Fixed |
+| 9 | P3 | HTTP/SSE transport | Fixed (PR #35) |
+| 10 | P3 | Update/remove main.py | Fixed (PR #36) |
 | 12 | P1 | Combine store + label into single commands (perf) | Fixed (PR #18) |
 | 13 | P2 | Add macro line editing MCP tool | Fixed (PR #23) |
 | 14 | P2 | Add sequence-scoped cue labeling tool | Fixed (PR #24) |
@@ -89,7 +94,7 @@ Phase 7 (Issues #6, #7, #8 complete -- all P0, P1, and P2 issues resolved)
 | 22 | P2 | Add bulk cue operations across sequence ranges | Fixed (PR #29) |
 
 ## Notes
-- All P0, P1, and P2 issues resolved (issues #1-#8, #12-#15, #19-#22). Remaining: P3 issues (#9, #10).
+- All P0, P1, P2, and P3 issues resolved (issues #1-#10, #12-#15, #19-#22). No remaining issues.
 - Uses `uv` as package manager with Python 3.12
 - grandMA2 manual PDF is stored at `doc/2024-09-30_grandMA2_User_Manual_v3-9.pdf`
 - OpenSpec change artifacts archived at `openspec/changes/archive/`

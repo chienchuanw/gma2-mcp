@@ -14,7 +14,7 @@
 ## Architecture (4 Layers)
 
 ```
-Layer 4: MCP Server         (src/server.py)         -- FastMCP, 49 tools, stdio transport
+Layer 4: MCP Server         (src/server.py)         -- FastMCP, 49 tools, stdio/streamable-http transport
 Layer 3: Orchestration      (src/gma2_client.py,     -- GMA2Client 12 workflows, CommandSequence batching
                              src/command_sequence.py)
 Layer 2: Command Builder    (src/commands/)          -- 200+ pure functions, returns command strings
@@ -33,12 +33,13 @@ All console communication flows through Layer 1. Layers 2-4 never touch the netw
 |--------|---------|
 | `connect()` | Establish async Telnet connection via `telnetlib3.open_connection()` |
 | `login()` | Send `login "user" "password"` command |
-| `send_command(cmd, delay=0.3)` | Send command + CRLF, wait for processing |
-| `send_command_with_response(cmd, timeout=2.0)` | Send and read response (for `list`, `info` queries) |
+| `send_command(cmd, delay=0.3)` | Send command + CRLF, wait for processing (acquires lock) |
+| `send_command_with_response(cmd, timeout=2.0)` | Send and read response (for `list`, `info` queries, acquires lock) |
 | `disconnect()` | Close writer, clear state |
 
 - Supports async context manager (`async with`)
 - Sync fallback via `run_sync()` (uses `asyncio.get_event_loop()`)
+- `asyncio.Lock` serializes all command execution for concurrent access safety
 - Default config: port 30000, user "administrator", password "admin"
 
 ---
@@ -158,7 +159,7 @@ Builder-pattern for composing command batches:
 ## Layer 4: MCP Server (`src/server.py`)
 
 **Server name:** `grandMA2-MCP`
-**Transport:** stdio
+**Transport:** stdio (default) or streamable-http (via `MCP_TRANSPORT` env var)
 **Framework:** FastMCP (`mcp.server.fastmcp`)
 
 ### 35 MCP Tools
@@ -221,7 +222,7 @@ Original tool implementations before MCP migration. Contains:
 
 ## Test Suite
 
-- **965 test cases** across **52 test files**
+- **1016 test cases** across **57 test files**
 - Config: `pytest.ini` with `asyncio_mode = auto`
 - Tests cover:
   - Every command builder module (unit tests for string output)
@@ -241,6 +242,9 @@ GMA_HOST=2.0.0.1
 GMA_PORT=30000
 GMA_USER=administrator
 GMA_PASSWORD=admin
+MCP_TRANSPORT=            # stdio (default) or streamable-http
+MCP_HOST=                 # HTTP bind address (default: 127.0.0.1)
+MCP_PORT=                 # HTTP port (default: 8000)
 ```
 
 ### Makefile Targets
@@ -262,11 +266,10 @@ GMA_PASSWORD=admin
 gma2-mcp/
 ├── src/
 │   ├── __init__.py
-│   ├── server.py               # MCP server (FastMCP, 24 tools)
-│   ├── telnet_client.py        # Async Telnet client (telnetlib3)
+│   ├── server.py               # MCP server (FastMCP, 49 tools, stdio/streamable-http)
+│   ├── telnet_client.py        # Async Telnet client (telnetlib3, asyncio.Lock)
 │   ├── gma2_client.py          # High-level workflow orchestration
 │   ├── command_sequence.py     # Command batch builder
-│   ├── tools.py                # Legacy tool implementations
 │   └── commands/
 │       ├── __init__.py         # Public API (200+ exports)
 │       ├── constants.py        # PRESET_TYPES, store options
@@ -289,7 +292,7 @@ gma2-mcp/
 │           │   executors.py, layouts.py, dmx.py, time.py,
 │           │   executor_objects.py, misc_objects.py, attributes.py
 │           └── ...
-├── tests/                      # 48 test files, 808 tests
+├── tests/                      # 57 test files, 1016 tests
 ├── doc/
 │   └── 2024-09-30_grandMA2_User_Manual_v3-9.pdf
 ├── connect.sh                  # Telnet auto-login script (expect)

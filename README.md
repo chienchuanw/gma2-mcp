@@ -49,9 +49,10 @@ The command builder covers all grandMA2 command-line keywords organized by categ
 - **Complete command builder** -- Over 200 Python functions covering all grandMA2 command-line keywords across 30+ modules, each returning a correctly formatted command string.
 - **High-level client** -- `GMA2Client` provides workflow-level methods: build cue lists, set up fixture groups with presets, quick look programming, batch executor assignments. Uses grandMA2's inline naming syntax to minimize Telnet round-trips.
 - **Command chaining** -- `CommandSequence` lets you compose multiple commands, preview them, and execute them as a batch.
-- **Resilient Telnet client** -- Built on `telnetlib3` with automatic login, persistent connections, connection health checking, auto-reconnection with bounded exponential backoff, and graceful shutdown. If the console restarts or the network drops, the client detects the failure and reconnects transparently before the next command.
+- **Resilient Telnet client** -- Built on `telnetlib3` with automatic login, persistent connections, connection health checking, auto-reconnection with bounded exponential backoff, command serialization via `asyncio.Lock`, and graceful shutdown. If the console restarts or the network drops, the client detects the failure and reconnects transparently before the next command.
 - **Connection error surfacing** -- MCP tools catch connection failures and return human-readable error messages instead of unhandled exceptions, so the AI assistant knows when commands are not reaching the console.
-- **Configurable via environment** -- Host, port, user, and password set through `.env` or environment variables.
+- **Configurable transport** -- Supports `stdio` (default, single client) and `streamable-http` (multi-client, web-based access) transports. HTTP host and port are configurable via environment variables.
+- **Configurable via environment** -- Host, port, user, password, and transport settings set through `.env` or environment variables.
 
 ## Getting Started
 
@@ -98,14 +99,27 @@ cp .env.template .env
 
 | Variable       | Description                          | Default         |
 |----------------|--------------------------------------|-----------------|
-| `GMA_HOST`     | IP address of the grandMA2 onPC      | `127.0.0.1`     |
-| `GMA_PORT`     | Telnet port                          | `30000`         |
-| `GMA_USER`     | Login username                       | `administrator` |
-| `GMA_PASSWORD`  | Login password                       | `admin`         |
+| `GMA_HOST`      | IP address of the grandMA2 onPC                | `127.0.0.1`     |
+| `GMA_PORT`      | Telnet port                                    | `30000`         |
+| `GMA_USER`      | Login username                                 | `administrator` |
+| `GMA_PASSWORD`  | Login password                                 | `admin`         |
+| `MCP_TRANSPORT` | MCP transport protocol (`stdio`, `streamable-http`) | `stdio`     |
+| `MCP_HOST`      | HTTP bind address (streamable-http only)       | `127.0.0.1`     |
+| `MCP_PORT`      | HTTP port (streamable-http only)               | `8000`          |
 
 `GMA_HOST` should be set to the IP address of the machine running grandMA2 onPC. You can find this in the onPC network settings or by checking the machine's network configuration.
 
 Port 30000 is the standard command port. Port 30001 is read-only (log output).
+
+To enable HTTP transport for web-based or multi-client access:
+
+```bash
+MCP_TRANSPORT=streamable-http
+MCP_HOST=0.0.0.0    # bind to all interfaces (default: 127.0.0.1)
+MCP_PORT=3000        # custom port (default: 8000)
+```
+
+When using `streamable-http`, concurrent commands from multiple clients are automatically serialized via an internal lock to prevent interleaved Telnet commands, since the grandMA2 console processes commands sequentially.
 
 ### MCP Registration
 
@@ -600,8 +614,8 @@ gma2-mcp/
 │   │       └── variables.py        # Variable functions
 │   ├── command_sequence.py     # CommandSequence for multi-command batching
 │   ├── gma2_client.py          # High-level workflow orchestration client
-│   ├── server.py               # MCP server (FastMCP, 35 tools, stdio transport)
-│   └── telnet_client.py        # Async Telnet client with health check, auto-reconnect, state tracking
+│   ├── server.py               # MCP server (FastMCP, configurable stdio/streamable-http transport)
+│   └── telnet_client.py        # Async Telnet client with health check, auto-reconnect, command lock, state tracking
 ├── tests/                      # Pytest test suite (one file per module)
 ├── doc/                        # grandMA2 user manual (PDF)
 ├── connect.sh                  # Telnet connection script with auto-login
@@ -644,10 +658,10 @@ uv run pytest tests/test_playback.py -v
 
 The project has four layers:
 
-1. **Telnet Client** (`src/telnet_client.py`) -- Low-level async Telnet communication with the console. Includes `ConnectionState` tracking (DISCONNECTED/CONNECTING/CONNECTED/RECONNECTING), health check probing, auto-reconnection with bounded exponential backoff (configurable retries and delay), health check TTL to skip redundant probes during rapid command sequences, and graceful shutdown via the server lifespan hook.
+1. **Telnet Client** (`src/telnet_client.py`) -- Low-level async Telnet communication with the console. Includes `ConnectionState` tracking (DISCONNECTED/CONNECTING/CONNECTED/RECONNECTING), health check probing, auto-reconnection with bounded exponential backoff (configurable retries and delay), health check TTL to skip redundant probes during rapid command sequences, `asyncio.Lock`-based command serialization for concurrent access safety, and graceful shutdown via the server lifespan hook.
 2. **Command Builder** (`src/commands/`) -- Pure functions that construct command strings. No network access.
 3. **Orchestration** (`src/gma2_client.py`, `src/command_sequence.py`) -- High-level workflow methods and command batching that compose builders + telnet.
-4. **MCP Server** (`src/server.py`) -- FastMCP server that exposes 35 tools over stdio, connecting the builder to the Telnet client.
+4. **MCP Server** (`src/server.py`) -- FastMCP server that exposes tools over configurable transport (`stdio` or `streamable-http`), connecting the builder to the Telnet client.
 
 All console communication goes through the Telnet client layer.
 

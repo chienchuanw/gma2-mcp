@@ -264,11 +264,47 @@
 | Workflow method tests | 13 tests | 13 pass | 13 pass | ✓ |
 | Full suite after fixes | 1005 tests | 1005 pass | 1005 pass | ✓ |
 
+## Session: 2026-04-13 (Session 9 -- Issues #9, #10: Transport & Cleanup)
+
+### Issue #9: Add HTTP/SSE transport option (PR #35)
+- **Status:** complete (merged)
+- Actions taken:
+  - Created OpenSpec change `transport-and-cleanup` with proposal, design, 2 specs (1 new + 1 modified), and tasks (15 items, TDD plan)
+  - Consulted FastMCP docs (MCP Python SDK) for `streamable-http` transport support
+  - Consulted grandMA2 official docs -- Telnet Remote (port 30000) is inherently sequential, "accessing fixture setup and schedule functions can lock access for concurrent users"
+  - Created GitHub linked branch `9-add-httpsse-transport-option-for-web-based-and-multi-client-access` via `gh issue develop`
+  - **TDD Red**: Wrote 5 lock tests (concurrent serialization, mixed calls, no deadlock during reconnection) and 6 transport/config tests
+  - **TDD Green**: Added `asyncio.Lock` to `GMA2TelnetClient.__init__()`, wrapped `send_command()` and `send_command_with_response()` with `async with self._lock`
+  - Implemented transport selection in `main()`: `MCP_TRANSPORT` env var (stdio/streamable-http), `MCP_HOST`/`MCP_PORT` for HTTP binding
+  - Updated `.env.template` with new env vars
+  - Created PR #35, merged into dev
+- Files created: `tests/test_server_transport.py` (124 lines)
+- Files modified: `src/telnet_client.py` (+lock), `src/server.py` (+transport selection), `tests/test_telnet_client.py` (+5 lock tests), `.env.template`
+
+### Issue #10: Remove main.py (PR #36)
+- **Status:** complete (merged)
+- Actions taken:
+  - Created GitHub linked branch `10-update-or-remove-mainpy-uses-deprecated-telnetlib-removed-in-python-313` via `gh issue develop`
+  - Deleted `main.py` (53 lines) -- standalone Telnet test using deprecated `telnetlib` (removed in Python 3.13)
+  - Verified `pyproject.toml` entry point (`gma2-mcp = "src.server:main"`) references MCP server, not main.py
+  - Cleaned up references in README.md, doc/findings.md, doc/task_plan.md, doc/progress.md
+  - Created PR #36, merged into dev
+- Files removed: `main.py`
+- Files modified: `README.md`, `doc/findings.md`, `doc/task_plan.md`, `doc/progress.md`
+
+## Test Results
+| Test | Input | Expected | Actual | Status |
+|------|-------|----------|--------|--------|
+| Lock serialization tests | 5 tests | 5 pass | 5 pass | ✓ |
+| Transport/config tests | 6 tests | 6 pass | 6 pass | ✓ |
+| Full suite after issue #9 | 1016 tests | 1016 pass | 1016 pass | ✓ |
+| Full suite after issue #10 | 1005 tests | 1005 pass | 1005 pass | ✓ |
+
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | All P0, P1, and P2 issues complete. Issues #1-#8, #12-#15, #19-#22 resolved. |
-| Where am I going? | P3 issues remaining: #9 (HTTP/SSE transport), #10 (update/remove main.py) |
-| What's the goal? | All critical and expanded workflow features shipped. P3 is low-priority cleanup. |
-| What have I learned? | See findings.md -- Macro creation via CLI uses Store+Assign pattern (Edit is GUI-only); Effect keywords operate on current selection; Off Effect stops programmer effects vs Stomp for executor playback; Executor page-qualified addressing is [Page].[ID]; Delete operations need /noconfirm for Telnet |
-| What have I done? | Investigation, 22 issues created/resolved, 49 MCP tools, 12 GMA2Client workflows, connection resilience, 1005 tests passing |
+| Where am I? | All P0, P1, P2, and P3 issues complete. Issues #1-#10, #12-#15, #19-#22 resolved. |
+| Where am I going? | All planned issues resolved. Project is feature-complete for the current roadmap. |
+| What's the goal? | Complete MCP server for grandMA2 with configurable transport, resilient connections, 49 tools, and comprehensive test coverage. |
+| What have I learned? | See findings.md -- FastMCP supports streamable-http natively; grandMA2 Telnet is inherently sequential so asyncio.Lock is the right approach for multi-client safety; main.py was redundant with connect.sh |
+| What have I done? | Investigation, 22 issues created/resolved, 49 MCP tools, 12 GMA2Client workflows, connection resilience, configurable transport, 1016 tests passing |
