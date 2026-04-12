@@ -48,13 +48,17 @@ from src.commands import (
     list_group as cmd_list_group,
     list_objects as cmd_list_objects,
     list_preset as cmd_list_preset,
+    list_shows as cmd_list_shows,
     list_user_var,
     list_var,
+    load_show as cmd_load_show,
+    new_show as cmd_new_show,
     off,
     on,
     pause_sequence,
     preset,
     select_fixture,
+    save_show as cmd_save_show,
     store_cue as cmd_store_cue,
     store_group,
     store_preset as cmd_store_preset,
@@ -1246,6 +1250,112 @@ async def query_object(
 
     response = await client.send_command_with_response(cmd)
     return response if response.strip() else EMPTY_RESPONSE_MSG
+
+
+# ============================================================
+# Show File Management Tools (Issue #5)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def save_show_tool(show_name: str | None = None) -> str:
+    """
+    save the current show file on the grandMA2 console.
+
+    if no name is provided, saves under the current show name.
+
+    Args:
+        show_name: name to save the show as (optional)
+
+    Returns:
+        str: confirmation message
+    """
+    client = await get_client()
+    cmd = cmd_save_show(show_name)
+    await client.send_command(cmd)
+    if show_name:
+        return f"Show saved as '{show_name}'."
+    return "Show saved successfully."
+
+
+@mcp.tool()
+@handle_connection_error
+async def load_show_tool(show_name: str, save_first: bool = False) -> str:
+    """
+    load a show file on the grandMA2 console.
+
+    WARNING: this is a DESTRUCTIVE operation. any unsaved changes to the current
+    show will be lost. set save_first=True to save the current show before loading.
+
+    Args:
+        show_name: name of the show file to load
+        save_first: if True, saves the current show before loading the new one
+
+    Returns:
+        str: confirmation message with warning about unsaved changes
+    """
+    client = await get_client()
+    if save_first:
+        await client.send_command(cmd_save_show())
+    cmd = cmd_load_show(show_name, noconfirm=True)
+    await client.send_command(cmd)
+    msg = f"Loading show '{show_name}'."
+    if not save_first:
+        msg += " WARNING: Any unsaved changes to the previous show were lost."
+    else:
+        msg += " Previous show was saved first."
+    return msg
+
+
+@mcp.tool()
+@handle_connection_error
+async def new_show_tool(show_name: str | None = None, save_first: bool = False) -> str:
+    """
+    create a new empty show on the grandMA2 console.
+
+    WARNING: this is a DESTRUCTIVE operation. any unsaved changes to the current
+    show will be lost. set save_first=True to save the current show before creating a new one.
+
+    Args:
+        show_name: name for the new show (optional)
+        save_first: if True, saves the current show before creating a new one
+
+    Returns:
+        str: confirmation message with warning about unsaved changes
+    """
+    client = await get_client()
+    if save_first:
+        await client.send_command(cmd_save_show())
+    cmd = cmd_new_show(show_name, noconfirm=True)
+    await client.send_command(cmd)
+    name_part = f" '{show_name}'" if show_name else ""
+    msg = f"Created new show{name_part}."
+    if not save_first:
+        msg += " WARNING: Any unsaved changes to the previous show were lost."
+    else:
+        msg += " Previous show was saved first."
+    return msg
+
+
+@mcp.tool()
+@handle_connection_error
+async def list_shows_tool(filter: str | None = None) -> str:
+    """
+    list available show files on the grandMA2 console.
+
+    Args:
+        filter: optional filter pattern (e.g. "Mac*" to list shows starting with Mac)
+
+    Returns:
+        str: raw console response with show file listing
+    """
+    client = await get_client()
+    cmd = cmd_list_shows(filter)
+    response = await client.send_command_with_response(cmd)
+    if not response.strip():
+        return "No show files found on the selected drive."
+    return response
 
 
 # ============================================================
