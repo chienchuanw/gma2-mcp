@@ -171,8 +171,10 @@ from .functions import (
     list_attribute,
     list_cue,
     list_group,
+    list_macro,
     list_messages,
     list_preset,
+    list_sequence_cue,
     # Info Function Keyword
     info,
     info_cue,
@@ -599,8 +601,10 @@ __all__ = [
     "list_attribute",
     "list_cue",
     "list_group",
+    "list_macro",
     "list_messages",
     "list_preset",
+    "list_sequence_cue",
     # Info Function Keyword
     "info",
     "info_cue",
