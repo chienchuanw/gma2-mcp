@@ -243,7 +243,7 @@ claude mcp add gma2 \
 
 ### MCP Tools
 
-The server exposes 24 tools:
+The server exposes 35 tools:
 
 | Tool                              | Description                                                          |
 |-----------------------------------|----------------------------------------------------------------------|
@@ -270,6 +270,17 @@ The server exposes 24 tools:
 | `label_cue_across_sequences`      | Label a cue across a range of sequences in one call                  |
 | `appearance_cue_across_sequences` | Set cue appearance across a range of sequences in one call           |
 | `execute_sequence`                | Go, pause, or goto a cue in a sequence                               |
+| `list_groups`                     | List all defined groups (returns raw console response)               |
+| `list_cues`                       | List cues in a sequence (returns raw console response)               |
+| `list_presets`                    | List presets by type with validation (returns raw console response)   |
+| `get_cue_info`                    | Get detailed info about a specific cue                               |
+| `get_group_info`                  | Get detailed info about a specific group                             |
+| `list_variables`                  | List show or user variables with optional filter                     |
+| `query_object`                    | Generic query for any MA2 object type (list or info mode)            |
+| `save_show_tool`                  | Save the current show file (optional name)                           |
+| `load_show_tool`                  | Load a show file (destructive -- warns about unsaved changes)        |
+| `new_show_tool`                   | Create a new empty show (destructive -- warns about unsaved changes) |
+| `list_shows_tool`                 | List available show files on the console                             |
 | `send_raw_command`                | Send any grandMA2 command-line instruction                           |
 
 ### Command Builder
