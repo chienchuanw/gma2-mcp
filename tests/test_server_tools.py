@@ -887,7 +887,7 @@ class TestDeleteMacroTool:
 
         result = await delete_macro_tool(macro_id=5)
 
-        client.send_command.assert_called_once_with("delete macro 1.5")
+        client.send_command.assert_called_once_with("delete macro 1.5 /noconfirm")
         assert "Macro 5" in result
 
     @pytest.mark.asyncio

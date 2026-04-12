@@ -370,6 +370,9 @@ class TestSetupExecutorPage:
         # 2 assigns + 2 labels = 4 commands
         assert result["count"] == 4
         assert "page 1" in result["summary"].lower()
+        # Verify page-qualified executor addressing
+        assert "executor 1.1" in cmds[0]
+        assert "executor 1.2" in cmds[2]
 
     @pytest.mark.asyncio
     async def test_executor_with_fader_level(self):
@@ -377,7 +380,7 @@ class TestSetupExecutorPage:
         client = GMA2Client(telnet)
 
         result = await client.setup_executor_page(
-            page=1,
+            page=2,
             assignments=[
                 {"executor_id": 1, "sequence_id": 1, "fader_level": 80},
             ],
@@ -386,6 +389,28 @@ class TestSetupExecutorPage:
         cmds = result["commands_sent"]
         # 1 assign + 1 fader = 2 commands
         assert result["count"] == 2
+        # Verify page-qualified addressing
+        assert "executor 2.1" in cmds[0]
+        assert "executor 2.1 at 80" in cmds[1]
+
+    @pytest.mark.asyncio
+    async def test_executor_page3_addressing(self):
+        """Verify page parameter is used in all executor commands."""
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.setup_executor_page(
+            page=3,
+            assignments=[
+                {"executor_id": 5, "sequence_id": 10, "label": "FX", "fader_level": 100},
+            ],
+        )
+
+        cmds = result["commands_sent"]
+        assert result["count"] == 3  # assign + label + fader
+        assert "executor 3.5" in cmds[0]  # assign
+        assert 'label executor 3.5 "FX"' == cmds[1]  # label
+        assert "executor 3.5 at 100" == cmds[2]  # fader
 
 
 class TestBatchLabel:
