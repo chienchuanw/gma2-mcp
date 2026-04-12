@@ -1,6 +1,6 @@
 # GMA2 MCP
 
-An MCP server that lets AI assistants control grandMA2 lighting consoles via Telnet. It exposes 35 high-level tools for cue management, fixture control, preset management, executor control, macro editing, appearance assignment, bulk operations, console state queries, show file management, and more through the Model Context Protocol.
+An MCP server that lets AI assistants control grandMA2 lighting consoles via Telnet. It exposes 41 high-level tools for cue management, fixture control, preset management, executor control, macro editing, appearance assignment, bulk operations, console state queries, show file management, read-back verification, music show workflows, and more through the Model Context Protocol.
 
 ## Table of Contents
 
@@ -36,15 +36,16 @@ An MCP server that lets AI assistants control grandMA2 lighting consoles via Tel
 grandMA2 consoles accept commands over Telnet, but building correct command strings requires knowledge of the MA2 syntax rules -- keyword ordering, preset type mappings, option flags, and object hierarchies. This project handles that complexity in two layers:
 
 1. **Command Builder** (`src/commands/`) -- Python functions that construct valid grandMA2 command strings following the official syntax rules. Each function is a thin wrapper that returns a string; it never touches the network.
-2. **MCP Server** (`src/server.py`) -- A FastMCP server that exposes 35 tools covering cue management, fixture control, presets, executors, global state, labeling, appearance assignment, macro editing, bulk cue operations, sequence playback, console state queries, show file management, and raw commands over stdio transport. It manages a persistent Telnet connection to the console and delegates command construction to the builder layer.
-3. **GMA2Client** (`src/gma2_client.py`) -- A high-level orchestration class that composes multiple command builder calls into workflow-level methods (e.g., build an entire cue list, set up a fixture group with a preset).
-4. **CommandSequence** (`src/command_sequence.py`) -- A builder-pattern class for composing multiple commands into an ordered batch that can be previewed and executed as a unit.
+2. **MCP Server** (`src/server.py`) -- A FastMCP server that exposes 41 tools covering cue management, fixture control, presets, executors, global state, labeling, appearance assignment, macro editing, bulk cue operations, sequence playback, console state queries, show file management, read-back verification, music show workflows, and raw commands over stdio transport. It manages a persistent Telnet connection to the console and delegates command construction to the builder layer.
+3. **Response Parser** (`src/response_parser.py`) -- Pure functions for parsing grandMA2 Telnet output (from `List` commands) into structured data. Used by read-back tools to return parsed dicts instead of raw text.
+4. **GMA2Client** (`src/gma2_client.py`) -- A high-level orchestration class that composes multiple command builder calls into workflow-level methods (e.g., build an entire cue list, set up a fixture group with a preset, create song objects for music shows).
+5. **CommandSequence** (`src/command_sequence.py`) -- A builder-pattern class for composing multiple commands into an ordered batch that can be previewed and executed as a unit.
 
 The command builder covers all grandMA2 command-line keywords organized by category: object keywords (fixtures, channels, groups, presets, cues, sequences, executors), function keywords (store, delete, copy, move, goto, label, assign, and many more), and helping keywords (thru, at, +).
 
 ## Features
 
-- **35 MCP tools** -- Cue management (store/delete/goto, CMD assignment), fixture control (set values, set attributes, clear programmer), preset management (store/apply), executor control (on/off/go/kill/toggle, fader level, sequence assignment), global state (blackout, highlight), object labeling (generic + sequence-scoped cue labeling), appearance assignment (RGB, HSB, hex, source copy), macro line editing, bulk cue operations across sequence ranges (store, label, appearance), sequence playback, console state queries (list groups/cues/presets/variables, read object annotations, generic object query), show file management (save/load/new/list shows), and raw command execution.
+- **41 MCP tools** -- Cue management (store/delete/goto, CMD assignment), fixture control (set values, set attributes, clear programmer), preset management (store/apply), executor control (on/off/go/kill/toggle, fader level, sequence assignment), global state (blackout, highlight), object labeling (generic + sequence-scoped cue labeling), appearance assignment (RGB, HSB, hex, source copy), macro line editing, bulk cue operations across sequence ranges (store, label, appearance), sequence playback, console state queries (list groups/cues/presets/variables, read object annotations, generic object query), show file management (save/load/new/list shows), read-back verification (read macro lines, cue info, object labels with structured parsing), music show workflows (create song objects, setup song macros, build set lists), and raw command execution.
 - **Destructive command safety warnings** -- Delete tools include informational warnings about downstream effects (orphaned executor handles, lost cue programming) to help AI assistants understand impact before confirming.
 - **Complete command builder** -- Over 200 Python functions covering all grandMA2 command-line keywords across 30+ modules, each returning a correctly formatted command string.
 - **High-level client** -- `GMA2Client` provides workflow-level methods: build cue lists, set up fixture groups with presets, quick look programming, batch executor assignments. Uses grandMA2's inline naming syntax to minimize Telnet round-trips.
@@ -257,7 +258,7 @@ claude mcp add gma2 \
 
 ### MCP Tools
 
-The server exposes 35 tools:
+The server exposes 41 tools:
 
 | Tool                              | Description                                                          |
 |-----------------------------------|----------------------------------------------------------------------|
@@ -308,6 +309,12 @@ The server exposes 35 tools:
 | `load_show_tool`                  | Load a show file (destructive -- warns about unsaved changes)        |
 | `new_show_tool`                   | Create a new empty show (destructive -- warns about unsaved changes) |
 | `list_shows_tool`                 | List available show files on the console                             |
+| `read_macro_lines`                | Read macro line content (parsed into structured data)                |
+| `read_cue_info`                   | Read cue properties: label, CMD, fade (parsed)                       |
+| `read_object_label`              | Read the label of any pool object (sequence, page, macro, etc.)      |
+| `create_song_objects`             | Create and label a Sequence + Page pair for a song                   |
+| `setup_song_macro`                | Create a macro with SetVar command for song variable assignment       |
+| `build_set_list`                  | Build a set-list sequence with cue-to-macro links                    |
 | `send_raw_command`                | Send any grandMA2 command-line instruction                           |
 
 #### Query / Introspection Tools
@@ -327,6 +334,22 @@ All query tools return a descriptive message instead of an empty string when the
 - **`load_show_tool`** -- Loads a show file by name. This is a destructive operation: unsaved changes to the current show are lost. Accepts `save_first=True` to save the current show before loading. Uses `/noconfirm` to suppress the GUI popup.
 - **`new_show_tool`** -- Creates a new empty show. Same destructive behavior and `save_first` option as `load_show_tool`.
 - **`list_shows_tool`** -- Lists available show files on the console's selected drive. Accepts an optional filter pattern.
+
+#### Read-Back Tools
+
+The read-back tools use `send_command_with_response()` to capture grandMA2 `List` command output and parse it into structured dicts via `src/response_parser.py`. Each tool returns a dict with parsed fields plus a `raw_response` field for debugging. If the response format is unrecognized, the tools return `parsed: False` with the raw output.
+
+- **`read_macro_lines`** -- Sends `List Macro {pool}.{id}` and parses each line's number and CMD content. Returns `{"macro_id": N, "parsed": True, "lines": [{"line_number": 1, "cmd": "..."}], "raw_response": "..."}`.
+- **`read_cue_info`** -- Sends `List Cue {id} Sequence {seq}` and extracts label, CMD, and fade time. Returns `{"sequence_id": N, "cue_id": N, "label": "...", "cmd": "...", "fade": "...", "raw_response": "..."}`.
+- **`read_object_label`** -- Sends `List {type} {id}` and extracts the object's name/label. Works with any pool object type (sequence, page, group, etc.). For macros, the `object_id` must be pool-qualified (e.g., `"1.5"` for Macro 5 in Pool 1).
+
+#### Music Show Workflow Tools
+
+High-level tools that automate common multi-step patterns for music show programming. These delegate to `GMA2Client` workflow methods.
+
+- **`create_song_objects`** -- Creates and labels a Sequence + Page pair with the same ID and name. This is the standard pattern for per-song programming (e.g., `create_song_objects(song_id=101, song_name="Opening+Childhood")` sends 2 commands).
+- **`setup_song_macro`** -- Creates a labeled macro with a `SetVar` command on line 1 for tracking the current song. Accepts an optional `var_name` (default: `$song`). Sends 3 commands: store macro, label, assign CMD.
+- **`build_set_list`** -- Creates a set-list sequence with cues linked to song macros. For each song, stores a cue with the song name as label and assigns `Macro {id}` as the cue CMD. Accepts a list of `{cue_id, macro_id, name}` dicts.
 
 `delete_show` is intentionally not exposed as an MCP tool -- it is irreversible and too dangerous for AI-initiated operations. The `Backup` command is also excluded because it opens a GUI menu on the console (per grandMA2 Manual p368), which is not functional over Telnet. Use `save_show_tool` with a specific name as the practical backup mechanism.
 
@@ -395,6 +418,22 @@ async with GMA2Client.create("192.168.1.100") as client:
     await client.create_and_run_macro(
         macro_id=10, commands=["Go Sequence 1", "Go Sequence 2"],
         name="Start Show", run=True,
+    )
+
+    # Music show workflows: create song objects (sequence + page pair)
+    await client.create_song_objects(song_id=101, song_name="Opening+Childhood")
+
+    # Set up a song macro with SetVar on line 1
+    await client.setup_song_macro(macro_id=101, song_name="Opening+Childhood")
+
+    # Build a full set list with cue-to-macro links
+    await client.build_set_list(
+        sequence_id=100, sequence_name="Set List",
+        songs=[
+            {"cue_id": 1, "macro_id": 101, "name": "Opening+Childhood"},
+            {"cue_id": 2, "macro_id": 102, "name": "Nostalgia"},
+            {"cue_id": 3, "macro_id": 103, "name": "Finale"},
+        ],
     )
 ```
 
@@ -613,8 +652,9 @@ gma2-mcp/
 │   │       ├── values.py           # At and value setting
 │   │       └── variables.py        # Variable functions
 │   ├── command_sequence.py     # CommandSequence for multi-command batching
-│   ├── gma2_client.py          # High-level workflow orchestration client
-│   ├── server.py               # MCP server (FastMCP, configurable stdio/streamable-http transport)
+│   ├── gma2_client.py          # High-level workflow orchestration client (15 methods)
+│   ├── response_parser.py      # Parse grandMA2 Telnet output into structured data
+│   ├── server.py               # MCP server (FastMCP, 41 tools, configurable stdio/streamable-http transport)
 │   └── telnet_client.py        # Async Telnet client with health check, auto-reconnect, command lock, state tracking
 ├── tests/                      # Pytest test suite (one file per module)
 ├── doc/                        # grandMA2 user manual (PDF)
@@ -656,12 +696,13 @@ uv run pytest tests/test_playback.py -v
 
 ### Architecture
 
-The project has four layers:
+The project has five layers:
 
 1. **Telnet Client** (`src/telnet_client.py`) -- Low-level async Telnet communication with the console. Includes `ConnectionState` tracking (DISCONNECTED/CONNECTING/CONNECTED/RECONNECTING), health check probing, auto-reconnection with bounded exponential backoff (configurable retries and delay), health check TTL to skip redundant probes during rapid command sequences, `asyncio.Lock`-based command serialization for concurrent access safety, and graceful shutdown via the server lifespan hook.
 2. **Command Builder** (`src/commands/`) -- Pure functions that construct command strings. No network access.
-3. **Orchestration** (`src/gma2_client.py`, `src/command_sequence.py`) -- High-level workflow methods and command batching that compose builders + telnet.
-4. **MCP Server** (`src/server.py`) -- FastMCP server that exposes tools over configurable transport (`stdio` or `streamable-http`), connecting the builder to the Telnet client.
+3. **Response Parser** (`src/response_parser.py`) -- Pure functions that parse grandMA2 Telnet `List` command output into structured dicts. Returns `parsed: False` on unrecognized formats.
+4. **Orchestration** (`src/gma2_client.py`, `src/command_sequence.py`) -- High-level workflow methods (15 methods including music show workflows) and command batching that compose builders + telnet.
+5. **MCP Server** (`src/server.py`) -- FastMCP server that exposes 41 tools over configurable transport (`stdio` or `streamable-http`), connecting the builder to the Telnet client.
 
 All console communication goes through the Telnet client layer.
 

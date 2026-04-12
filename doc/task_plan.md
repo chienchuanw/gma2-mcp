@@ -4,7 +4,7 @@
 Investigate, prioritize, and implement improvements to the gma2-mcp project -- an MCP server that enables AI assistants to control grandMA2 lighting consoles via Telnet.
 
 ## Current Phase
-Phase 8 (Issues #9, #10 complete -- all P0, P1, P2, and P3 issues resolved)
+Phase 9 (Issues #16, #17 complete -- read-back tools and music show workflows added)
 
 ## Phases
 
@@ -50,11 +50,16 @@ Phase 8 (Issues #9, #10 complete -- all P0, P1, P2, and P3 issues resolved)
 - [x] Issue #10: Remove main.py using deprecated telnetlib (PR #36, 1005 tests passing)
 - **Status:** complete
 
+### Phase 7: Read-Back & Music Show Workflows
+- [x] Issue #16: Add read-back tools for show object fields (PR #37, TDD, 1043 tests passing)
+- [x] Issue #17: Add music show workflow tools (PR #38, TDD, 1028 tests passing)
+- **Status:** complete
+
 ## Key Questions
 1. How many command builder functions exist? **200+ across 30+ modules (8,316 total lines)**
-2. How many MCP tools are exposed? **49 tools** (was 35, +6 macro tools from #6, +8 effect tools from #7)
+2. How many MCP tools are exposed? **55 tools** (was 49, +3 read-back tools from #16, +3 workflow tools from #17)
 3. What transport does the MCP server use? **stdio (default) or streamable-http** (configurable via `MCP_TRANSPORT` env var)
-4. What is the test coverage? **1016 test cases across 57 test files** (was 1005, +11 tests from #9)
+4. What is the test coverage? **1055 test cases across 56 test files** (was 1016, +39 tests from #16/#17)
 5. Is there a legacy tools module? **No -- `src/tools.py` was removed in issue #3 (PR #30). All tools are in `src/server.py`.**
 
 ## Decisions Made
@@ -92,9 +97,11 @@ Phase 8 (Issues #9, #10 complete -- all P0, P1, P2, and P3 issues resolved)
 | 20 | P2 | Add appearance assignment MCP tool | Fixed (PR #27) |
 | 21 | P2 | Add destructive command safety warnings | Fixed (PR #28) |
 | 22 | P2 | Add bulk cue operations across sequence ranges | Fixed (PR #29) |
+| 16 | P2 | Add read-back tools for show object fields | Fixed (PR #37) |
+| 17 | P2 | Add music show workflow tools | Fixed (PR #38) |
 
 ## Notes
-- All P0, P1, P2, and P3 issues resolved (issues #1-#10, #12-#15, #19-#22). No remaining issues.
+- All P0, P1, P2, and P3 issues resolved (issues #1-#10, #12-#17, #19-#22). No remaining issues.
 - Uses `uv` as package manager with Python 3.12
 - grandMA2 manual PDF is stored at `doc/2024-09-30_grandMA2_User_Manual_v3-9.pdf`
 - OpenSpec change artifacts archived at `openspec/changes/archive/`
@@ -104,4 +111,7 @@ Phase 8 (Issues #9, #10 complete -- all P0, P1, P2, and P3 issues resolved)
 - Executor page-qualified addressing: `Executor [Page].[ID]` format per manual p.456
 - Macro creation via Telnet: `Store Macro N` + `Assign Macro pool.id.line /cmd="..."` (Edit workflow is GUI-only)
 - Effect keywords operate on current fixture selection -- user must select fixtures first
+- grandMA2 `List` keyword returns tabular text over Telnet -- format is undocumented, parser uses defensive regex with `parsed: False` fallback
+- Lua API (`gma.show.property.get`) is console-internal only, not accessible over Telnet -- `List` command is the viable read-back mechanism
+- Music show workflow pattern: Sequence+Page pairs per song, Macro with SetVar on line 1, Set-list sequence with cue-to-macro CMD links
 - `Off Effect` stops effects in programmer; `Stomp` is for executor-level assertive playback (different concept)

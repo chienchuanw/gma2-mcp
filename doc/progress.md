@@ -300,11 +300,55 @@
 | Full suite after issue #9 | 1016 tests | 1016 pass | 1016 pass | ✓ |
 | Full suite after issue #10 | 1005 tests | 1005 pass | 1005 pass | ✓ |
 
+## Session: 2026-04-13 (Session 10 -- Issues #16, #17: Read-Back & Music Show Workflows)
+
+### Issue #16: Add read-back tools for show object fields (PR #37)
+- **Status:** complete (merged)
+- Actions taken:
+  - Created OpenSpec change `issues-16-17-readback-and-workflow-tools` with proposal, design, 2 specs, and tasks (29 items, TDD plan)
+  - Researched grandMA2 official docs: `List` keyword (displays show data in feedback window, works over Telnet), `Info` keyword (user annotations), Telnet Remote (any local command works over Telnet on port 30000)
+  - Confirmed Lua API (`gma.show.property.get`) is console-internal only -- `List` over Telnet is the viable approach
+  - Created GitHub linked branch `16-feat-add-read-back-tools-for-show-object-fields` via `gh issue develop`
+  - **TDD**: Wrote tests first for all 3 layers: command builders, response parser, MCP tools
+  - Added `list_macro(macro_id, pool)` and `list_sequence_cue(sequence_id, cue_id)` command builders
+  - Created `src/response_parser.py` with `parse_macro_lines()`, `parse_cue_info()`, `parse_object_label()` -- all return `parsed: False` on unrecognized format
+  - Added 3 MCP tools: `read_macro_lines`, `read_cue_info`, `read_object_label` using `send_command_with_response()` + response parser
+  - Code review caught 3 issues: (1) `info_preset` docstring wrong (color=4 not 2); (2) `cue_id` missing float type for fractional cues; (3) `read_object_label` needs macro pool-qualified ID note. All fixed.
+  - Created PR #37, merged into dev
+- Files created: `src/response_parser.py` (150 lines), `tests/test_response_parser.py` (180 lines), `tests/test_server_readback.py` (149 lines)
+- Files modified: `src/commands/functions/info.py` (+45 lines: 2 builders + type fixes), `src/commands/__init__.py` (+4 exports), `src/server.py` (+80 lines: 3 tools)
+
+### Issue #17: Add music show workflow tools (PR #38)
+- **Status:** complete (merged)
+- Actions taken:
+  - Created GitHub linked branch `17-feat-add-music-show-workflow-tools` via `gh issue develop`
+  - Implemented in parallel with issue #16 using worktree agents
+  - **TDD**: Wrote tests first for GMA2Client methods and MCP tools
+  - Added 3 `GMA2Client` methods: `create_song_objects()`, `setup_song_macro()`, `build_set_list()`
+  - Added 3 MCP tools delegating to GMA2Client (matching existing bulk tool pattern)
+  - Code review caught 1 issue: MCP tools bypassed GMA2Client, calling send_command directly (duplicated logic). Refactored to delegate to GMA2Client methods.
+  - Created PR #38, merged into dev
+- Files created: `tests/test_server_workflows.py` (122 lines)
+- Files modified: `src/gma2_client.py` (+95 lines: 3 methods), `src/server.py` (+106 lines: 3 tools)
+
+### Documentation & Archive
+- Synced 2 delta specs to main `openspec/specs/` (show-object-readback, music-show-workflows)
+- Archived OpenSpec change to `openspec/changes/archive/2026-04-13-issues-16-17-readback-and-workflow-tools/`
+- Updated README (35→41 tools, new sections for read-back and workflow tools, response parser layer)
+- Updated doc/task_plan.md, doc/progress.md, doc/findings.md
+
+## Test Results
+| Test | Input | Expected | Actual | Status |
+|------|-------|----------|--------|--------|
+| Issue #16 full suite | 1043 tests | 1043 pass | 1043 pass | pass |
+| Issue #17 full suite | 1028 tests | 1028 pass | 1028 pass | pass |
+| Combined after merge | 1055 tests | 1055 pass | 1055 pass | pass |
+
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | All P0, P1, P2, and P3 issues complete. Issues #1-#10, #12-#15, #19-#22 resolved. |
+| Where am I? | All P0, P1, P2, and P3 issues complete. Issues #1-#10, #12-#17, #19-#22 resolved. |
 | Where am I going? | All planned issues resolved. Project is feature-complete for the current roadmap. |
-| What's the goal? | Complete MCP server for grandMA2 with configurable transport, resilient connections, 49 tools, and comprehensive test coverage. |
-| What have I learned? | See findings.md -- FastMCP supports streamable-http natively; grandMA2 Telnet is inherently sequential so asyncio.Lock is the right approach for multi-client safety; main.py was redundant with connect.sh |
-| What have I done? | Investigation, 22 issues created/resolved, 49 MCP tools, 12 GMA2Client workflows, connection resilience, configurable transport, 1016 tests passing |
+| What's the goal? | Complete MCP server for grandMA2 with configurable transport, resilient connections, 41 tools, read-back verification, music show workflows, and comprehensive test coverage. |
+| What have I learned? | grandMA2 List command works over Telnet for read-back; Lua API is console-internal only; response format is undocumented so parser needs defensive fallbacks; music show patterns (song objects, SetVar macros, set-list sequences) are highly repeatable and benefit from dedicated tools |
+| What have I done? | Investigation, 24 issues created/resolved, 55 MCP tools, 15 GMA2Client workflows, response parser, connection resilience, configurable transport, 1055 tests passing |

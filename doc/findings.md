@@ -14,9 +14,10 @@
 ## Architecture (4 Layers)
 
 ```
-Layer 4: MCP Server         (src/server.py)         -- FastMCP, 49 tools, stdio/streamable-http transport
-Layer 3: Orchestration      (src/gma2_client.py,     -- GMA2Client 12 workflows, CommandSequence batching
+Layer 5: MCP Server         (src/server.py)         -- FastMCP, 41 tools, stdio/streamable-http transport
+Layer 4: Orchestration      (src/gma2_client.py,     -- GMA2Client 15 workflows, CommandSequence batching
                              src/command_sequence.py)
+Layer 3: Response Parser    (src/response_parser.py) -- Parse Telnet List output into structured dicts
 Layer 2: Command Builder    (src/commands/)          -- 200+ pure functions, returns command strings
 Layer 1: Telnet Client      (src/telnet_client.py)   -- Async Telnet via telnetlib3
 ```
