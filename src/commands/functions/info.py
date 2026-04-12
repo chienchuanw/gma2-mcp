@@ -90,7 +90,7 @@ def list_objects(
 
 
 def list_cue(
-    cue_id: int | str | None = None,
+    cue_id: int | float | str | None = None,
     *,
     end: int | None = None,
     sequence_id: int | None = None,
@@ -366,7 +366,7 @@ def info_group(
 
 
 def info_cue(
-    cue_id: int | str,
+    cue_id: int | float | str,
     *,
     sequence_id: int | None = None,
     end: int | str | None = None,
@@ -432,7 +432,7 @@ def info_preset(
 
     Examples:
         >>> info_preset("color", 1)
-        'info preset 2.1'
+        'info preset 4.1'
         >>> info_preset(4, 5, text="deep blue")
         'info preset 4.5 "deep blue"'
     """
