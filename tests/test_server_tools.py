@@ -765,6 +765,326 @@ class TestSetCueCmdTool:
         assert "Cue 5" in result
 
 
+class TestRunMacroTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_run_macro_default_pool(self, mock_get):
+        from src.server import run_macro
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await run_macro(macro_id=5)
+
+        client.send_command.assert_called_once_with("go+ macro 1.5")
+        assert "Macro 5" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_run_macro_custom_pool(self, mock_get):
+        from src.server import run_macro
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await run_macro(macro_id=10, pool=2)
+
+        client.send_command.assert_called_once_with("go+ macro 2.10")
+        assert "10" in result
+
+
+class TestCreateMacroTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_create_macro_with_commands(self, mock_get):
+        from src.server import create_macro
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await create_macro(
+            macro_id=10, commands=["Go Sequence 1", "Go Sequence 2"]
+        )
+
+        calls = [c[0][0] for c in client.send_command.call_args_list]
+        assert calls[0] == "store macro 10"
+        assert calls[1] == 'assign macro 1.10.1 /cmd="Go Sequence 1"'
+        assert calls[2] == 'assign macro 1.10.2 /cmd="Go Sequence 2"'
+        assert "2 lines" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_create_macro_with_name(self, mock_get):
+        from src.server import create_macro
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await create_macro(
+            macro_id=10, commands=["Go Sequence 1"], name="Start Show"
+        )
+
+        calls = [c[0][0] for c in client.send_command.call_args_list]
+        assert calls[0] == "store macro 10"
+        assert calls[1] == 'assign macro 1.10.1 /cmd="Go Sequence 1"'
+        assert calls[2] == 'label macro 10 "Start Show"'
+        assert "Start Show" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_create_macro_empty_commands(self, mock_get):
+        from src.server import create_macro
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await create_macro(macro_id=10, commands=[])
+
+        client.send_command.assert_not_called()
+        assert "at least one command" in result.lower()
+
+
+class TestLabelMacroTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_label_macro(self, mock_get):
+        from src.server import label_macro_tool
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await label_macro_tool(macro_id=5, name="Blackout All")
+
+        client.send_command.assert_called_once_with('label macro 5 "Blackout All"')
+        assert "Macro 5" in result
+        assert "Blackout All" in result
+
+
+class TestListMacrosTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_list_macros(self, mock_get):
+        from src.server import list_macros
+
+        client = _mock_client()
+        client.send_command_with_response = AsyncMock(return_value="Macro 1: Test")
+        mock_get.return_value = client
+
+        result = await list_macros()
+
+        client.send_command_with_response.assert_called_once()
+        assert "Macro 1: Test" in result
+
+
+class TestDeleteMacroTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_delete_macro(self, mock_get):
+        from src.server import delete_macro_tool
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await delete_macro_tool(macro_id=5)
+
+        client.send_command.assert_called_once_with("delete macro 1.5")
+        assert "Macro 5" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_delete_macro_includes_warnings(self, mock_get):
+        from src.server import delete_macro_tool
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await delete_macro_tool(macro_id=5)
+
+        assert "⚠ Warnings:" in result
+
+
+class TestApplyEffectTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_apply_effect(self, mock_get):
+        from src.server import apply_effect
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await apply_effect(effect_id=5)
+
+        client.send_command.assert_called_once_with("effect 5")
+        assert "Effect 5" in result
+
+
+class TestSetEffectSpeedTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_speed_bpm(self, mock_get):
+        from src.server import set_effect_speed
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_effect_speed(value=120, unit="bpm")
+
+        client.send_command.assert_called_once_with("effectbpm 120")
+        assert "120" in result
+        assert "BPM" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_speed_hz(self, mock_get):
+        from src.server import set_effect_speed
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_effect_speed(value=2.5, unit="hz")
+
+        client.send_command.assert_called_once_with("effecthz 2.5")
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_speed_invalid_unit(self, mock_get):
+        from src.server import set_effect_speed
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_effect_speed(value=120, unit="mph")
+
+        client.send_command.assert_not_called()
+        assert "bpm" in result.lower()
+        assert "hz" in result.lower()
+
+
+class TestSetEffectFormTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_set_form_string(self, mock_get):
+        from src.server import set_effect_form
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_effect_form(form="sin")
+
+        client.send_command.assert_called_once_with("effectform sin")
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_set_form_number(self, mock_get):
+        from src.server import set_effect_form
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_effect_form(form="6")
+
+        client.send_command.assert_called_once_with("effectform 6")
+
+
+class TestSetEffectRangeTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_set_both_high_and_low(self, mock_get):
+        from src.server import set_effect_range
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_effect_range(high=100, low=0)
+
+        calls = [c[0][0] for c in client.send_command.call_args_list]
+        assert "effecthigh 100" in calls
+        assert "effectlow 0" in calls
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_set_only_high(self, mock_get):
+        from src.server import set_effect_range
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_effect_range(high=80)
+
+        client.send_command.assert_called_once_with("effecthigh 80")
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_neither_provided(self, mock_get):
+        from src.server import set_effect_range
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_effect_range()
+
+        client.send_command.assert_not_called()
+        assert "at least one" in result.lower()
+
+
+class TestSetEffectPhaseTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_set_phase(self, mock_get):
+        from src.server import set_effect_phase
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_effect_phase(phase=180)
+
+        client.send_command.assert_called_once_with("effectphase 180")
+
+
+class TestSetEffectWidthTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_set_width(self, mock_get):
+        from src.server import set_effect_width
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await set_effect_width(width=50)
+
+        client.send_command.assert_called_once_with("effectwidth 50")
+
+
+class TestStopEffectsTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_stop_effects(self, mock_get):
+        from src.server import stop_effects
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await stop_effects()
+
+        client.send_command.assert_called_once_with("off effect")
+        assert "stop" in result.lower() or "off" in result.lower()
+
+
+class TestSyncEffectsTool:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sync_effects(self, mock_get):
+        from src.server import sync_effects_tool
+
+        client = _mock_client()
+        mock_get.return_value = client
+
+        result = await sync_effects_tool()
+
+        client.send_command.assert_called_once_with("synceffects")
+        assert "sync" in result.lower()
+
+
 class TestGracefulShutdown:
     @pytest.mark.asyncio
     async def test_lifespan_disconnects_on_exit(self):

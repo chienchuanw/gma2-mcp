@@ -265,6 +265,19 @@ The server exposes 35 tools:
 | `label_sequence_cue`              | Label a cue within a specific sequence                               |
 | `assign_appearance`               | Set frame/background colors on pool objects and cues (RGB/HSB/hex)   |
 | `set_macro_line`                  | Set the command for a specific macro line                            |
+| `run_macro`                       | Execute a macro by ID (Go+ Macro)                                    |
+| `create_macro`                    | Create a macro with command lines (store + assign lines + label)     |
+| `label_macro_tool`                | Label a macro in the macro pool                                      |
+| `list_macros`                     | List macros in the macro pool                                        |
+| `delete_macro_tool`               | Delete a macro (with destructive operation warnings)                 |
+| `apply_effect`                    | Apply effect from pool to current fixture selection                  |
+| `set_effect_speed`                | Set effect speed in BPM or Hz                                        |
+| `set_effect_form`                 | Set effect waveform (sine, ramp, square, etc.)                       |
+| `set_effect_range`                | Set effect high and/or low values                                    |
+| `set_effect_phase`                | Set effect phase offset in degrees                                   |
+| `set_effect_width`                | Set effect width (percentage of cycle)                               |
+| `stop_effects`                    | Stop running effects for current selection (Off Effect)              |
+| `sync_effects_tool`               | Synchronize all running effects                                      |
 | `set_cue_cmd`                     | Assign a command to a cue's CMD field                                |
 | `store_cue_across_sequences`      | Store a cue across a range of sequences in one call                  |
 | `label_cue_across_sequences`      | Label a cue across a range of sequences in one call                  |
@@ -346,6 +359,29 @@ async with GMA2Client.create("192.168.1.100") as client:
 
     # Batch assign sequences to executors
     await client.assign_sequences_to_executors([(1, 1), (2, 2), (3, 3)])
+
+    # Clone fixture programming (with /noconfirm for telnet)
+    await client.clone_fixtures(source_fixture=1, target_fixture=11,
+                                source_end=5, target_end=15, mode="overwrite")
+
+    # Apply effect to a group with parameters
+    await client.setup_effect_on_group(group_id=1, effect_id=5,
+                                       bpm=120, form="sin", high=100, low=0)
+
+    # Set up a full executor page
+    await client.setup_executor_page(page=1, assignments=[
+        {"executor_id": 1, "sequence_id": 1, "label": "Wash", "fader_level": 80},
+        {"executor_id": 2, "sequence_id": 2, "label": "Spots"},
+    ])
+
+    # Label multiple objects at once
+    await client.batch_label("group", {1: "Wash", 2: "Spots", 3: "Beams"})
+
+    # Create and optionally run a macro
+    await client.create_and_run_macro(
+        macro_id=10, commands=["Go Sequence 1", "Go Sequence 2"],
+        name="Start Show", run=True,
+    )
 ```
 
 ### CommandSequence (Command Chaining)
