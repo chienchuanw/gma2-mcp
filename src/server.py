@@ -1105,7 +1105,6 @@ async def list_cues(
 async def list_presets(
     preset_type: str,
     preset_id: int | None = None,
-    end_preset_id: int | None = None,
 ) -> str:
     """
     list presets of a given type on the grandMA2 console.
@@ -1115,7 +1114,6 @@ async def list_presets(
     Args:
         preset_type: type of preset (e.g. "color", "position", "dimmer")
         preset_id: specific preset ID (optional)
-        end_preset_id: end preset ID for range (optional)
 
     Returns:
         str: raw console response with preset listing
@@ -1135,18 +1133,25 @@ async def list_presets(
 
 @mcp.tool()
 @handle_connection_error
-async def get_cue_info(
+async def get_cue_annotation(
     cue_id: int | float, sequence_id: int | None = None
 ) -> str:
     """
-    get detailed info about a specific cue on the grandMA2 console.
+    read the user-added annotation text on a cue.
+
+    in grandMA2, the Info keyword reads or writes user-added descriptive text
+    annotations on objects. this tool reads the annotation. if no annotation has
+    been set on the cue, the response will be empty.
+
+    note: this does NOT return cue properties (fade time, values, etc.).
+    to see cue properties, use list_cues with a specific cue_id instead.
 
     Args:
-        cue_id: cue ID to query
+        cue_id: cue ID to read annotation from
         sequence_id: sequence containing the cue (optional)
 
     Returns:
-        str: raw console response with cue details
+        str: the user annotation text, or empty response message if none set
     """
     client = await get_client()
     cmd = cmd_info_cue(cue_id, sequence_id=sequence_id)
@@ -1156,15 +1161,22 @@ async def get_cue_info(
 
 @mcp.tool()
 @handle_connection_error
-async def get_group_info(group_id: int) -> str:
+async def get_group_annotation(group_id: int) -> str:
     """
-    get detailed info about a specific group on the grandMA2 console.
+    read the user-added annotation text on a group.
+
+    in grandMA2, the Info keyword reads or writes user-added descriptive text
+    annotations on objects. this tool reads the annotation. if no annotation has
+    been set on the group, the response will be empty.
+
+    note: this does NOT return group composition or fixture details.
+    to see group details, use list_groups with a specific group_id instead.
 
     Args:
-        group_id: group ID to query
+        group_id: group ID to read annotation from
 
     Returns:
-        str: raw console response with group details
+        str: the user annotation text, or empty response message if none set
     """
     client = await get_client()
     cmd = cmd_info_group(group_id)
@@ -1218,15 +1230,16 @@ async def query_object(
     Args:
         object_type: MA2 object type (e.g. "executor", "sequence", "effect", "macro")
         object_id: object ID to query (optional)
-        mode: "list" to list objects, "info" to get detailed info (default: "list")
+        mode: "list" to list objects, "annotation" to read user-added text annotation (default: "list").
+              note: "annotation" mode reads user-added descriptive text, NOT object properties.
 
     Returns:
         str: raw console response
     """
     client = await get_client()
-    if mode == "info":
+    if mode == "annotation":
         if object_id is None:
-            return "object_id is required when using info mode."
+            return "object_id is required when using annotation mode."
         cmd = cmd_info(object_type, object_id)
     else:
         cmd = cmd_list_objects(object_type, object_id)
