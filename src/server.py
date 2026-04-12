@@ -1808,14 +1808,18 @@ async def read_cue_info(sequence_id: int, cue_id: int | str) -> dict:
 
 @mcp.tool()
 @handle_connection_error
-async def read_object_label(object_type: str, object_id: int) -> dict:
+async def read_object_label(object_type: str, object_id: int | str) -> dict:
     """Read the label/name of any grandMA2 show object.
 
     Uses the generic list command to retrieve an object's name field.
 
+    Note: For macros, object_id must be pool-qualified (e.g., "1.5" for
+    Macro 5 in Pool 1) since grandMA2 addresses macros as pool.id.
+    For most other object types, a plain integer ID is sufficient.
+
     Args:
-        object_type: Object type (e.g., "group", "sequence", "macro")
-        object_id: Object ID
+        object_type: Object type (e.g., "group", "sequence", "macro", "page")
+        object_id: Object ID (int for most types, or "pool.id" string for macros)
 
     Returns:
         dict with parsed label and raw response
