@@ -4,7 +4,7 @@
 Investigate, prioritize, and implement improvements to the gma2-mcp project -- an MCP server that enables AI assistants to control grandMA2 lighting consoles via Telnet.
 
 ## Current Phase
-Phase 6 (Issues #4, #5 complete -- all P0 and P1 issues resolved)
+Phase 7 (Issues #6, #7, #8 complete -- all P0, P1, and P2 issues resolved)
 
 ## Phases
 
@@ -40,16 +40,16 @@ Phase 6 (Issues #4, #5 complete -- all P0 and P1 issues resolved)
 - [x] Issue #20: Add appearance assignment MCP tool (PR #27)
 - [x] Issue #21: Add destructive command safety warnings (PR #28)
 - [x] Issue #22: Add bulk cue operations across sequence ranges (PR #29)
-- [ ] Issue #6: Macro management MCP tools
-- [ ] Issue #7: Effect/chaser MCP tools
-- [ ] Issue #8: Expand GMA2Client workflows
-- **Status:** in_progress
+- [x] Issue #6: Macro management MCP tools (PR #34)
+- [x] Issue #7: Effect/chaser MCP tools (PR #34)
+- [x] Issue #8: Expand GMA2Client workflows (PR #34)
+- **Status:** complete
 
 ## Key Questions
 1. How many command builder functions exist? **200+ across 30+ modules (8,316 total lines)**
-2. How many MCP tools are exposed? **35 tools** (was 24, +7 query/introspection tools from #4, +4 show management tools from #5)
+2. How many MCP tools are exposed? **49 tools** (was 35, +6 macro tools from #6, +8 effect tools from #7)
 3. What transport does the MCP server use? **stdio**
-4. What is the test coverage? **965 test cases across 52 test files** (was ~884, +60 query tests from #4, +28 show management tests from #5, -7 adjusted)
+4. What is the test coverage? **1005 test cases across 55 test files** (was 965, +44 tests from #6/#7/#8)
 5. Is there a legacy tools module? **No -- `src/tools.py` was removed in issue #3 (PR #30). All tools are in `src/server.py`.**
 
 ## Decisions Made
@@ -74,9 +74,9 @@ Phase 6 (Issues #4, #5 complete -- all P0 and P1 issues resolved)
 | 3 | P0 | Clean up legacy src/tools.py | Fixed (PR #30) |
 | 4 | P1 | Query/introspection MCP tools | Fixed (PR #32) |
 | 5 | P1 | Show file management MCP tools | Fixed (PR #33) |
-| 6 | P2 | Macro management MCP tools | Open |
-| 7 | P2 | Effect/chaser MCP tools | Open |
-| 8 | P2 | Expand GMA2Client workflows | Open |
+| 6 | P2 | Macro management MCP tools | Fixed (PR #34) |
+| 7 | P2 | Effect/chaser MCP tools | Fixed (PR #34) |
+| 8 | P2 | Expand GMA2Client workflows | Fixed (PR #34) |
 | 9 | P3 | HTTP/SSE transport | Open |
 | 10 | P3 | Update/remove main.py | Open |
 | 12 | P1 | Combine store + label into single commands (perf) | Fixed (PR #18) |
@@ -89,10 +89,14 @@ Phase 6 (Issues #4, #5 complete -- all P0 and P1 issues resolved)
 | 22 | P2 | Add bulk cue operations across sequence ranges | Fixed (PR #29) |
 
 ## Notes
-- All P0 and P1 issues resolved (issues #1-#5). Next: P2 issues (#6, #7, #8).
+- All P0, P1, and P2 issues resolved (issues #1-#8, #12-#15, #19-#22). Remaining: P3 issues (#9, #10).
 - Uses `uv` as package manager with Python 3.12
 - grandMA2 manual PDF is stored at `doc/2024-09-30_grandMA2_User_Manual_v3-9.pdf`
 - OpenSpec change artifacts archived at `openspec/changes/archive/`
 - grandMA2 `Info` keyword reads user annotations, not object properties -- tools renamed accordingly
 - `Backup` command opens GUI menu, not functional over Telnet -- excluded from MCP tools
-- `SaveShow`/`LoadShow`/`NewShow` require `/noconfirm` for Telnet to avoid GUI popup blocking
+- `SaveShow`/`LoadShow`/`NewShow`/`Delete Macro` require `/noconfirm` for Telnet to avoid GUI popup blocking
+- Executor page-qualified addressing: `Executor [Page].[ID]` format per manual p.456
+- Macro creation via Telnet: `Store Macro N` + `Assign Macro pool.id.line /cmd="..."` (Edit workflow is GUI-only)
+- Effect keywords operate on current fixture selection -- user must select fixtures first
+- `Off Effect` stops effects in programmer; `Stomp` is for executor-level assertive playback (different concept)

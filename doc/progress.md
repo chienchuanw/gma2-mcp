@@ -225,11 +225,50 @@
 | Issue #5 show mgmt tests | 28 tests | 28 pass | 28 pass | pass |
 | Full suite after both | 965 tests | 965 pass | 965 pass | pass |
 
+## Session: 2026-04-12 (Session 8 -- Issues #6, #7, #8: Macro, Effect, Workflows)
+
+### Issues #6, #7, #8: Macro management, effect control, expanded workflows (PR #34)
+- **Status:** complete
+- Actions taken:
+  - Created OpenSpec change `macro-effect-workflow-tools` with proposal, design, 5 specs (3 new + 2 modified), and tasks (39 items, TDD plan)
+  - Read grandMA2 User Manual v3.9 for Macro Keyword (p.545-546), Clone Keyword (p.394-399), Effect keywords (p.434-448), ListEffectLibrary (p.523), ListMacroLibrary (p.526), Executor Keyword (p.456-458)
+  - Created GitHub linked branch `6-macro-management` via `gh issue develop`
+  - **Issue #6** (macro management): Added `store_macro()`, `label_macro()`, `delete_macro()` builders. Added 6 MCP tools: `run_macro`, `create_macro`, `label_macro_tool`, `list_macros`, `delete_macro_tool`. `create_macro` chains store→assign lines→label. 14 tests added.
+  - **Issue #7** (effect control): Added 8 MCP tools: `apply_effect`, `set_effect_speed`, `set_effect_form`, `set_effect_range`, `set_effect_phase`, `set_effect_width`, `stop_effects`, `sync_effects_tool`. Input validation for speed units and range params. 13 tests added.
+  - **Issue #8** (expanded workflows): Added 5 `GMA2Client` methods: `clone_fixtures` (with /overwrite, /merge, /noconfirm), `setup_effect_on_group` (group selection + effect params), `setup_executor_page` (page-qualified addressing), `batch_label`, `create_and_run_macro`. 15 tests added.
+  - Added `DESTRUCTIVE_WARNINGS` for macro deletion
+  - Code review caught 2 issues: (1) `setup_executor_page` silently ignored `page` parameter -- fixed with page-qualified addressing `Executor [Page].[ID]` per manual p.456; (2) `delete_macro` missing `/noconfirm` -- added default `noconfirm=True`
+  - Synced 5 delta specs to main openspec/specs/ (3 new + 2 modified)
+  - Updated README (35→49 tools) and doc files
+  - Archived OpenSpec change
+- PRs:
+  - PR #34: `6-macro-management` (issues #6, #7, #8) -- Review addressed, 2 commits
+- Files created:
+  - openspec/specs/macro-management-tools/spec.md, openspec/specs/effect-control-tools/spec.md, openspec/specs/expanded-workflows/spec.md
+- Files modified:
+  - src/commands/functions/macro.py (+76 lines: 3 new builders)
+  - src/commands/__init__.py (+5 exports), src/commands/functions/__init__.py (+3 exports)
+  - src/server.py (+355 lines: 14 new tools, effect/macro imports, DESTRUCTIVE_WARNINGS for macro)
+  - src/gma2_client.py (+217 lines: 5 new workflow methods, new imports)
+  - tests/test_macro.py (+44 lines: 6 new tests)
+  - tests/test_server_tools.py (+320 lines: 22 new tests)
+  - tests/test_gma2_client.py (+170 lines: 14 new tests)
+  - README.md (+36 lines: new tool table entries, workflow examples)
+
+## Test Results
+| Test | Input | Expected | Actual | Status |
+|------|-------|----------|--------|--------|
+| Macro builder tests | 9 tests | 9 pass | 9 pass | ✓ |
+| Macro MCP tool tests | 9 tests | 9 pass | 9 pass | ✓ |
+| Effect MCP tool tests | 13 tests | 13 pass | 13 pass | ✓ |
+| Workflow method tests | 13 tests | 13 pass | 13 pass | ✓ |
+| Full suite after fixes | 1005 tests | 1005 pass | 1005 pass | ✓ |
+
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | All P0 and P1 issues complete. Issues #1-#5, #12-#15, #19-#22 resolved. |
-| Where am I going? | P2 issues next: #6 (macro management), #7 (effect/chaser), #8 (expanded workflows) |
-| What's the goal? | Continue P2 features -- more tool coverage for production lighting workflows |
-| What have I learned? | See findings.md -- grandMA2 Info keyword reads user annotations not object properties; Backup command opens GUI menu (not programmatic); LoadShow/NewShow/SaveShow need /noconfirm for Telnet; Telnet response format for List commands is undocumented |
-| What have I done? | Investigation, 22 issues created/resolved, Issues #1-#5/#12-#15/#19-#22 fixed with TDD, 35 MCP tools, connection resilience layer, query/introspection + show management |
+| Where am I? | All P0, P1, and P2 issues complete. Issues #1-#8, #12-#15, #19-#22 resolved. |
+| Where am I going? | P3 issues remaining: #9 (HTTP/SSE transport), #10 (update/remove main.py) |
+| What's the goal? | All critical and expanded workflow features shipped. P3 is low-priority cleanup. |
+| What have I learned? | See findings.md -- Macro creation via CLI uses Store+Assign pattern (Edit is GUI-only); Effect keywords operate on current selection; Off Effect stops programmer effects vs Stomp for executor playback; Executor page-qualified addressing is [Page].[ID]; Delete operations need /noconfirm for Telnet |
+| What have I done? | Investigation, 22 issues created/resolved, 49 MCP tools, 12 GMA2Client workflows, connection resilience, 1005 tests passing |

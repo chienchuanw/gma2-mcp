@@ -14,8 +14,8 @@
 ## Architecture (4 Layers)
 
 ```
-Layer 4: MCP Server         (src/server.py)         -- FastMCP, 35 tools, stdio transport
-Layer 3: Orchestration      (src/gma2_client.py,     -- GMA2Client workflows, CommandSequence batching
+Layer 4: MCP Server         (src/server.py)         -- FastMCP, 49 tools, stdio transport
+Layer 3: Orchestration      (src/gma2_client.py,     -- GMA2Client 12 workflows, CommandSequence batching
                              src/command_sequence.py)
 Layer 2: Command Builder    (src/commands/)          -- 200+ pure functions, returns command strings
 Layer 1: Telnet Client      (src/telnet_client.py)   -- Async Telnet via telnetlib3
@@ -345,3 +345,83 @@ The grandMA2 manual documents that `List` output appears in the "Command Line Fe
 - **Effects (Ch.31)**: Continuous parameter modulation with configurable BPM/Hz, waveform, phase, width. Can be stored in cues or assigned to executors.
 - **Chasers (Ch.30)**: Step-based sequences that cycle through cues automatically.
 - **Timecode (Ch.35)**: Record and play back timecode shows synchronized to external time sources.
+
+## Macro Management via Telnet (Issues #6, #8)
+
+### Macro Creation Pattern
+grandMA2 has two ways to create macros: the Edit pop-up (GUI-only, not available over Telnet) and the Store + Assign CLI pattern:
+```
+Store Macro <id>                              # Create empty macro
+Assign Macro <pool>.<id>.<line> /cmd="<cmd>"  # Set each line's command
+Label Macro <id> "name"                       # Optional naming
+Go+ Macro <pool>.<id>                         # Execute the macro
+```
+
+### Macro Object Parameters (via Assign)
+- **Name**: `"Macro name"` -- macro label
+- **CLI**: `"On"/"Off"` -- whether command line interacts with macro
+- **Timing**: `"On"/"Off"` -- whether macro follows timing
+- **Info**: `"Information Text"` -- additional information text
+
+### Macro Line Parameters (via Assign)
+- **CMD**: `"A valid command"` -- the command executed by the line
+- **Wait**: `"Go"/"Follow"/"0.000-9999.000"` -- delay/timing after execution
+- **Info**: `"Information Text"` -- additional info for the line
+- **Disabled**: `"Yes"/"No"` -- whether the line is disabled
+
+### Delete Operations Need /noconfirm
+`Delete Macro` triggers a confirmation popup on the console. Over Telnet this blocks indefinitely. Always use `/noconfirm` flag.
+
+## Effect Control via Telnet (Issue #7)
+
+### Effect Workflow
+Effects in grandMA2 operate on the currently selected fixtures in the programmer:
+1. Select fixtures (via Group or SelFix)
+2. Call `Effect <id>` to apply from the effect pool
+3. Modify parameters: EffectBPM, EffectForm, EffectHigh, EffectLow, EffectPhase, EffectWidth
+4. Store into a cue to preserve
+
+### Stopping Effects
+- `Off Effect` -- removes effect values from the programmer for current selection
+- `Off EffectBPM` / `Off EffectForm` etc. -- removes specific effect parameter values
+- `Stomp <executor>` -- executor-level assertive playback (different concept, not programmer-level)
+
+### Effect Form Types
+The `EffectForm` keyword accepts a form number or name. Forms are indexed in the effect library. Common forms include sin, ramp, square, etc.
+
+## Clone Operations (Issue #8)
+
+### Clone Syntax (Manual p.394-399)
+```
+Clone [Source Selection-list] At [Destination Selection-list]
+Clone [Source Selection-list] At [Destination Selection-list] If [Scope Object-list]
+```
+
+### Clone Options
+| Option | Shortcut | Description |
+|--------|----------|-------------|
+| overwrite | o | Removes and replaces original data of destination |
+| merge | m | Adds data to existing content |
+| lowmerge | lm | Adds data and never destroys existing content |
+| disablecolortransform | dct | Disables color transformation |
+| prefercolorwheel | pcw | Prefers transforming color to color wheel |
+| prefermixcolor | pmc | Prefers transforming color to MIXColor |
+| prefercolorboth | pcb | Prefers both MIXColor and color wheel |
+| noconfirm | nc | Suppresses confirmation pop-up |
+
+### Clone Types
+- Fixture to fixture (selective data)
+- Fixture to fixture type (global data)
+- Fixture type to fixture (selective data)
+- Fixture type to fixture type (global data)
+
+## Executor Page-Qualified Addressing (Manual p.456)
+
+### Syntax
+```
+Executor [ID]                    # Current page
+Executor [Page].[ID]             # Specific page
+Executor [Pagepool].[Page].[ID]  # Specific pagepool and page
+```
+
+When using `setup_executor_page()`, all executor references must use `[Page].[ID]` format to ensure commands target the correct page rather than the currently active one.
