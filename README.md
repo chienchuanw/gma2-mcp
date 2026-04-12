@@ -273,10 +273,10 @@ The server exposes 35 tools:
 | `list_groups`                     | List all defined groups (returns raw console response)               |
 | `list_cues`                       | List cues in a sequence (returns raw console response)               |
 | `list_presets`                    | List presets by type with validation (returns raw console response)   |
-| `get_cue_info`                    | Get detailed info about a specific cue                               |
-| `get_group_info`                  | Get detailed info about a specific group                             |
+| `get_cue_annotation`              | Read user-added annotation text on a cue                             |
+| `get_group_annotation`            | Read user-added annotation text on a group                           |
 | `list_variables`                  | List show or user variables with optional filter                     |
-| `query_object`                    | Generic query for any MA2 object type (list or info mode)            |
+| `query_object`                    | Generic query for any MA2 object type (list or annotation mode)      |
 | `save_show_tool`                  | Save the current show file (optional name)                           |
 | `load_show_tool`                  | Load a show file (destructive -- warns about unsaved changes)        |
 | `new_show_tool`                   | Create a new empty show (destructive -- warns about unsaved changes) |
