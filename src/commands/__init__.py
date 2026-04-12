@@ -178,7 +178,10 @@ from .functions import (
     info_cue,
     info_group,
     info_preset,
-    # Macro Placeholder
+    # Macro Functions
+    store_macro,
+    label_macro,
+    delete_macro,
     macro_with_input_after,
     macro_with_input_before,
     # Helping Keywords (Plus +, Minus -, And, If)
@@ -559,7 +562,10 @@ __all__ = [
     "copy_cue",
     # Move Function Keyword
     "move",
-    # Macro Placeholder (@ Character)
+    # Macro Functions
+    "store_macro",
+    "label_macro",
+    "delete_macro",
     "macro_with_input_after",
     "macro_with_input_before",
     # Other Function Keywords

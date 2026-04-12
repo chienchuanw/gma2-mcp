@@ -34,3 +34,45 @@ class TestMacroPlaceholder:
 
         result = macro_with_input_before("Fade 20")
         assert result == "@ Fade 20"
+
+
+class TestStoreMacro:
+    """Tests for store_macro command builder."""
+
+    def test_store_macro_without_name(self):
+        from src.commands import store_macro
+
+        result = store_macro(macro_id=5)
+        assert result == "store macro 5"
+
+    def test_store_macro_with_name(self):
+        from src.commands import store_macro
+
+        result = store_macro(macro_id=5, name="My Macro")
+        assert result == 'store macro 5 "My Macro"'
+
+
+class TestLabelMacro:
+    """Tests for label_macro command builder."""
+
+    def test_label_macro(self):
+        from src.commands import label_macro
+
+        result = label_macro(macro_id=5, name="Dimmer Chase")
+        assert result == 'label macro 5 "Dimmer Chase"'
+
+
+class TestDeleteMacro:
+    """Tests for delete_macro command builder."""
+
+    def test_delete_macro_default_pool(self):
+        from src.commands import delete_macro
+
+        result = delete_macro(macro_id=5)
+        assert result == "delete macro 1.5"
+
+    def test_delete_macro_custom_pool(self):
+        from src.commands import delete_macro
+
+        result = delete_macro(macro_id=5, pool=2)
+        assert result == "delete macro 2.5"

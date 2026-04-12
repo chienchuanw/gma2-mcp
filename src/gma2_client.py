@@ -22,14 +22,24 @@ from src.commands import (
     appearance,
     assign,
     assign_fade,
+    assign_macro_cmd,
     at,
+    effect as cmd_effect,
+    effect_bpm,
+    effect_form as cmd_effect_form,
+    effect_high,
+    effect_low,
+    executor_at,
     fixture_at,
+    label,
+    label_macro as cmd_label_macro,
     label_sequence_cue,
     preset,
     select_fixture,
     store,
     store_cue,
     store_group,
+    store_macro as cmd_store_macro,
 )
 
 logger = logging.getLogger(__name__)
@@ -294,4 +304,211 @@ class GMA2Client:
             "commands_sent": sent,
             "count": len(sent),
             "summary": f"Set appearance on cue {cue_id} across {count} sequences ({sequence_start}-{sequence_end})",
+        }
+
+    async def clone_fixtures(
+        self,
+        source_fixture: int,
+        target_fixture: int,
+        source_end: int | None = None,
+        target_end: int | None = None,
+        mode: str = "default",
+    ) -> dict[str, Any]:
+        """
+        Clone programming from one fixture (range) to another.
+
+        Args:
+            source_fixture: Source fixture ID (or start of range)
+            target_fixture: Target fixture ID (or start of range)
+            source_end: End of source fixture range (optional)
+            target_end: End of target fixture range (optional)
+            mode: Clone mode — "default", "overwrite", or "merge"
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        sent: list[str] = []
+
+        source = f"fixture {source_fixture}"
+        if source_end is not None:
+            source += f" thru {source_end}"
+
+        target = f"fixture {target_fixture}"
+        if target_end is not None:
+            target += f" thru {target_end}"
+
+        cmd = f"clone {source} at {target}"
+        if mode == "overwrite":
+            cmd += " /overwrite"
+        elif mode == "merge":
+            cmd += " /merge"
+        cmd += " /noconfirm"
+
+        sent.append(await self._send(cmd))
+
+        return {
+            "commands_sent": sent,
+            "count": len(sent),
+            "summary": f"Cloned {source} to {target} (mode: {mode})",
+        }
+
+    async def setup_effect_on_group(
+        self,
+        group_id: int,
+        effect_id: int,
+        bpm: int | float | None = None,
+        form: str | int | None = None,
+        high: int | float | None = None,
+        low: int | float | None = None,
+    ) -> dict[str, Any]:
+        """
+        Select a group and apply an effect with optional parameters.
+
+        Args:
+            group_id: Group to select
+            effect_id: Effect to apply from the effect pool
+            bpm: Optional effect speed in BPM
+            form: Optional waveform (name or number)
+            high: Optional effect high value
+            low: Optional effect low value
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        sent: list[str] = []
+
+        sent.append(await self._send(f"group {group_id}"))
+        sent.append(await self._send(cmd_effect(effect_id)))
+
+        if bpm is not None:
+            sent.append(await self._send(effect_bpm(bpm)))
+        if form is not None:
+            sent.append(await self._send(cmd_effect_form(form)))
+        if high is not None:
+            sent.append(await self._send(effect_high(high)))
+        if low is not None:
+            sent.append(await self._send(effect_low(low)))
+
+        return {
+            "commands_sent": sent,
+            "count": len(sent),
+            "summary": f"Applied Effect {effect_id} to Group {group_id}",
+        }
+
+    async def setup_executor_page(
+        self,
+        page: int,
+        assignments: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """
+        Set up a full executor page with sequences, labels, and fader levels.
+
+        Each assignment dict may contain:
+            executor_id (int): Executor number (required)
+            sequence_id (int): Sequence to assign (required)
+            label (str): Optional label for the executor
+            fader_level (int): Optional fader level (0-100)
+
+        Args:
+            page: Executor page number
+            assignments: List of assignment dicts
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        sent: list[str] = []
+
+        for entry in assignments:
+            exec_id = entry["executor_id"]
+            seq_id = entry["sequence_id"]
+
+            sent.append(
+                await self._send(
+                    assign("sequence", seq_id, "executor", exec_id)
+                )
+            )
+
+            if "label" in entry:
+                sent.append(
+                    await self._send(label("executor", exec_id, entry["label"]))
+                )
+
+            if "fader_level" in entry:
+                sent.append(
+                    await self._send(executor_at(exec_id, entry["fader_level"]))
+                )
+
+        return {
+            "commands_sent": sent,
+            "count": len(sent),
+            "summary": f"Set up {len(assignments)} executors on Page {page}",
+        }
+
+    async def batch_label(
+        self,
+        object_type: str,
+        labels: dict[int, str],
+    ) -> dict[str, Any]:
+        """
+        Label multiple objects of the same type.
+
+        Args:
+            object_type: Object type (e.g., "group", "cue", "sequence")
+            labels: Dict mapping object IDs to label names
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        sent: list[str] = []
+
+        for obj_id, name in labels.items():
+            sent.append(await self._send(label(object_type, obj_id, name)))
+
+        return {
+            "commands_sent": sent,
+            "count": len(sent),
+            "summary": f"Labeled {len(labels)} {object_type}(s)",
+        }
+
+    async def create_and_run_macro(
+        self,
+        macro_id: int,
+        commands: list[str],
+        name: str | None = None,
+        pool: int = 1,
+        run: bool = False,
+    ) -> dict[str, Any]:
+        """
+        Create a macro with command lines and optionally execute it.
+
+        Args:
+            macro_id: Macro number to create
+            commands: List of command strings for each macro line
+            name: Optional label for the macro
+            pool: Macro pool number (default: 1)
+            run: Whether to execute the macro after creation
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        sent: list[str] = []
+
+        sent.append(await self._send(cmd_store_macro(macro_id)))
+
+        for i, command in enumerate(commands, start=1):
+            sent.append(
+                await self._send(assign_macro_cmd(macro_id, i, command, pool=pool))
+            )
+
+        if name is not None:
+            sent.append(await self._send(cmd_label_macro(macro_id, name)))
+
+        if run:
+            sent.append(await self._send(f"go+ macro {pool}.{macro_id}"))
+
+        action = "Created and executed" if run else "Created"
+        return {
+            "commands_sent": sent,
+            "count": len(sent),
+            "summary": f"{action} Macro {macro_id} with {len(commands)} lines",
         }

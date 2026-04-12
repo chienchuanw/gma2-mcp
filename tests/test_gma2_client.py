@@ -278,6 +278,164 @@ class TestAppearanceCueAcrossSequences:
         assert cmds[1] == "appearance sequence 102 cue 1 /color=FF0000"
 
 
+class TestCloneFixtures:
+    @pytest.mark.asyncio
+    async def test_single_fixture_clone(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.clone_fixtures(source_fixture=1, target_fixture=5)
+
+        cmds = result["commands_sent"]
+        assert result["count"] == 1
+        assert cmds[0] == "clone fixture 1 at fixture 5 /noconfirm"
+
+    @pytest.mark.asyncio
+    async def test_fixture_range_clone(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.clone_fixtures(
+            source_fixture=1, target_fixture=11, source_end=5, target_end=15
+        )
+
+        cmds = result["commands_sent"]
+        assert cmds[0] == "clone fixture 1 thru 5 at fixture 11 thru 15 /noconfirm"
+
+    @pytest.mark.asyncio
+    async def test_clone_with_overwrite(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.clone_fixtures(
+            source_fixture=1, target_fixture=5, mode="overwrite"
+        )
+
+        cmds = result["commands_sent"]
+        assert cmds[0] == "clone fixture 1 at fixture 5 /overwrite /noconfirm"
+
+    @pytest.mark.asyncio
+    async def test_clone_with_merge(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.clone_fixtures(
+            source_fixture=1, target_fixture=5, mode="merge"
+        )
+
+        cmds = result["commands_sent"]
+        assert cmds[0] == "clone fixture 1 at fixture 5 /merge /noconfirm"
+
+
+class TestSetupEffectOnGroup:
+    @pytest.mark.asyncio
+    async def test_basic_effect_on_group(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.setup_effect_on_group(group_id=1, effect_id=5)
+
+        cmds = result["commands_sent"]
+        assert result["count"] == 2
+        assert "group 1" in cmds[0]
+        assert "effect 5" in cmds[1]
+
+    @pytest.mark.asyncio
+    async def test_effect_with_full_params(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.setup_effect_on_group(
+            group_id=1, effect_id=5, bpm=120, form="sin", high=100, low=0
+        )
+
+        assert result["count"] == 6
+
+
+class TestSetupExecutorPage:
+    @pytest.mark.asyncio
+    async def test_two_executors_with_labels(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.setup_executor_page(
+            page=1,
+            assignments=[
+                {"executor_id": 1, "sequence_id": 1, "label": "Wash"},
+                {"executor_id": 2, "sequence_id": 2, "label": "Spots"},
+            ],
+        )
+
+        cmds = result["commands_sent"]
+        # 2 assigns + 2 labels = 4 commands
+        assert result["count"] == 4
+        assert "page 1" in result["summary"].lower()
+
+    @pytest.mark.asyncio
+    async def test_executor_with_fader_level(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.setup_executor_page(
+            page=1,
+            assignments=[
+                {"executor_id": 1, "sequence_id": 1, "fader_level": 80},
+            ],
+        )
+
+        cmds = result["commands_sent"]
+        # 1 assign + 1 fader = 2 commands
+        assert result["count"] == 2
+
+
+class TestBatchLabel:
+    @pytest.mark.asyncio
+    async def test_label_multiple_groups(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.batch_label(
+            object_type="group", labels={1: "Wash", 2: "Spots", 3: "Beams"}
+        )
+
+        assert result["count"] == 3
+        assert "3" in result["summary"]
+        assert "group" in result["summary"].lower()
+
+
+class TestCreateAndRunMacro:
+    @pytest.mark.asyncio
+    async def test_create_without_running(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.create_and_run_macro(
+            macro_id=10,
+            commands=["Go Sequence 1", "Go Sequence 2"],
+            name="Two Seqs",
+        )
+
+        cmds = result["commands_sent"]
+        # store + 2 assigns + label = 4
+        assert result["count"] == 4
+        assert cmds[0] == "store macro 10"
+
+    @pytest.mark.asyncio
+    async def test_create_and_run(self):
+        telnet = _mock_telnet()
+        client = GMA2Client(telnet)
+
+        result = await client.create_and_run_macro(
+            macro_id=10, commands=["Go Sequence 1"], run=True
+        )
+
+        cmds = result["commands_sent"]
+        # store + 1 assign + go+ = 3
+        assert result["count"] == 3
+        assert cmds[-1] == "go+ macro 1.10"
+        assert "executed" in result["summary"].lower()
+
+
 class TestGMA2ClientResultStructure:
     @pytest.mark.asyncio
     async def test_result_has_required_keys(self):

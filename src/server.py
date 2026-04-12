@@ -29,6 +29,15 @@ from src.commands import (
     clear_all,
     clear_selection,
     delete_cue as cmd_delete_cue,
+    delete_macro as cmd_delete_macro,
+    effect as cmd_effect,
+    effect_bpm,
+    effect_form as cmd_effect_form,
+    effect_high,
+    effect_hz,
+    effect_low,
+    effect_phase as cmd_effect_phase,
+    effect_width as cmd_effect_width,
     executor_at,
     fixture,
     fixture_at,
@@ -43,6 +52,7 @@ from src.commands import (
     kill,
     label,
     label_group,
+    label_macro as cmd_label_macro,
     label_sequence_cue as cmd_label_sequence_cue,
     list_cue as cmd_list_cue,
     list_group as cmd_list_group,
@@ -61,7 +71,9 @@ from src.commands import (
     save_show as cmd_save_show,
     store_cue as cmd_store_cue,
     store_group,
+    store_macro as cmd_store_macro,
     store_preset as cmd_store_preset,
+    sync_effects,
     toggle,
 )
 from src.commands.constants import PRESET_TYPES
@@ -177,6 +189,11 @@ DESTRUCTIVE_WARNINGS: dict[str, list[str]] = {
     "group": [
         "Presets referencing this group may produce unexpected results",
         "Macros targeting this group will reference a non-existent object",
+    ],
+    "macro": [
+        "All macro lines and their commands are permanently lost",
+        "Cue CMD triggers referencing this macro will fail silently",
+        "Other macros calling this macro via 'Macro N' will reference a non-existent object",
     ],
 }
 
@@ -865,6 +882,344 @@ async def set_macro_line(
     cmd = assign_macro_cmd(macro_id, line, command, pool=pool)
     await client.send_command(cmd)
     return f'Set Macro {macro_id} Line {line} to "{command}" (Pool {pool})'
+
+
+@mcp.tool()
+@handle_connection_error
+async def run_macro(
+    macro_id: int,
+    pool: int = 1,
+) -> str:
+    """
+    Execute a macro by ID.
+
+    Starts the specified macro using the Go+ command.
+
+    Args:
+        macro_id: Macro number to execute
+        pool: Macro pool number (default: 1)
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Run macro 5 from default pool
+        - Run macro 10 from pool 2
+    """
+    client = await get_client()
+    cmd = f"go+ macro {pool}.{macro_id}"
+    await client.send_command(cmd)
+    return f"Executed Macro {macro_id} (Pool {pool})"
+
+
+@mcp.tool()
+@handle_connection_error
+async def create_macro(
+    macro_id: int,
+    commands: list[str],
+    name: str | None = None,
+    pool: int = 1,
+) -> str:
+    """
+    Create a macro with command lines.
+
+    Stores an empty macro, then assigns each command to sequential lines.
+    Optionally labels the macro.
+
+    Args:
+        macro_id: Macro number to create
+        commands: List of command strings for each macro line
+        name: Optional label for the macro
+        pool: Macro pool number (default: 1)
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Create macro 10 with commands ["Go Sequence 1", "Go Sequence 2"]
+        - Create macro 10 named "Start Show" with one command
+    """
+    if not commands:
+        return "Error: at least one command is required to create a macro."
+
+    client = await get_client()
+
+    # Store empty macro
+    await client.send_command(cmd_store_macro(macro_id))
+
+    # Assign each command to a line
+    for i, command in enumerate(commands, start=1):
+        cmd = assign_macro_cmd(macro_id, i, command, pool=pool)
+        await client.send_command(cmd)
+
+    # Optionally label the macro
+    if name is not None:
+        await client.send_command(cmd_label_macro(macro_id, name))
+
+    label_msg = f' "{name}"' if name else ""
+    return f"Created Macro {macro_id}{label_msg} with {len(commands)} lines (Pool {pool})"
+
+
+@mcp.tool()
+@handle_connection_error
+async def label_macro_tool(
+    macro_id: int,
+    name: str,
+) -> str:
+    """
+    Label a macro in the macro pool.
+
+    Args:
+        macro_id: Macro number to label
+        name: Label text for the macro
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Label macro 5 as "Blackout All"
+    """
+    client = await get_client()
+    cmd = cmd_label_macro(macro_id, name)
+    await client.send_command(cmd)
+    return f'Labeled Macro {macro_id} as "{name}"'
+
+
+@mcp.tool()
+@handle_connection_error
+async def list_macros() -> str:
+    """
+    List macros in the macro pool.
+
+    Returns raw console output from the List Macro command.
+
+    Returns:
+        str: Raw console response with macro listing
+    """
+    client = await get_client()
+    cmd = cmd_list_objects("macro")
+    response = await client.send_command_with_response(cmd)
+    return response if response.strip() else EMPTY_RESPONSE_MSG
+
+
+@mcp.tool()
+@handle_connection_error
+async def delete_macro_tool(
+    macro_id: int,
+    pool: int = 1,
+) -> str:
+    """
+    Delete a macro from the macro pool.
+
+    WARNING: This is a destructive operation that permanently removes the macro.
+
+    Args:
+        macro_id: Macro number to delete
+        pool: Macro pool number (default: 1)
+
+    Returns:
+        str: Operation result message with warnings
+    """
+    client = await get_client()
+    cmd = cmd_delete_macro(macro_id, pool=pool)
+    await client.send_command(cmd)
+    return f"Deleted Macro {macro_id} (Pool {pool}){_format_warnings('macro')}"
+
+
+# ============================================================
+# Effect Control Tools (Issue #7)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def apply_effect(
+    effect_id: int,
+) -> str:
+    """
+    Apply a predefined effect from the effect pool to the current fixture selection.
+
+    Fixtures must be selected first using set_fixture_value or create_fixture_group.
+
+    Args:
+        effect_id: Effect number from the effect pool
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Apply effect 5 to selected fixtures
+    """
+    client = await get_client()
+    cmd = cmd_effect(effect_id)
+    await client.send_command(cmd)
+    return f"Applied Effect {effect_id} to current selection"
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_effect_speed(
+    value: float,
+    unit: str = "bpm",
+) -> str:
+    """
+    Set the effect speed for the current selection.
+
+    Args:
+        value: Speed value
+        unit: Speed unit — "bpm" (beats per minute) or "hz" (hertz)
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Set effect speed to 120 BPM
+        - Set effect speed to 2.5 Hz
+    """
+    unit_lower = unit.lower()
+    if unit_lower not in ("bpm", "hz"):
+        return f"Invalid unit '{unit}'. Valid units: bpm, hz"
+
+    client = await get_client()
+    if unit_lower == "bpm":
+        cmd = effect_bpm(value)
+    else:
+        cmd = effect_hz(value)
+    await client.send_command(cmd)
+    return f"Set effect speed to {value} {unit.upper()}"
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_effect_form(
+    form: str,
+) -> str:
+    """
+    Set the effect waveform for the current selection.
+
+    Args:
+        form: Waveform type — name (e.g., "sin", "ramp", "square") or number
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Set effect form to "sin"
+        - Set effect form to 6
+    """
+    client = await get_client()
+    cmd = cmd_effect_form(form)
+    await client.send_command(cmd)
+    return f"Set effect form to {form}"
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_effect_range(
+    high: float | None = None,
+    low: float | None = None,
+) -> str:
+    """
+    Set effect high and/or low values for the current selection.
+
+    At least one of high or low must be provided.
+
+    Args:
+        high: Effect high value (optional)
+        low: Effect low value (optional)
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Set effect range high=100, low=0
+        - Set only effect high to 80
+    """
+    if high is None and low is None:
+        return "Error: at least one of high or low must be provided."
+
+    client = await get_client()
+    parts = []
+    if high is not None:
+        await client.send_command(effect_high(high))
+        parts.append(f"high={high}")
+    if low is not None:
+        await client.send_command(effect_low(low))
+        parts.append(f"low={low}")
+    return f"Set effect range: {', '.join(parts)}"
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_effect_phase(
+    phase: float,
+) -> str:
+    """
+    Set the effect phase offset for the current selection.
+
+    Args:
+        phase: Phase value in degrees (e.g., 0, 90, 180, 270)
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = cmd_effect_phase(phase)
+    await client.send_command(cmd)
+    return f"Set effect phase to {phase} degrees"
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_effect_width(
+    width: float,
+) -> str:
+    """
+    Set the effect width for the current selection.
+
+    Args:
+        width: Width value (percentage of cycle)
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = cmd_effect_width(width)
+    await client.send_command(cmd)
+    return f"Set effect width to {width}"
+
+
+@mcp.tool()
+@handle_connection_error
+async def stop_effects() -> str:
+    """
+    Stop all running effects for the current selection.
+
+    Removes effect values from the programmer using the Off command.
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    await client.send_command("off effect")
+    return "Stopped all effects for current selection (Off Effect)"
+
+
+@mcp.tool()
+@handle_connection_error
+async def sync_effects_tool() -> str:
+    """
+    Synchronize all running effects.
+
+    Resets effect timing so all running effects align their phase.
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = sync_effects()
+    await client.send_command(cmd)
+    return "Synchronized all running effects"
 
 
 # ============================================================

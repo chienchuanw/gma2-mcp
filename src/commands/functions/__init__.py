@@ -123,8 +123,11 @@ from .info import (
     info_preset,
 )
 
-# Macro Placeholder Function Keywords
+# Macro Function Keywords
 from .macro import (
+    store_macro,
+    label_macro,
+    delete_macro,
     macro_with_input_after,
     macro_with_input_before,
 )
