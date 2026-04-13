@@ -344,11 +344,31 @@
 | Issue #17 full suite | 1028 tests | 1028 pass | 1028 pass | pass |
 | Combined after merge | 1055 tests | 1055 pass | 1055 pass | pass |
 
+## Session: 2026-04-14 (Session 11 -- Capability Exploration & Roadmap)
+
+### Phase 8: Next-Generation Feature Roadmap
+- **Status:** issues created, implementation pending
+- Actions taken:
+  - Explored codebase from senior grandMA2 lighting designer perspective
+  - Audited command builder coverage: found 366 total exports, only 62 used (17%), leaving 304 unused builders
+  - Categorized unused builders into 16 feature areas across 4 priority tiers
+  - Prioritized from music show workflow perspective (user specializes in SMPTE-synced music shows)
+  - Created 16 GitHub issues (#39-#54) with detailed technical approaches, acceptance criteria, and affected files
+  - Updated doc/task_plan.md, doc/progress.md, doc/findings.md with new roadmap
+- Issues created:
+  - **P0**: #39 (timecode/SMPTE), #40 (set/add variables)
+  - **P1**: #41 (MAtricks), #42 (cue timing), #43 (flash/swop/stomp), #44 (update cue)
+  - **P2**: #45 (blind/preview), #46 (clone fixtures), #47 (rate/speed), #48 (release/top)
+  - **P3**: #49 (copy/move), #50 (extended delete), #51 (effect extensions), #52 (park/unpark), #53 (MIDI), #54 (advanced selection)
+- Key finding: Most issues (#40, #41, #42, #43, #44, #45, #47, #48, #49, #50, #51, #52, #54) only need MCP tool registration since builders already exist. #46 (clone) is even simpler -- GMA2Client method already exists.
+- #39 (timecode) is the most complex -- needs new function builders and research into timecode telnet syntax.
+- #53 (MIDI) has minimal stubs that need parameter extensions.
+
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | All P0, P1, P2, and P3 issues complete. Issues #1-#10, #12-#17, #19-#22 resolved. |
-| Where am I going? | All planned issues resolved. Project is feature-complete for the current roadmap. |
-| What's the goal? | Complete MCP server for grandMA2 with configurable transport, resilient connections, 41 tools, read-back verification, music show workflows, and comprehensive test coverage. |
-| What have I learned? | grandMA2 List command works over Telnet for read-back; Lua API is console-internal only; response format is undocumented so parser needs defensive fallbacks; music show patterns (song objects, SetVar macros, set-list sequences) are highly repeatable and benefit from dedicated tools |
-| What have I done? | Investigation, 24 issues created/resolved, 55 MCP tools, 15 GMA2Client workflows, response parser, connection resilience, configurable transport, 1055 tests passing |
+| Where am I? | Phase 8: 16 new issues (#39-#54) created. Previous roadmap (#1-#22) complete. |
+| Where am I going? | Implement 16 new features starting with P0 (timecode, variables), then P1 (MAtricks, timing, busking, update). |
+| What's the goal? | Expand gma2-mcp from 54 to ~70+ tools, covering timecode, busking, blind programming, MAtricks, and advanced fixture control for music show workflows. |
+| What have I learned? | 83% of command builders (304/366) are unused -- massive runway for new tools with minimal new builder code. Most issues just need MCP tool registration. Timecode (#39) is the most complex new feature. |
+| What have I done? | 10 sessions: 24 issues resolved, 54 MCP tools, 15 GMA2Client workflows, response parser, connection resilience, configurable transport, 1055 tests. Session 11: capability exploration and 16 new issues created. |

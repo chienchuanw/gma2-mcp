@@ -4,7 +4,7 @@
 Investigate, prioritize, and implement improvements to the gma2-mcp project -- an MCP server that enables AI assistants to control grandMA2 lighting consoles via Telnet.
 
 ## Current Phase
-Phase 9 (Issues #16, #17 complete -- read-back tools and music show workflows added)
+Phase 8: Next-generation feature roadmap (16 new issues #39-#54 created from capability exploration)
 
 ## Phases
 
@@ -55,12 +55,36 @@ Phase 9 (Issues #16, #17 complete -- read-back tools and music show workflows ad
 - [x] Issue #17: Add music show workflow tools (PR #38, TDD, 1028 tests passing)
 - **Status:** complete
 
+### Phase 8: Next-Generation Feature Roadmap
+- [x] Explore codebase from senior grandMA2 designer perspective
+- [x] Audit command builder coverage: 62/366 exports used (17%), 304 unused
+- [x] Identify 16 feature areas across 4 priority tiers
+- [x] Create 16 GitHub issues (#39-#54) with detailed technical approaches
+- [ ] Issue #39 (P0): Timecode MCP tools for SMPTE-synced shows
+- [ ] Issue #40 (P0): Set/add variable MCP tools
+- [ ] Issue #41 (P1): MAtricks MCP tools
+- [ ] Issue #42 (P1): Cue timing MCP tools
+- [ ] Issue #43 (P1): Flash, swop, and stomp MCP tools
+- [ ] Issue #44 (P1): Update cue MCP tool
+- [ ] Issue #45 (P2): Blind and preview MCP tools
+- [ ] Issue #46 (P2): Expose clone fixtures as MCP tool
+- [ ] Issue #47 (P2): Rate and speed control MCP tools
+- [ ] Issue #48 (P2): Executor release and top MCP tools
+- [ ] Issue #49 (P3): Copy and move MCP tools
+- [ ] Issue #50 (P3): Extended delete MCP tools
+- [ ] Issue #51 (P3): Effect extension MCP tools
+- [ ] Issue #52 (P3): Park and unpark MCP tools
+- [ ] Issue #53 (P3): MIDI output MCP tools
+- [ ] Issue #54 (P3): Advanced selection MCP tools
+- **Status:** issues created, implementation pending
+
 ## Key Questions
-1. How many command builder functions exist? **200+ across 30+ modules (8,316 total lines)**
-2. How many MCP tools are exposed? **55 tools** (was 49, +3 read-back tools from #16, +3 workflow tools from #17)
-3. What transport does the MCP server use? **stdio (default) or streamable-http** (configurable via `MCP_TRANSPORT` env var)
-4. What is the test coverage? **1055 test cases across 56 test files** (was 1016, +39 tests from #16/#17)
-5. Is there a legacy tools module? **No -- `src/tools.py` was removed in issue #3 (PR #30). All tools are in `src/server.py`.**
+1. How many command builder functions exist? **366 exports across 30+ modules (8,316 total lines)**
+2. How many MCP tools are exposed? **54 tools** (was 49, +3 read-back tools from #16, +3 workflow tools from #17)
+3. How many command builders are used? **62/366 (17%)** -- 304 builders exist but have no MCP tool surface
+4. What transport does the MCP server use? **stdio (default) or streamable-http** (configurable via `MCP_TRANSPORT` env var)
+5. What is the test coverage? **1055 test cases across 59 test files** (was 1016, +39 tests from #16/#17)
+6. Is there a legacy tools module? **No -- `src/tools.py` was removed in issue #3 (PR #30). All tools are in `src/server.py`.**
 
 ## Decisions Made
 | Decision | Rationale |
@@ -99,9 +123,27 @@ Phase 9 (Issues #16, #17 complete -- read-back tools and music show workflows ad
 | 22 | P2 | Add bulk cue operations across sequence ranges | Fixed (PR #29) |
 | 16 | P2 | Add read-back tools for show object fields | Fixed (PR #37) |
 | 17 | P2 | Add music show workflow tools | Fixed (PR #38) |
+| 39 | P0 | Timecode MCP tools for SMPTE-synced shows | Open |
+| 40 | P0 | Set/add variable MCP tools | Open |
+| 41 | P1 | MAtricks MCP tools | Open |
+| 42 | P1 | Cue timing MCP tools | Open |
+| 43 | P1 | Flash, swop, and stomp MCP tools | Open |
+| 44 | P1 | Update cue MCP tool | Open |
+| 45 | P2 | Blind and preview MCP tools | Open |
+| 46 | P2 | Expose clone fixtures as MCP tool | Open |
+| 47 | P2 | Rate and speed control MCP tools | Open |
+| 48 | P2 | Executor release and top MCP tools | Open |
+| 49 | P3 | Copy and move MCP tools | Open |
+| 50 | P3 | Extended delete MCP tools | Open |
+| 51 | P3 | Effect extension MCP tools | Open |
+| 52 | P3 | Park and unpark MCP tools | Open |
+| 53 | P3 | MIDI output MCP tools | Open |
+| 54 | P3 | Advanced selection MCP tools | Open |
 
 ## Notes
-- All P0, P1, P2, and P3 issues resolved (issues #1-#10, #12-#17, #19-#22). No remaining issues.
+- Previous roadmap complete: issues #1-#10, #12-#17, #19-#22 all resolved.
+- New roadmap: 16 issues (#39-#54) created from capability exploration on 2026-04-14.
+- Command builder coverage gap: 304/366 exported functions are unused -- most new issues expose existing builders as MCP tools.
 - Uses `uv` as package manager with Python 3.12
 - grandMA2 manual PDF is stored at `doc/2024-09-30_grandMA2_User_Manual_v3-9.pdf`
 - OpenSpec change artifacts archived at `openspec/changes/archive/`

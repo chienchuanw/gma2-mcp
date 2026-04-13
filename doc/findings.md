@@ -14,7 +14,7 @@
 ## Architecture (4 Layers)
 
 ```
-Layer 5: MCP Server         (src/server.py)         -- FastMCP, 41 tools, stdio/streamable-http transport
+Layer 5: MCP Server         (src/server.py)         -- FastMCP, 54 tools, stdio/streamable-http transport
 Layer 4: Orchestration      (src/gma2_client.py,     -- GMA2Client 15 workflows, CommandSequence batching
                              src/command_sequence.py)
 Layer 3: Response Parser    (src/response_parser.py) -- Parse Telnet List output into structured dicts
@@ -163,7 +163,7 @@ Builder-pattern for composing command batches:
 **Transport:** stdio (default) or streamable-http (via `MCP_TRANSPORT` env var)
 **Framework:** FastMCP (`mcp.server.fastmcp`)
 
-### 35 MCP Tools
+### 54 MCP Tools (as of Session 10; was 35 after Session 7)
 
 | Category | Tool | Args |
 |----------|------|------|
@@ -417,6 +417,40 @@ Clone [Source Selection-list] At [Destination Selection-list] If [Scope Object-l
 - Fixture to fixture type (global data)
 - Fixture type to fixture (selective data)
 - Fixture type to fixture type (global data)
+
+## Command Builder Coverage Analysis (Session 11, 2026-04-14)
+
+### Coverage Statistics
+- **Total exports from `src/commands/__init__.py`**: 366 (364 functions + 2 constants)
+- **Used in `src/server.py`**: 59 functions
+- **Used in `src/gma2_client.py`**: 3 additional functions (`assign_fade`, `at`, `store`)
+- **Total unique functions used**: 62 (17%)
+- **Unused exported functions**: 304 (83%)
+
+### Key Unused Builder Categories (with issue references)
+| Category | Unused Builders | Issue |
+|----------|----------------|-------|
+| Timecode objects | `timecode`, `timecode_slot` (need new function builders) | #39 |
+| Variables | `set_var`, `set_user_var`, `add_var`, `add_user_var` | #40 |
+| MAtricks | `matricks`, `matricks_blocks`, `matricks_wings`, `matricks_groups`, `matricks_interleave`, `matricks_filter`, `matricks_reset` | #41 |
+| Cue timing | `delay`, `out_delay`, `fade`, `out_fade`, `snap_percent`, `step_fade`, `step_in_fade`, `step_out_fade`, `fade_path` | #42 |
+| Flash/Swop | `flash`, `flash_go`, `flash_on`, `swop`, `swop_go`, `swop_on`, `stomp`, `temp` | #43 |
+| Programmer | `update`, `block`, `unblock`, `clone`, `extract`, `insert`, `oops` | #44 |
+| Blind/Preview | `blind`, `blind_edit`, `preview`, `preview_edit` | #45 |
+| Rate/Speed | `rate`, `rate1`, `speed`, `half_rate`, `double_rate`, `half_speed`, `double_speed` | #47 |
+| Executor control | `release`, `top`, `select` | #48 |
+| Copy/Move | `copy`, `copy_cue`, `move` | #49 |
+| Delete | `delete_fixture`, `delete_group`, `delete_preset`, `delete_show` | #50 |
+| Effect extensions | `effect_attack`, `effect_decay`, `effect_delay`, `effect_fade`, `effect_sec`, `effect_speed_group` | #51 |
+| Park | `park`, `unpark` | #52 |
+| MIDI | `midi_note`, `midi_control`, `midi_program` (stubs, need parameter extension) | #53 |
+| Selection | `align`, `next_keyword`, `previous`, `invert`, `locate`, `fix` | #54 |
+
+### Implementation Effort Estimate
+- **Trivial** (tool registration only): #40, #45, #48, #52, #54
+- **Low** (tool registration + minor logic): #41, #42, #43, #44, #46, #47, #49, #50, #51
+- **Medium** (builder extension + tool): #53 (MIDI stubs need parameters)
+- **High** (new builders + research): #39 (timecode telnet syntax undocumented in current findings)
 
 ## Executor Page-Qualified Addressing (Manual p.456)
 
