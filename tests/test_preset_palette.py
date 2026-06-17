@@ -118,3 +118,25 @@ class TestBuildPresetPalette:
             ]}],
         )
         assert "1" in result  # count in summary
+
+
+class TestCommandOrder:
+    @pytest.mark.asyncio
+    async def test_per_target_sequence_order(self):
+        from src.gma2_client import GMA2Client
+
+        gma2 = GMA2Client(_client())
+        result = await gma2.build_preset_palette(
+            "beam",
+            [{"id": 1, "name": "Open", "by_target": [
+                {"target": "Group 1", "attrs": [("SHUTTER", 0)]},
+            ]}],
+        )
+        # Clear -> select -> set -> store -> label, in order
+        assert result["commands_sent"] == [
+            "Clear",
+            "Group 1",
+            'attribute "SHUTTER" at 0',
+            "store preset 5.1 /global /noconfirm",
+            'label preset 5.1 "Open"',
+        ]
