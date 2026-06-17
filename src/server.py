@@ -92,6 +92,41 @@ from src.commands.functions.timecode import (
     record_timecode,
     assign_timecode_param,
 )
+from src.commands.functions.matricks import (
+    matricks as cmd_matricks,
+    matricks_blocks,
+    matricks_wings,
+    matricks_groups,
+    matricks_interleave,
+    matricks_filter,
+    matricks_reset,
+)
+from src.commands.functions.cue_timing import (
+    fade as cmd_fade,
+    delay as cmd_delay,
+    out_fade as cmd_out_fade,
+    out_delay as cmd_out_delay,
+)
+from src.commands.functions.step_timing import (
+    snap_percent as cmd_snap_percent,
+    step_fade as cmd_step_fade,
+    step_in_fade as cmd_step_in_fade,
+    step_out_fade as cmd_step_out_fade,
+    fade_path as cmd_fade_path,
+)
+from src.commands.functions.executor_control import (
+    flash as cmd_flash,
+    swop as cmd_swop,
+    stomp as cmd_stomp,
+    temp as cmd_temp,
+)
+from src.commands.functions.flash_swop_ext import (
+    flash_go as cmd_flash_go,
+    flash_on as cmd_flash_on,
+    swop_go as cmd_swop_go,
+    swop_on as cmd_swop_on,
+)
+from src.commands.functions.programmer import update as cmd_update
 from src.response_parser import parse_macro_lines, parse_cue_info, parse_object_label
 
 load_dotenv()
@@ -2185,6 +2220,306 @@ async def query_timecode(tc_id: int | None = None) -> str:
     cmd = f"list timecode {tc_id}" if tc_id is not None else "list timecode"
     response = await client.send_command_with_response(cmd)
     return response if response.strip() else EMPTY_RESPONSE_MSG
+
+
+# ============================================================
+# MAtricks Tools (Issue #41)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_matricks(
+    blocks: int | None = None,
+    wings: int | None = None,
+    groups: int | None = None,
+    interleave: int | None = None,
+    filter: int | None = None,
+) -> str:
+    """
+    Configure MAtricks for fan effects / selection-pattern manipulation.
+
+    Applies to the current fixture selection. Provide any subset of parameters;
+    they are sent together. At least one parameter is required.
+
+    Args:
+        blocks: Block size grouping
+        wings: Number of wings (symmetry)
+        groups: Number of groups
+        interleave: Interleave step
+        filter: MAtricks filter value
+
+    Returns:
+        str: Operation result message
+    """
+    params = {
+        "blocks": (blocks, matricks_blocks),
+        "wings": (wings, matricks_wings),
+        "groups": (groups, matricks_groups),
+        "interleave": (interleave, matricks_interleave),
+        "filter": (filter, matricks_filter),
+    }
+    set_params = {k: v for k, (v, _) in params.items() if v is not None}
+    if not set_params:
+        return "Error: provide at least one MAtricks parameter."
+
+    batch = [cmd_matricks()]
+    batch += [fn(val) for val, fn in params.values() if val is not None]
+    client = await get_client()
+    summary = ", ".join(f"{k}={v}" for k, v in set_params.items())
+    return await run_verified_sequence(client, batch, f"Set MAtricks: {summary}")
+
+
+@mcp.tool()
+@handle_connection_error
+async def reset_matricks() -> str:
+    """Reset all MAtricks settings to defaults."""
+    client = await get_client()
+    return await run_verified(client, matricks_reset(), "Reset MAtricks")
+
+
+# ============================================================
+# Cue Timing Tools (Issue #42)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_cue_timing(
+    fade: float | None = None,
+    delay: float | None = None,
+    out_fade: float | None = None,
+    out_delay: float | None = None,
+    target: str | None = None,
+) -> str:
+    """
+    Set fade/delay timing on a cue or the current selection.
+
+    Provide any subset (at least one required). ``target`` applies the timing to
+    a specific object (e.g. "cue 5" or "cue 5 sequence 2"); omit to apply to the
+    current programmer selection.
+
+    Args:
+        fade: Fade time (seconds)
+        delay: Delay time (seconds)
+        out_fade: Out-fade time (seconds)
+        out_delay: Out-delay time (seconds)
+        target: Optional target object string
+
+    Returns:
+        str: Operation result message
+    """
+    batch = []
+    parts = []
+    if fade is not None:
+        batch.append(cmd_fade(fade, target=target))
+        parts.append(f"fade={fade}")
+    if delay is not None:
+        batch.append(cmd_delay(delay, target=target))
+        parts.append(f"delay={delay}")
+    if out_fade is not None:
+        batch.append(cmd_out_fade(out_fade))
+        parts.append(f"out_fade={out_fade}")
+    if out_delay is not None:
+        batch.append(cmd_out_delay(out_delay))
+        parts.append(f"out_delay={out_delay}")
+    if not batch:
+        return "Error: provide at least one timing value."
+
+    client = await get_client()
+    where = f" on {target}" if target else ""
+    return await run_verified_sequence(
+        client, batch, f"Set cue timing ({', '.join(parts)}){where}"
+    )
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_step_timing(
+    snap_percent: float | None = None,
+    step_fade: float | None = None,
+    step_in_fade: float | None = None,
+    step_out_fade: float | None = None,
+    fade_path: float | None = None,
+) -> str:
+    """
+    Set step/chase timing parameters for the current selection.
+
+    Provide any subset (at least one required).
+
+    Args:
+        snap_percent: Snap percentage (hard-cut portion)
+        step_fade: Step fade time
+        step_in_fade: Step in-fade time
+        step_out_fade: Step out-fade time
+        fade_path: Fade path / curve value
+
+    Returns:
+        str: Operation result message
+    """
+    params = [
+        (snap_percent, cmd_snap_percent, "snap_percent"),
+        (step_fade, cmd_step_fade, "step_fade"),
+        (step_in_fade, cmd_step_in_fade, "step_in_fade"),
+        (step_out_fade, cmd_step_out_fade, "step_out_fade"),
+        (fade_path, cmd_fade_path, "fade_path"),
+    ]
+    batch = [fn(val) for val, fn, _ in params if val is not None]
+    parts = [f"{name}={val}" for val, _, name in params if val is not None]
+    if not batch:
+        return "Error: provide at least one step timing value."
+
+    client = await get_client()
+    return await run_verified_sequence(
+        client, batch, f"Set step timing ({', '.join(parts)})"
+    )
+
+
+# ============================================================
+# Busking Tools — Flash / Swop / Stomp / Temp (Issue #43)
+# ============================================================
+
+
+def _executor_target(executor_id: int, page: int | None) -> str:
+    if page is not None:
+        return f"executor {page}.{executor_id}"
+    return f"executor {executor_id}"
+
+
+@mcp.tool()
+@handle_connection_error
+async def flash_executor(
+    executor_id: int,
+    page: int | None = None,
+    mode: str = "flash",
+) -> str:
+    """
+    Flash an executor (momentary intensity bump) — a live busking control.
+
+    Args:
+        executor_id: Executor number
+        page: Optional page number for page-qualified addressing
+        mode: "flash" (momentary), "flash_on" (latching), or "flash_go" (flash and go)
+
+    Returns:
+        str: Operation result message
+    """
+    modes = {"flash": cmd_flash, "flash_on": cmd_flash_on, "flash_go": cmd_flash_go}
+    cmd_fn = modes.get(mode.lower())
+    if cmd_fn is None:
+        return f"Unknown mode: {mode}. Use flash, flash_on, or flash_go."
+    target = _executor_target(executor_id, page)
+    client = await get_client()
+    return await run_verified(client, cmd_fn(target), f"{mode} {target}")
+
+
+@mcp.tool()
+@handle_connection_error
+async def swop_executor(
+    executor_id: int,
+    page: int | None = None,
+    mode: str = "swop",
+) -> str:
+    """
+    Swop an executor (solo with blackout on others) — a live busking control.
+
+    Args:
+        executor_id: Executor number
+        page: Optional page number for page-qualified addressing
+        mode: "swop" (momentary), "swop_on" (latching), or "swop_go" (swop and go)
+
+    Returns:
+        str: Operation result message
+    """
+    modes = {"swop": cmd_swop, "swop_on": cmd_swop_on, "swop_go": cmd_swop_go}
+    cmd_fn = modes.get(mode.lower())
+    if cmd_fn is None:
+        return f"Unknown mode: {mode}. Use swop, swop_on, or swop_go."
+    target = _executor_target(executor_id, page)
+    client = await get_client()
+    return await run_verified(client, cmd_fn(target), f"{mode} {target}")
+
+
+@mcp.tool()
+@handle_connection_error
+async def stomp_executor(executor_id: int, page: int | None = None) -> str:
+    """
+    Stomp an executor (assertive playback, overrides lower priorities).
+
+    Args:
+        executor_id: Executor number
+        page: Optional page number for page-qualified addressing
+
+    Returns:
+        str: Operation result message
+    """
+    target = _executor_target(executor_id, page)
+    client = await get_client()
+    return await run_verified(client, cmd_stomp(target), f"Stomped {target}")
+
+
+@mcp.tool()
+@handle_connection_error
+async def temp_executor(executor_id: int, page: int | None = None) -> str:
+    """
+    Temporarily activate an executor (Temp).
+
+    Args:
+        executor_id: Executor number
+        page: Optional page number for page-qualified addressing
+
+    Returns:
+        str: Operation result message
+    """
+    target = _executor_target(executor_id, page)
+    client = await get_client()
+    return await run_verified(client, cmd_temp(target), f"Temp {target}")
+
+
+# ============================================================
+# Update Cue Tool (Issue #44)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def update_cue(
+    cue_id: int,
+    sequence_id: int | None = None,
+    merge: bool = False,
+    cueonly: bool = False,
+    tracking: bool = False,
+) -> str:
+    """
+    Update an existing cue with current programmer values (Update).
+
+    Unlike store, Update merges programmer changes into an existing cue without
+    re-storing. WARNING: this modifies existing programming.
+
+    Args:
+        cue_id: Cue number to update
+        sequence_id: Optional sequence the cue belongs to
+        merge: Add /merge flag
+        cueonly: Add /cueonly flag (do not track changes forward)
+        tracking: Add /tracking flag
+
+    Returns:
+        str: Operation result message
+    """
+    target = f"cue {cue_id}"
+    if sequence_id is not None:
+        target += f" sequence {sequence_id}"
+    cmd = cmd_update(target)
+    if merge:
+        cmd += " /merge"
+    if cueonly:
+        cmd += " /cueonly"
+    if tracking:
+        cmd += " /tracking"
+    client = await get_client()
+    return await run_verified(
+        client, cmd, f"Updated Cue {cue_id} (modifies existing programming)"
+    )
 
 
 # ============================================================

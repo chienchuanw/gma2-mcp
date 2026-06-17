@@ -22,6 +22,14 @@ from src.commands.functions.timecode import (
     store_timecode,
     assign_timecode_param,
 )
+from src.commands.functions.matricks import (
+    matricks as _matricks,
+    matricks_blocks,
+    matricks_wings,
+    matricks_groups,
+    matricks_interleave,
+    matricks_filter,
+)
 from src.commands import (
     appearance,
     assign,
@@ -576,6 +584,39 @@ class GMA2Client:
             "commands_sent": sent,
             "count": len(sent),
             "summary": f"Created Timecode {tc_id}{name_part}{slot_part}",
+        }
+
+    async def setup_fan_effect(
+        self,
+        blocks: int | None = None,
+        wings: int | None = None,
+        groups: int | None = None,
+        interleave: int | None = None,
+        filter: int | None = None,
+    ) -> dict[str, Any]:
+        """
+        Configure MAtricks for a fan effect on the current selection.
+
+        Sends the MAtricks reference followed by each provided parameter.
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        params = [
+            (blocks, matricks_blocks),
+            (wings, matricks_wings),
+            (groups, matricks_groups),
+            (interleave, matricks_interleave),
+            (filter, matricks_filter),
+        ]
+        sent: list[str] = [await self._send(_matricks())]
+        for val, fn in params:
+            if val is not None:
+                sent.append(await self._send(fn(val)))
+        return {
+            "commands_sent": sent,
+            "count": len(sent),
+            "summary": f"Configured MAtricks fan effect ({len(sent) - 1} params)",
         }
 
     async def setup_song_macro(
