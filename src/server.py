@@ -162,6 +162,11 @@ from src.commands.functions.effect import (
     effect_speed_group as cmd_effect_speed_group,
 )
 from src.commands.functions.park import park as cmd_park, unpark as cmd_unpark
+from src.commands.functions.midi import (
+    midi_note as cmd_midi_note,
+    midi_control as cmd_midi_control,
+    midi_program as cmd_midi_program,
+)
 from src.commands.functions.fixture_control import (
     align as cmd_align,
     next_keyword as cmd_next,
@@ -3067,6 +3072,85 @@ async def fix_selection(target: str | None = None) -> str:
     """Fix (lock) the current fixture selection."""
     client = await get_client()
     return await run_verified(client, cmd_fix(target), "Fixed selection")
+
+
+# ============================================================
+# MIDI Output Tools (Issue #53)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def send_midi_note(
+    note: int,
+    velocity: int | None = None,
+    channel: int | None = None,
+    off: bool = False,
+) -> str:
+    """
+    Send a MIDI note message via the console's MIDI Out port.
+
+    Used to trigger external devices (video servers, audio, pyro, fog).
+
+    Args:
+        note: MIDI note number (0-127)
+        velocity: Note velocity (0-127); defaults to full (127) if omitted
+        channel: MIDI channel; uses the Setup MSC channel if omitted
+        off: If True, send note-off instead of note-on
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = cmd_midi_note(note, velocity=velocity, channel=channel, off=off)
+    kind = "note-off" if off else "note"
+    return await run_verified(client, cmd, f"Sent MIDI {kind} {note}")
+
+
+@mcp.tool()
+@handle_connection_error
+async def send_midi_control(
+    controller: int,
+    value: int,
+    channel: int | None = None,
+) -> str:
+    """
+    Send a MIDI control-change (CC) message via the MIDI Out port.
+
+    Args:
+        controller: Controller number (0-127)
+        value: Control value (0-127)
+        channel: MIDI channel; uses the Setup MSC channel if omitted
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = cmd_midi_control(controller, value, channel=channel)
+    return await run_verified(
+        client, cmd, f"Sent MIDI CC {controller}={value}"
+    )
+
+
+@mcp.tool()
+@handle_connection_error
+async def send_midi_program(
+    program: int,
+    channel: int | None = None,
+) -> str:
+    """
+    Send a MIDI program-change message via the MIDI Out port.
+
+    Args:
+        program: Program number (0-127)
+        channel: MIDI channel; uses the Setup MSC channel if omitted
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = cmd_midi_program(program, channel=channel)
+    return await run_verified(client, cmd, f"Sent MIDI program change {program}")
 
 
 # ============================================================
