@@ -3280,6 +3280,46 @@ async def build_color_palette(
     return result["summary"]
 
 
+@mcp.tool()
+@handle_connection_error
+async def build_preset_palette(
+    preset_type: str,
+    presets: list[dict],
+    scope: str = "global",
+    merge: bool = False,
+    label: bool = True,
+) -> str:
+    """
+    Build a preset palette of any type from per-fixture-type value sets.
+
+    Generalizes color/beam/focus palette building: each preset carries one or
+    more targets (fixture selections), each with its own attribute values. The
+    first target uses ``scope``; subsequent targets of the same preset merge
+    (per-fixture-type accumulation into one preset).
+
+    Args:
+        preset_type: "color", "beam", "focus", "dimmer", "position", ...
+        presets: list of {id, name?, by_target: [{target, attrs}]} where target
+            is a selection command (e.g. "Fixture 101 Thru 128") and attrs is a
+            list of [attribute, value] pairs.
+        scope: "global" (default), "selective", or "universal".
+        merge: if True the first target also merges (extend an existing preset).
+        label: apply each preset's name as its label.
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Beam strobe across types: preset_type="beam", presets=[{"id":3,"name":"Strobe","by_target":[{"target":"Fixture 401 Thru 428","attrs":[["SHUTTER",50]]},{"target":"Fixture 201 Thru 215","attrs":[["MASTERSHUTTERSTROBE",21]]}]}]
+    """
+    telnet = await get_client()
+    gma2 = GMA2Client(telnet)
+    result = await gma2.build_preset_palette(
+        preset_type, presets, scope=scope, merge=merge, label=label
+    )
+    return result["summary"]
+
+
 # ============================================================
 # Server Startup
 # ============================================================
