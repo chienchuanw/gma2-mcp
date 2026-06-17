@@ -63,6 +63,10 @@ from src.commands import (
     list_shows as cmd_list_shows,
     list_user_var,
     list_var,
+    set_var,
+    set_user_var,
+    add_var,
+    add_user_var,
     load_show as cmd_load_show,
     new_show as cmd_new_show,
     off,
@@ -1607,6 +1611,106 @@ async def list_variables(
     client = await get_client()
     response = await client.send_command_with_response(cmd)
     return response if response.strip() else EMPTY_RESPONSE_MSG
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_variable(
+    var_name: str,
+    value: int | float | str | None = None,
+    input_dialog: bool = False,
+) -> str:
+    """
+    Set a global show variable (SetVar).
+
+    Args:
+        var_name: Variable name (should start with $, e.g. "$song")
+        value: Numeric, text, or None to delete the variable
+        input_dialog: If True (string values only), prompt the operator with an
+                      input dialog instead of setting a fixed value
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Set $count to 5
+        - Set $song to "Opening"
+        - Delete $count (value=None)
+    """
+    client = await get_client()
+    cmd = set_var(var_name, value, input_dialog=input_dialog)
+    action = "Deleted" if value is None else "Set"
+    return await run_verified(client, cmd, f"{action} show variable {var_name}")
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_user_variable(
+    var_name: str,
+    value: int | float | str | None = None,
+    input_dialog: bool = False,
+) -> str:
+    """
+    Set a user-profile-specific variable (SetUserVar).
+
+    Args:
+        var_name: Variable name (should start with $)
+        value: Numeric, text, or None to delete the variable
+        input_dialog: If True (string values only), prompt with an input dialog
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = set_user_var(var_name, value, input_dialog=input_dialog)
+    action = "Deleted" if value is None else "Set"
+    return await run_verified(client, cmd, f"{action} user variable {var_name}")
+
+
+@mcp.tool()
+@handle_connection_error
+async def add_variable(
+    var_name: str,
+    value: int | float | str,
+) -> str:
+    """
+    Add to / extend a global show variable (AddVar).
+
+    Numeric values are summed; text values are concatenated.
+
+    Args:
+        var_name: Variable name (should start with $)
+        value: Value to add (numeric) or append (text)
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = add_var(var_name, value)
+    return await run_verified(client, cmd, f"Added to show variable {var_name}")
+
+
+@mcp.tool()
+@handle_connection_error
+async def add_user_variable(
+    var_name: str,
+    value: int | float | str,
+) -> str:
+    """
+    Add to / extend a user-profile-specific variable (AddUserVar).
+
+    Numeric values are summed; text values are concatenated.
+
+    Args:
+        var_name: Variable name (should start with $)
+        value: Value to add (numeric) or append (text)
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = add_user_var(var_name, value)
+    return await run_verified(client, cmd, f"Added to user variable {var_name}")
 
 
 @mcp.tool()
