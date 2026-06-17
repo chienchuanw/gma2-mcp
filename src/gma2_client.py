@@ -30,8 +30,14 @@ from src.commands.functions.matricks import (
     matricks_interleave,
     matricks_filter,
 )
+from src.commands.constants import PRESET_TYPES
+# Aliased so build_color_palette can call them without its label/appearance
+# bool parameters shadowing the builders.
+from src.commands import appearance as appearance_cmd, label as label_cmd
 from src.commands import (
     appearance,
+    attribute_at,
+    store_preset,
     assign,
     assign_cue_cmd,
     assign_fade,
@@ -56,6 +62,21 @@ from src.commands import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _color_swatch(r: int, g: int, b: int, w: int) -> tuple[int, int, int]:
+    """Derive a pool appearance swatch (0-100 RGB) from an RGBW color.
+
+    The white channel lifts all three components toward white; a fully-off color
+    gets a small floor so the pool button stays visible.
+    """
+    def lift(v: int) -> int:
+        return min(100, round(v + w))
+
+    sr, sg, sb = lift(r), lift(g), lift(b)
+    if max(sr, sg, sb) < 8:
+        sr = sg = sb = 8
+    return sr, sg, sb
 
 
 class GMA2Client:
@@ -617,6 +638,84 @@ class GMA2Client:
             "commands_sent": sent,
             "count": len(sent),
             "summary": f"Configured MAtricks fan effect ({len(sent) - 1} params)",
+        }
+
+    async def build_color_palette(
+        self,
+        target: str,
+        colors: list[dict[str, Any]],
+        *,
+        preset_type: str = "color",
+        scope: str = "global",
+        merge: bool = False,
+        label: bool = True,
+        appearance: bool = True,
+    ) -> dict[str, Any]:
+        """
+        Program a list of colors into presets for a target fixture selection.
+
+        For each color: select ``target``, set R/G/B/W (COLORRGB1/2/3/5), store the
+        preset (with ``scope`` and optional ``merge``), and optionally label it and
+        set its pool appearance swatch.
+
+        Use ``merge=True`` to extend an existing palette to a new fixture group
+        without disturbing values already stored for other fixture types.
+
+        Args:
+            target: A grandMA2 selection command (e.g. "Group 3", "Group 1 Thru 5").
+            colors: List of dicts: {id, name?, r, g, b, w?} with r/g/b/w in 0-100.
+            preset_type: Preset pool type (default "color").
+            scope: "global", "selective", or "universal".
+            merge: Merge into existing presets instead of replacing them.
+            label: Apply the color's name as the preset label.
+            appearance: Set each preset's pool appearance swatch from its color.
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        pool = PRESET_TYPES.get(preset_type.lower(), 4)
+        scope_kwargs: dict[str, Any] = {"noconfirm": True}
+        if scope == "global":
+            scope_kwargs["global_scope"] = True
+        elif scope == "selective":
+            scope_kwargs["selective"] = True
+        elif scope == "universal":
+            scope_kwargs["universal"] = True
+        if merge:
+            scope_kwargs["merge"] = True
+
+        sent: list[str] = []
+        for color in colors:
+            cid = color["id"]
+            r = color.get("r", 0)
+            g = color.get("g", 0)
+            b = color.get("b", 0)
+            w = color.get("w", 0)
+            sent.append(await self._send(target))
+            sent.append(await self._send(attribute_at("COLORRGB1", r)))
+            sent.append(await self._send(attribute_at("COLORRGB2", g)))
+            sent.append(await self._send(attribute_at("COLORRGB3", b)))
+            sent.append(await self._send(attribute_at("COLORRGB5", w)))
+            sent.append(
+                await self._send(store_preset(preset_type, cid, **scope_kwargs))
+            )
+            if label and color.get("name"):
+                sent.append(
+                    await self._send(label_cmd("preset", f"{pool}.{cid}", color["name"]))
+                )
+            if appearance:
+                sr, sg, sb = _color_swatch(r, g, b, w)
+                sent.append(
+                    await self._send(
+                        appearance_cmd("preset", f"{pool}.{cid}", red=sr, green=sg, blue=sb)
+                    )
+                )
+
+        mode = " (merged)" if merge else ""
+        return {
+            "commands_sent": sent,
+            "count": len(colors),
+            "summary": f"Programmed {len(colors)} {preset_type} preset(s) into {target}{mode}",
         }
 
     async def setup_song_macro(

@@ -710,14 +710,22 @@ async def store_preset(
     preset_type: str,
     preset_id: int,
     scope: str | None = None,
+    merge: bool = False,
+    overwrite: bool = False,
 ) -> str:
     """
     Store current programmer values as a preset.
+
+    Use merge to ADD the current selection's values into an existing preset
+    without disturbing values already stored for other fixture types (the
+    non-destructive way to extend a global palette to a new fixture group).
 
     Args:
         preset_type: Preset type (dimmer, position, gobo, color, beam, focus, control, shapers, video)
         preset_id: Preset number
         scope: (Optional) Scope: "global", "selective", or "universal"
+        merge: Merge into the existing preset (keeps other fixtures' stored values)
+        overwrite: Overwrite the existing preset entirely
 
     Returns:
         str: Operation result message
@@ -725,6 +733,7 @@ async def store_preset(
     Examples:
         - Store color preset 1
         - Store global dimmer preset 5
+        - Extend global color preset 7 to the current selection: merge=True
     """
     client = await get_client()
     kwargs = {}
@@ -734,10 +743,23 @@ async def store_preset(
         kwargs["selective"] = True
     elif scope == "universal":
         kwargs["universal"] = True
+    if merge:
+        kwargs["merge"] = True
+    if overwrite:
+        kwargs["overwrite"] = True
+    if merge or overwrite:
+        kwargs["noconfirm"] = True  # avoid a blocking confirm pop-up over Telnet
     cmd = cmd_store_preset(preset_type, preset_id, **kwargs)
-    scope_part = f" ({scope})" if scope else ""
+    extra = []
+    if scope:
+        extra.append(scope)
+    if merge:
+        extra.append("merged")
+    if overwrite:
+        extra.append("overwritten")
+    suffix = f" ({', '.join(extra)})" if extra else ""
     return await run_verified(
-        client, cmd, f"Stored {preset_type} Preset {preset_id}{scope_part}"
+        client, cmd, f"Stored {preset_type} Preset {preset_id}{suffix}"
     )
 
 
@@ -3204,6 +3226,58 @@ async def send_midi_program(
     client = await get_client()
     cmd = cmd_midi_program(program, channel=channel)
     return await run_verified(client, cmd, f"Sent MIDI program change {program}")
+
+
+# ============================================================
+# Palette Workflow Tool (Issue #72)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def build_color_palette(
+    target: str,
+    colors: list[dict],
+    scope: str = "global",
+    merge: bool = False,
+    label: bool = True,
+    appearance: bool = True,
+) -> str:
+    """
+    Build (or extend) a color preset palette for a fixture selection in one call.
+
+    For each color: selects ``target``, sets R/G/B/W, stores the preset (Global by
+    default), labels it, and sets its pool appearance swatch.
+
+    To extend an existing palette to a new fixture group without disturbing
+    already-stored values, pass that group as ``target`` and ``merge=True``.
+
+    Args:
+        target: A grandMA2 selection command (e.g. "Group 3", "Group 1 Thru 5").
+        colors: List of {id, name?, r, g, b, w?} with r/g/b/w in 0-100.
+        scope: "global" (default), "selective", or "universal".
+        merge: Merge into existing presets (non-destructive extend).
+        label: Apply each color's name as the preset label.
+        appearance: Set each preset's pool swatch from its color.
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Build a palette on LED Par: target="Group 3", colors=[{"id":7,"name":"Red","r":100,"g":0,"b":0}]
+        - Extend it to Wash: target="Group 4", merge=True, same colors
+    """
+    telnet = await get_client()
+    gma2 = GMA2Client(telnet)
+    result = await gma2.build_color_palette(
+        target,
+        colors,
+        scope=scope,
+        merge=merge,
+        label=label,
+        appearance=appearance,
+    )
+    return result["summary"]
 
 
 # ============================================================
