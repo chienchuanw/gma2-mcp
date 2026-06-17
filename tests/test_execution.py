@@ -45,3 +45,14 @@ class TestBuildResult:
     def test_summary_on_success_is_not_an_error(self):
         result = build_result("Clear", CLEAR_OK_RAW)
         assert "Error" not in result.summary()
+
+
+class TestSummaryUnnumberedError:
+    def test_summary_omits_none_code(self):
+        result = ExecutionResult(
+            ok=False, echo="Error : illegal object",
+            error_code=None, error_text="illegal object", raw="raw",
+        )
+        summary = result.summary()
+        assert "None" not in summary
+        assert "illegal object" in summary

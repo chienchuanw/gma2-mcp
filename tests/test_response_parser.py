@@ -239,3 +239,19 @@ class TestDetectError:
             "\x1b[31mWARNING, NO OBJECTS FOUND FOR LIST\x1b[37m\n\r [Fixture]>\x1b[K"
         )
         assert detect_error(raw) is None
+
+
+class TestDetectErrorBareForm:
+    def test_unnumbered_error_is_detected(self):
+        raw = (
+            "Executing : \x1b[32mSomeCmd\x1b[37m\n\r"
+            "\x1b[31mError : illegal object\x1b[37m\n\r [Fixture]>\x1b[K"
+        )
+        err = detect_error(raw)
+        assert err is not None
+        assert err["error_code"] is None
+        assert "illegal object" in err["error_text"]
+
+    def test_numbered_error_still_takes_precedence(self):
+        err = detect_error(LIST_PRESET_ERROR_RAW)
+        assert err["error_code"] == 14

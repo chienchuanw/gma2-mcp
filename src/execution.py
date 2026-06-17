@@ -36,6 +36,8 @@ class ExecutionResult:
         """A concise, truthful one-line summary for an MCP tool to return."""
         if self.ok:
             return self.echo.strip() or "OK"
+        if self.error_code is None:
+            return f"Error: {self.error_text}"
         return f"Error #{self.error_code}: {self.error_text}"
 
 
