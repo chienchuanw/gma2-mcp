@@ -420,3 +420,30 @@ New modules: src/execution.py, src/commands/selector.py, src/introspection.py,
 src/commands/functions/timecode.py. Tests grew ~1055 -> 1179, all passing.
 
 All previously-open issues (#39-#59) are now closed.
+
+## Session: 2026-06-17 (Session 14 -- Live preset palettes + profile resolver + palette tooling)
+
+Worked live against the onPC (100.110.79.101) building real preset palettes, and
+hardened the tooling that made them precise and reusable.
+
+- **Live palettes built & saved** on the show:
+  - Color (type 4): 30 Global presets (whites/CT, full rainbow, designer, pastels)
+    with pool appearance swatches; user corrected Selective -> Global.
+  - Beam (type 5): 17 presets (Strobe/Shutter A-set across all fixtures +
+    GEIST Iris/Frost/Prism B-set), precise per-type values from the GDTF profiles.
+  - Focus (type 6): 15 Selective presets -- 5-step Zoom (direction auto-resolved;
+    7x40 inverted) + GEIST sharpest-focus, with per-gobo sets (base/G1/G2).
+- **#72** store_preset merge/overwrite + `build_color_palette` (PR #73).
+- **#74** fixture-profile resolver `src/profile_resolver.py` (PR #77) -- parses
+  MA2/GDTF XML, resolves named functions to per-type values; scoped shutter
+  queries; validated against the rig's five real profiles.
+- **#79** generalized `build_preset_palette` (PR #80) -- one tool for any preset
+  type with per-target values, scope, and per-type merge.
+- Design docs: `doc/design_beam_presets.md`, `doc/design_focus_presets.md`
+  (with precise per-type value tables).
+- Tool count 98 -> 100. Tests grew to 1204, all passing.
+
+Group -> type map (confirmed): Spot=GEIST(101-128), Q4=B-EYE(201-215),
+LED Par=PAR(401-428), Wash=7x40(301-312), Strobe=Led-8(801-804).
+
+Open: #75 (visualizer/Depence screenshot bridge for closed-loop verification).
