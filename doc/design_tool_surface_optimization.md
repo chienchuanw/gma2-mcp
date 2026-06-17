@@ -1,7 +1,7 @@
 # Design: Tool Surface & Reliability Optimization
 
-**Status:** Proposed (consensus reached 2026-06-17)
-**Related issues:** #55 (list_presets), #56 (silent success), #39-#54 (keyword-tool roadmap — to be re-triaged)
+**Status:** Delivered (2026-06-17). See "Delivery status" at the end.
+**Related issues:** #55 (list_presets), #56 (silent success), #39-#54 (keyword-tool roadmap — delivered)
 
 ## Problem
 
@@ -114,3 +114,43 @@ One cached layer queries `List Attribute` / `List Group` / patch, and:
 - Replacing Telnet (no better transport exists for command control).
 - Static attribute enums (mappings are show-specific; must be queried live).
 - Removing keyword tools (retained as fallback).
+
+## Delivery status
+
+All five pillars are implemented (PRs #60–#69):
+
+1. **Verified execution core** — `ExecutionResult`/`build_result`/`execute()`/
+   `run_verified()`/`run_verified_sequence()`; every mutating tool reports the
+   console's real outcome; `detect_error` handles numbered and bare errors.
+   (#58, #59, #56)
+2. **Three-tier surface** — workflow tools (GMA2Client-backed), a verified
+   command tool (`send_raw_command`), and discovery/read tools. Keyword tools
+   remain as the fallback smallest unit. The #39–#54 roadmap was implemented
+   (not as reflexive 1:1 wrappers but consolidated where it added value, e.g.
+   `set_matricks`, `set_cue_timing`, mode-parameterized busking/rate tools).
+3. **Selector grammar** — `src/commands/selector.py::normalize_selector`
+   (thru / + / -, dotted pool.ids, injection-safe); wired into copy/move so a
+   range moves in one call. Full retrofit across *all* object tools remains a
+   future extension. (#57 phase 2, #49)
+4. **Show introspection + name resolution** — `src/introspection.py` caches
+   `List Attribute` and resolves friendly names (e.g. White → COLORRGB5);
+   `set_fixture_attribute` resolves before sending and rejects unknowns with
+   suggestions, degrading gracefully when introspection is unavailable.
+   (#57 phase 3)
+5. **Guidance** — working-principles block in the MCP server instructions
+   (trust the result, batch with ranges, discover before guessing, destructive
+   tool caution); destructive tools surface inline warnings. (#57 phase 4)
+
+### Acceptance criteria (issue #57)
+
+- [x] A rejected command surfaces as a failure (verified core).
+- [x] A range operation is expressible in a single call (selector + copy/move).
+- [x] An invalid/show-specific name is resolved or rejected with suggestions
+      before sending (attribute resolution).
+- [x] This design doc reflects the implemented state.
+
+### Known follow-ups (not blocking)
+
+- Extend the selector to every object-addressing tool (currently copy/move).
+- Extend name resolution beyond attributes (groups, presets) and expose the
+  introspection cache as MCP resources.
