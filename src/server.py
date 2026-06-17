@@ -127,6 +127,25 @@ from src.commands.functions.flash_swop_ext import (
     swop_on as cmd_swop_on,
 )
 from src.commands.functions.programmer import update as cmd_update
+from src.commands.functions.blind import (
+    blind as cmd_blind,
+    blind_edit as cmd_blind_edit,
+    preview as cmd_preview,
+    preview_edit as cmd_preview_edit,
+)
+from src.commands.functions.rate_speed import (
+    rate as cmd_rate,
+    rate1 as cmd_rate1,
+    half_rate as cmd_half_rate,
+    double_rate as cmd_double_rate,
+    speed as cmd_speed,
+    half_speed as cmd_half_speed,
+    double_speed as cmd_double_speed,
+)
+from src.commands.functions.executor_control import (
+    release as cmd_release,
+    top as cmd_top,
+)
 from src.response_parser import parse_macro_lines, parse_cue_info, parse_object_label
 
 load_dotenv()
@@ -2520,6 +2539,211 @@ async def update_cue(
     return await run_verified(
         client, cmd, f"Updated Cue {cue_id} (modifies existing programming)"
     )
+
+
+# ============================================================
+# Blind / Preview Tools (Issue #45)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def toggle_blind(
+    executor_id: int | None = None,
+    page: int | None = None,
+    edit_mode: bool = False,
+) -> str:
+    """
+    Toggle blind editing mode (edit cues without affecting stage output).
+
+    Args:
+        executor_id: Optional executor to toggle blind for (global if omitted)
+        page: Optional page for page-qualified executor addressing
+        edit_mode: If True, toggle blind-edit mode (global) instead
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    if edit_mode:
+        return await run_verified(client, cmd_blind_edit(), "Toggled blind-edit mode")
+    target = _executor_target(executor_id, page) if executor_id is not None else None
+    where = f" for {target}" if target else ""
+    return await run_verified(client, cmd_blind(target), f"Toggled blind{where}")
+
+
+@mcp.tool()
+@handle_connection_error
+async def toggle_preview(
+    executor_id: int | None = None,
+    page: int | None = None,
+    edit_mode: bool = False,
+) -> str:
+    """
+    Toggle preview mode (visualize output without affecting DMX).
+
+    Args:
+        executor_id: Optional executor to toggle preview for (global if omitted)
+        page: Optional page for page-qualified executor addressing
+        edit_mode: If True, toggle preview-edit mode (global) instead
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    if edit_mode:
+        return await run_verified(
+            client, cmd_preview_edit(), "Toggled preview-edit mode"
+        )
+    target = _executor_target(executor_id, page) if executor_id is not None else None
+    where = f" for {target}" if target else ""
+    return await run_verified(client, cmd_preview(target), f"Toggled preview{where}")
+
+
+# ============================================================
+# Clone Fixtures Tool (Issue #46)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def clone_fixtures(
+    source_fixture: int,
+    target_fixture: int,
+    source_end: int | None = None,
+    target_end: int | None = None,
+    mode: str = "default",
+) -> str:
+    """
+    Clone all programming from source fixture(s) to target fixture(s).
+
+    WARNING: mode="overwrite" replaces existing target programming.
+
+    Args:
+        source_fixture: Source fixture number (or start of range)
+        target_fixture: Target fixture number (or start of range)
+        source_end: Optional end of source range
+        target_end: Optional end of target range
+        mode: "default", "overwrite", or "merge"
+
+    Returns:
+        str: Operation result message
+    """
+    telnet = await get_client()
+    gma2 = GMA2Client(telnet)
+    result = await gma2.clone_fixtures(
+        source_fixture,
+        target_fixture,
+        source_end=source_end,
+        target_end=target_end,
+        mode=mode,
+    )
+    return result["summary"]
+
+
+# ============================================================
+# Rate / Speed Tools (Issue #47)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_executor_rate(
+    executor_id: int,
+    mode: str = "set",
+    page: int | None = None,
+) -> str:
+    """
+    Control an executor's playback rate (live tempo matching).
+
+    Args:
+        executor_id: Executor number
+        mode: "set" (rate), "half", "double", or "reset" (1:1)
+        page: Optional page for page-qualified addressing
+
+    Returns:
+        str: Operation result message
+    """
+    modes = {
+        "set": cmd_rate,
+        "half": cmd_half_rate,
+        "double": cmd_double_rate,
+        "reset": cmd_rate1,
+    }
+    cmd_fn = modes.get(mode.lower())
+    if cmd_fn is None:
+        return f"Unknown mode: {mode}. Use set, half, double, or reset."
+    target = _executor_target(executor_id, page)
+    client = await get_client()
+    return await run_verified(client, cmd_fn(target), f"Rate {mode} on {target}")
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_executor_speed(
+    executor_id: int,
+    mode: str = "set",
+    page: int | None = None,
+) -> str:
+    """
+    Control an executor's playback speed (live tempo matching).
+
+    Args:
+        executor_id: Executor number
+        mode: "set" (speed), "half", or "double"
+        page: Optional page for page-qualified addressing
+
+    Returns:
+        str: Operation result message
+    """
+    modes = {"set": cmd_speed, "half": cmd_half_speed, "double": cmd_double_speed}
+    cmd_fn = modes.get(mode.lower())
+    if cmd_fn is None:
+        return f"Unknown mode: {mode}. Use set, half, or double."
+    target = _executor_target(executor_id, page)
+    client = await get_client()
+    return await run_verified(client, cmd_fn(target), f"Speed {mode} on {target}")
+
+
+# ============================================================
+# Executor Release / Top Tools (Issue #48)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def release_executor(executor_id: int, page: int | None = None) -> str:
+    """
+    Release an executor (clean removal from output, respecting tracking).
+
+    Args:
+        executor_id: Executor number
+        page: Optional page for page-qualified addressing
+
+    Returns:
+        str: Operation result message
+    """
+    target = _executor_target(executor_id, page)
+    client = await get_client()
+    return await run_verified(client, cmd_release(target), f"Released {target}")
+
+
+@mcp.tool()
+@handle_connection_error
+async def top_executor(executor_id: int, page: int | None = None) -> str:
+    """
+    Set an executor to top priority (Top).
+
+    Args:
+        executor_id: Executor number
+        page: Optional page for page-qualified addressing
+
+    Returns:
+        str: Operation result message
+    """
+    target = _executor_target(executor_id, page)
+    client = await get_client()
+    return await run_verified(client, cmd_top(target), f"Set {target} to top priority")
 
 
 # ============================================================
