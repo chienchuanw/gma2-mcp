@@ -81,17 +81,17 @@ class TestListPresetForQueryTool:
     def test_by_type_string(self):
         from src.commands import list_preset
 
-        assert list_preset("color") == 'list preset "color"'
+        assert list_preset("color") == "list preset 4.*"
 
     def test_by_type_numeric(self):
         from src.commands import list_preset
 
-        assert list_preset(4) == "list preset 4"
+        assert list_preset(4) == "list preset 4.*"
 
     def test_type_with_id(self):
         from src.commands import list_preset
 
-        assert list_preset("position", 1) == 'list preset "position".1'
+        assert list_preset("position", 1) == "list preset 2.1"
 
     def test_type_with_id_range(self):
         """list_preset with preset_id range via list_objects for now."""
@@ -99,7 +99,7 @@ class TestListPresetForQueryTool:
 
         # list_preset doesn't directly support end with type+id,
         # so the MCP tool will use list_objects for range queries
-        assert list_preset("color", 1) == 'list preset "color".1'
+        assert list_preset("color", 1) == "list preset 4.1"
 
 
 class TestInfoCueForQueryTool:

@@ -205,25 +205,28 @@ def list_preset(
         >>> list_preset()
         'list preset'
         >>> list_preset("color")
-        'list preset "color"'
+        'list preset 4.*'
         >>> list_preset("color", '"m*"')
-        'list preset "color"."m*"'
+        'list preset 4."m*"'
         >>> list_preset(4, '"m*"')
         'list preset 4."m*"'
     """
     cmd = "list preset"
 
     if preset_type is not None:
-        # Handle string type names (add quotes) or numeric types
-        if isinstance(preset_type, str) and not preset_type.startswith('"'):
-            type_part = f'"{preset_type}"'
+        # grandMA2 rejects a quoted type name as a pool selector
+        # (`List Preset "color"` -> OBJECT DOES NOT EXIST). Map known type names
+        # to their numeric pool and address by number.
+        if isinstance(preset_type, str):
+            type_part = str(PRESET_TYPES.get(preset_type.lower(), preset_type))
         else:
             type_part = str(preset_type)
 
         if preset_id is not None:
             cmd = f"{cmd} {type_part}.{preset_id}"
         else:
-            cmd = f"{cmd} {type_part}"
+            # Whole pool: `List Preset 4.*`
+            cmd = f"{cmd} {type_part}.*"
     elif preset_id is not None:
         if end is not None:
             cmd = f"{cmd} {preset_id} thru {end}"

@@ -116,18 +116,18 @@ class TestListCommands:
         assert result == "list preset"
 
     def test_list_preset_by_type(self):
-        """Test list preset by type: list preset "color" """
+        """Type name maps to numeric pool; whole pool uses .* (color = pool 4)."""
         from src.commands import list_preset
 
         result = list_preset("color")
-        assert result == 'list preset "color"'
+        assert result == "list preset 4.*"
 
     def test_list_preset_with_wildcard(self):
-        """Test list preset with wildcard: list preset "color"."m*" """
+        """Type name maps to numeric pool with an id/pattern: list preset 4."m*" """
         from src.commands import list_preset
 
         result = list_preset("color", '"m*"')
-        assert result == 'list preset "color"."m*"'
+        assert result == 'list preset 4."m*"'
 
     def test_list_preset_numeric_type_with_wildcard(self):
         """Test list preset with numeric type: list preset 4."m*" """
