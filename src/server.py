@@ -176,6 +176,7 @@ from src.commands.functions.fixture_control import (
     fix as cmd_fix,
 )
 from src.response_parser import parse_macro_lines, parse_cue_info, parse_object_label
+from src.introspection import AttributeResolver
 
 load_dotenv()
 
@@ -213,6 +214,39 @@ def handle_connection_error(func):
             )
 
     return wrapper
+
+
+_resolver_cache: dict = {"client": None, "resolver": None}
+
+
+def _get_attribute_resolver(client):
+    """Return a per-connection cached AttributeResolver (rebuilt if client changes)."""
+    if _resolver_cache["client"] is not client:
+        _resolver_cache["client"] = client
+        _resolver_cache["resolver"] = AttributeResolver(client)
+    return _resolver_cache["resolver"]
+
+
+async def resolve_attribute_name(client, attribute: str):
+    """Resolve a friendly attribute name to a console token (#57 phase 3).
+
+    Returns ``(token, error)``. On success ``token`` is the canonical attribute
+    and ``error`` is None. If the attribute table is known and the name is not in
+    it, ``token`` is None and ``error`` is a suggestion-bearing message. If
+    introspection is unavailable, the original name passes through unchanged.
+    """
+    resolver = _get_attribute_resolver(client)
+    try:
+        resolved = await resolver.resolve(attribute)
+        if resolved is not None:
+            return resolved, None
+        if await resolver.known():
+            suggestions = await resolver.suggest(attribute)
+            hint = f" Did you mean: {', '.join(suggestions)}?" if suggestions else ""
+            return None, f"Unknown attribute '{attribute}'.{hint}"
+    except Exception:
+        pass
+    return attribute, None
 
 
 async def run_verified(client, command: str, success: str) -> str:
@@ -295,6 +329,20 @@ mcp = FastMCP(
 
     Raw Command:
       - send_raw_command: Send any grandMA2 command-line instruction
+
+    Working principles (read first):
+      - Trust the result: every mutating tool reports the console's real outcome.
+        A returned "Error #NN: ..." means the command was REJECTED — do not assume
+        success. Never treat a tool call as done until its result confirms it.
+      - Batch with ranges: object tools accept selection expressions using
+        thru / + / - (e.g. "1 thru 10", "1 + 3 + 5"). Move/copy a whole range in
+        ONE call (e.g. move_object group "1 thru 10" -> "21"); do not loop per ID.
+      - Discover before guessing: attribute/object names are show-specific.
+        set_fixture_attribute auto-resolves friendly names (e.g. "White" ->
+        COLORRGB5) and rejects unknown names with suggestions. Use the list_*
+        and query_object tools to discover valid IDs/names instead of guessing.
+      - Destructive tools (delete_*, move_object, clone_fixtures, load/new show)
+        change or remove existing programming — confirm intent before calling.
     """,
 )
 
@@ -602,11 +650,16 @@ async def set_fixture_attribute(
         - Set Tilt to 50 on fixtures 1 thru 10
     """
     client = await get_client()
+    # Resolve a friendly/show-specific attribute name (e.g. "White" -> COLORRGB5)
+    # before sending; reject unknown names with suggestions (#57 phase 3).
+    attr_token, error = await resolve_attribute_name(client, attribute)
+    if error is not None:
+        return error
     if end_fixture is not None:
         fix_cmd = f"fixture {fixture_id} thru {end_fixture}"
     else:
         fix_cmd = fixture(fixture_id)
-    attr_cmd = attribute_at(attribute, value)
+    attr_cmd = attribute_at(attr_token, value)
     range_part = f" thru {end_fixture}" if end_fixture else ""
     return await run_verified_sequence(
         client,
