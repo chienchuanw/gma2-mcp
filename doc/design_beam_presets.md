@@ -1,7 +1,9 @@
 # Design: Beam Preset Palette
 
-**Status:** Implemented (best-effort values; precise values pending #74). 2026-06-17.
-**Related issues:** #72 (merge workflow), #74 (profile/function resolver), #75 (visualizer bridge).
+**Status:** Implemented with precise per-type values (derived from the fixture
+profiles via the #74 resolver). 2026-06-17.
+**Related issues:** #72 (merge workflow), #74 (profile/function resolver — done),
+#75 (visualizer bridge).
 
 ## Goal
 
@@ -50,11 +52,16 @@ Gobo is type 3, Zoom/Focus is type 6 (kept separate).
 - To extend a set to a new fixture type later, use the merge workflow (#72):
   select that type → set values → `Store … /global /merge`.
 
-### Values are best-effort (approach B)
+### Values: initial approach B, now superseded by precise values
+
+> NOTE: The best-effort values below were the FIRST pass (before the profile
+> XMLs were available). They have since been replaced with precise per-type
+> values — see "Precise per-type values (from fixture profiles, #74)" at the end.
+> This section is kept for history.
 
 grandMA2 Telnet cannot read a profile's channel-function ranges, so strobe rate /
-iris direction / prism slot values are **starting points that need on-site
-verification**:
+iris direction / prism slot values were initially **starting points that needed
+on-site verification**:
 
 - Reliable: Open (`SHUTTER=100`), Closed (`SHUTTER=0`), Frost (0/40/100).
 - Verify on stage: Strobe rates (`MASTERSHUTTERSTROBE` 20/50/85; "Random" = 70 is
@@ -81,3 +88,48 @@ verification**:
 - B-EYE zoom / rotating-lens looks → Focus presets (type 6) + effects, separately.
 - Consider generalizing `build_color_palette` (#72) into a `build_preset_palette`
   that takes attribute/value sets (would have made this beam build a single call).
+
+## Precise per-type values (from fixture profiles, #74)
+
+The best-effort values were replaced with values derived from each fixture's
+profile (MA2 fixture-type XML) via `src/profile_resolver.py`. `resolve(query,
+position, feature)` maps a named function to `(attribute, At%)`; `per_type_values`
+runs it across all profiles. Shutter-slot queries (open/closed/strobe/random) are
+scoped to the SHUTTER feature so they don't match color-wheel / white "open"
+slots. Each logical preset is stored once per fixture type and **merged** into one
+Global preset.
+
+Patch: GEIST 101–128, B-EYE 201–215, LED 7x40 301–312, LED PAR 401–428,
+Led-8 Strobe 801–804.
+
+### A — Strobe/Shutter (attribute @ At%)
+
+| Preset | LED PAR `SHUTTER` | Led-8 `SHUTTER` | LED 7x40 `SHUTTER` | GEIST `SHUTTER` | B-EYE `MASTERSHUTTERSTROBE` |
+|---|---|---|---|---|---|
+| Open | @0 | @0 | @41 | @4 | @41 |
+| Closed | — | — | @0 | @0 | @0 |
+| Strobe Slow | @12 | @14 | @6 | @12 | @6 |
+| Strobe Medium | @50 | @52 | @21 | @29 | @21 |
+| Strobe Fast | @90 | @96 | @39 | @50 | @39 |
+| Strobe Random | — | — | @90 | @95 | @90 |
+
+Each value lands in that profile's actual strobe band (e.g. LED PAR strobe spans
+0.1–20 Hz, so 12/50/90 ≈ 2.5/10/18 Hz; 7x40/B-EYE are 1–10 Hz). LED PAR and Led-8
+have no mechanical closed/random slot, so they are omitted from those presets.
+
+### B — GEIST Iris/Frost/Prism (GEIST only)
+
+| Preset | Attribute(s) @ At% |
+|---|---|
+| Iris Open / Pinch / Mid | `IRIS` @0 / @90 / @45 |
+| Frost Off / Soft / Full | `FROST` @0 / @40 / @100 |
+| Prism Off | `PRISMA1` @0 |
+| Prism In (stop) | `PRISMA1` @50, `PRISMA1_POS` @75 (Stop ≈ dmx 190–193) |
+| Prism Rotate Slow / Med / Fast | `PRISMA1` @50, `PRISMA1_POS` @77 / @88 / @99 |
+
+### Known limitations
+
+- Led-8 Strobe's "open" function is unlabeled in the profile, so the resolver
+  can't name-match it (At 0 = open in practice).
+- Iris direction and prism rotation direction are assumptions to confirm
+  visually (the profile's Iris function has no named open/closed sets).
