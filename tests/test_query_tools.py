@@ -171,7 +171,7 @@ class TestListPresetsTool:
         result = await list_presets(preset_type="color")
 
         client.send_command_with_response.assert_called_once_with(
-            'list preset "color"'
+            "list preset 4.*"
         )
 
     @pytest.mark.asyncio
@@ -185,7 +185,7 @@ class TestListPresetsTool:
         result = await list_presets(preset_type="position")
 
         client.send_command_with_response.assert_called_once_with(
-            'list preset "position"'
+            "list preset 2.*"
         )
 
     @pytest.mark.asyncio
@@ -199,7 +199,7 @@ class TestListPresetsTool:
         result = await list_presets(preset_type="color", preset_id=1)
 
         client.send_command_with_response.assert_called_once_with(
-            'list preset "color".1'
+            "list preset 4.1"
         )
 
     @pytest.mark.asyncio
