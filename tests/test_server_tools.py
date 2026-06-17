@@ -27,7 +27,7 @@ class TestStoreCueTool:
 
         result = await store_cue(cue_id=1)
 
-        client.send_command.assert_called_once_with("store cue 1")
+        client.execute.assert_called_once_with("store cue 1")
         assert "Cue 1" in result
 
     @pytest.mark.asyncio
@@ -40,7 +40,7 @@ class TestStoreCueTool:
 
         result = await store_cue(cue_id=5, name="Blackout", merge=True)
 
-        client.send_command.assert_called_once_with('store cue 5 "Blackout" /merge')
+        client.execute.assert_called_once_with('store cue 5 "Blackout" /merge')
         assert "Blackout" in result
 
     @pytest.mark.asyncio
@@ -53,7 +53,7 @@ class TestStoreCueTool:
 
         await store_cue(cue_id=3, overwrite=True, noconfirm=True)
 
-        cmd = client.send_command.call_args[0][0]
+        cmd = client.execute.call_args[0][0]
         assert "/overwrite" in cmd
         assert "/noconfirm" in cmd
 
@@ -71,7 +71,7 @@ class TestCreateFixtureGroupTool:
             start_fixture=1, end_fixture=10, group_id=1, group_name="Front Wash"
         )
 
-        calls = [c[0][0] for c in client.send_command.call_args_list]
+        calls = [c[0][0] for c in client.execute.call_args_list]
         assert len(calls) == 2
         assert calls[0] == "selfix fixture 1 thru 10"
         assert calls[1] == 'store group 1 "Front Wash"'
@@ -89,7 +89,7 @@ class TestCreateFixtureGroupTool:
             start_fixture=1, end_fixture=10, group_id=1
         )
 
-        calls = [c[0][0] for c in client.send_command.call_args_list]
+        calls = [c[0][0] for c in client.execute.call_args_list]
         assert len(calls) == 2
         assert calls[0] == "selfix fixture 1 thru 10"
         assert calls[1] == "store group 1"
@@ -107,7 +107,7 @@ class TestDeleteCueTool:
 
         result = await delete_cue(cue_id=3)
 
-        client.send_command.assert_called_once_with("delete cue 3")
+        client.execute.assert_called_once_with("delete cue 3")
         assert "Cue 3" in result
 
     @pytest.mark.asyncio
@@ -157,7 +157,7 @@ class TestDeleteCueTool:
 
         await delete_cue(cue_id=5)
 
-        client.send_command.assert_called_once_with("delete cue 5")
+        client.execute.assert_called_once_with("delete cue 5")
 
 
 class TestGotoCueTool:
@@ -171,7 +171,7 @@ class TestGotoCueTool:
 
         result = await goto_cue_tool(cue_id=5, executor=4)
 
-        client.send_command.assert_called_once_with("goto cue 5 executor 4")
+        client.execute.assert_called_once_with("goto cue 5 executor 4")
         assert "Cue 5" in result
         assert "Executor 4" in result
 
@@ -185,7 +185,7 @@ class TestGotoCueTool:
 
         result = await goto_cue_tool(cue_id=3, sequence=1)
 
-        client.send_command.assert_called_once_with("goto cue 3 sequence 1")
+        client.execute.assert_called_once_with("goto cue 3 sequence 1")
         assert "Sequence 1" in result
 
 
@@ -200,7 +200,7 @@ class TestSetFixtureValueTool:
 
         result = await set_fixture_value(fixture_id=1, value=75)
 
-        client.send_command.assert_called_once_with("fixture 1 at 75")
+        client.execute.assert_called_once_with("fixture 1 at 75")
         assert "75" in result
 
     @pytest.mark.asyncio
@@ -213,7 +213,7 @@ class TestSetFixtureValueTool:
 
         result = await set_fixture_value(fixture_id=1, value=50, end_fixture=10)
 
-        client.send_command.assert_called_once_with("fixture 1 thru 10 at 50")
+        client.execute.assert_called_once_with("fixture 1 thru 10 at 50")
         assert "thru 10" in result
 
 
@@ -228,7 +228,7 @@ class TestSetFixtureAttributeTool:
 
         result = await set_fixture_attribute(fixture_id=1, attribute="Pan", value=128)
 
-        calls = [c[0][0] for c in client.send_command.call_args_list]
+        calls = [c[0][0] for c in client.execute.call_args_list]
         assert calls[0] == "fixture 1"
         assert calls[1] == 'attribute "Pan" at 128'
         assert "Pan" in result
@@ -245,7 +245,7 @@ class TestClearProgrammerTool:
 
         result = await clear_programmer(mode="all")
 
-        client.send_command.assert_called_once_with("clearall")
+        client.execute.assert_called_once_with("clearall")
         assert "all" in result
 
     @pytest.mark.asyncio
@@ -258,7 +258,7 @@ class TestClearProgrammerTool:
 
         await clear_programmer(mode="selection")
 
-        client.send_command.assert_called_once_with("clearselection")
+        client.execute.assert_called_once_with("clearselection")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -270,7 +270,7 @@ class TestClearProgrammerTool:
 
         await clear_programmer(mode="default")
 
-        client.send_command.assert_called_once_with("clear")
+        client.execute.assert_called_once_with("clear")
 
 
 class TestStorePresetTool:
@@ -327,7 +327,7 @@ class TestControlExecutorTool:
 
         result = await control_executor(executor_id=1, action="on")
 
-        client.send_command.assert_called_once_with("on executor 1")
+        client.execute.assert_called_once_with("on executor 1")
         assert "on" in result
 
     @pytest.mark.asyncio
@@ -340,7 +340,7 @@ class TestControlExecutorTool:
 
         await control_executor(executor_id=3, action="off")
 
-        client.send_command.assert_called_once_with("off executor 3")
+        client.execute.assert_called_once_with("off executor 3")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -352,7 +352,7 @@ class TestControlExecutorTool:
 
         await control_executor(executor_id=2, action="go")
 
-        client.send_command.assert_called_once_with("go executor 2")
+        client.execute.assert_called_once_with("go executor 2")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -364,7 +364,7 @@ class TestControlExecutorTool:
 
         await control_executor(executor_id=3, action="kill")
 
-        client.send_command.assert_called_once_with("kill executor 3")
+        client.execute.assert_called_once_with("kill executor 3")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -376,7 +376,7 @@ class TestControlExecutorTool:
 
         result = await control_executor(executor_id=1, action="invalid")
 
-        client.send_command.assert_not_called()
+        client.execute.assert_not_called()
         assert "Unknown" in result
 
 
@@ -391,7 +391,7 @@ class TestSetExecutorFaderTool:
 
         result = await set_executor_fader(executor_id=1, value=75)
 
-        client.send_command.assert_called_once_with("executor 1 at 75")
+        client.execute.assert_called_once_with("executor 1 at 75")
         assert "75" in result
 
 
@@ -406,7 +406,7 @@ class TestAssignToExecutorTool:
 
         result = await assign_to_executor(sequence_id=1, executor_id=6)
 
-        client.send_command.assert_called_once_with("assign sequence 1 at executor 6")
+        client.execute.assert_called_once_with("assign sequence 1 at executor 6")
         assert "Sequence 1" in result
         assert "Executor 6" in result
 
@@ -422,7 +422,7 @@ class TestToggleBlackoutTool:
 
         result = await toggle_blackout()
 
-        client.send_command.assert_called_once_with("blackout")
+        client.execute.assert_called_once_with("blackout")
         assert "Blackout" in result
 
 
@@ -437,7 +437,7 @@ class TestToggleHighlightTool:
 
         result = await toggle_highlight()
 
-        client.send_command.assert_called_once_with("highlight")
+        client.execute.assert_called_once_with("highlight")
         assert "Highlight" in result
 
 
@@ -452,7 +452,7 @@ class TestLabelObjectTool:
 
         result = await label_object(object_type="group", object_id=1, name="Front Wash")
 
-        client.send_command.assert_called_once_with('label group 1 "Front Wash"')
+        client.execute.assert_called_once_with('label group 1 "Front Wash"')
         assert "Front Wash" in result
 
     @pytest.mark.asyncio
@@ -465,7 +465,7 @@ class TestLabelObjectTool:
 
         result = await label_object(object_type="cue", object_id=5, name="Intro")
 
-        client.send_command.assert_called_once_with('label cue 5 "Intro"')
+        client.execute.assert_called_once_with('label cue 5 "Intro"')
 
 
 class TestAssignAppearanceTool:
@@ -481,7 +481,7 @@ class TestAssignAppearanceTool:
             object_type="group", object_id=1, red=100, green=0, blue=0
         )
 
-        client.send_command.assert_called_once_with(
+        client.execute.assert_called_once_with(
             "appearance group 1 /r=100 /g=0 /b=0"
         )
         assert "group" in result
@@ -499,7 +499,7 @@ class TestAssignAppearanceTool:
             object_type="preset", object_id="0.1", color="FF0000"
         )
 
-        client.send_command.assert_called_once_with(
+        client.execute.assert_called_once_with(
             "appearance preset 0.1 /color=FF0000"
         )
         assert "preset" in result
@@ -520,7 +520,7 @@ class TestAssignAppearanceTool:
             brightness=50,
         )
 
-        client.send_command.assert_called_once_with(
+        client.execute.assert_called_once_with(
             "appearance cue 5 /h=240 /s=100 /br=50"
         )
         assert "cue" in result
@@ -537,7 +537,7 @@ class TestAssignAppearanceTool:
             object_type="group", object_id=1, end=5, red=0, green=100, blue=0
         )
 
-        client.send_command.assert_called_once_with(
+        client.execute.assert_called_once_with(
             "appearance group 1 thru 5 /r=0 /g=100 /b=0"
         )
         assert "group" in result
@@ -557,7 +557,7 @@ class TestAssignAppearanceTool:
             source_id=13,
         )
 
-        client.send_command.assert_called_once_with(
+        client.execute.assert_called_once_with(
             "appearance macro 2 at macro 13"
         )
         assert "macro" in result
@@ -574,7 +574,7 @@ class TestAssignAppearanceTool:
             object_type="group", object_id=1, reset=True
         )
 
-        client.send_command.assert_called_once_with(
+        client.execute.assert_called_once_with(
             "appearance group 1 /reset"
         )
         assert "group" in result
@@ -591,7 +591,7 @@ class TestSetMacroLineTool:
 
         result = await set_macro_line(macro_id=101, line=1, command="SetVar $song='Opening+Childhood'")
 
-        client.send_command.assert_called_once_with('assign macro 1.101.1 /cmd="SetVar $song=\'Opening+Childhood\'"')
+        client.execute.assert_called_once_with('assign macro 1.101.1 /cmd="SetVar $song=\'Opening+Childhood\'"')
         assert "Line 1" in result
         assert "Macro 101" in result
 
@@ -605,7 +605,7 @@ class TestSetMacroLineTool:
 
         result = await set_macro_line(macro_id=50, line=3, command="Go Sequence 5", pool=2)
 
-        client.send_command.assert_called_once_with('assign macro 2.50.3 /cmd="Go Sequence 5"')
+        client.execute.assert_called_once_with('assign macro 2.50.3 /cmd="Go Sequence 5"')
         assert "50" in result
 
 
@@ -617,7 +617,7 @@ class TestLabelSequenceCueTool:
         client = _mock_client()
         mock_get.return_value = client
         result = await label_sequence_cue_tool(sequence="Set List", cue_id=1, name="Opening+Childhood")
-        client.send_command.assert_called_once_with('label sequence "Set List" cue 1 "Opening+Childhood"')
+        client.execute.assert_called_once_with('label sequence "Set List" cue 1 "Opening+Childhood"')
         assert "Opening+Childhood" in result
 
     @pytest.mark.asyncio
@@ -627,7 +627,7 @@ class TestLabelSequenceCueTool:
         client = _mock_client()
         mock_get.return_value = client
         result = await label_sequence_cue_tool(sequence="100", cue_id=1, name="Opening+Childhood")
-        client.send_command.assert_called_once_with('label sequence 100 cue 1 "Opening+Childhood"')
+        client.execute.assert_called_once_with('label sequence 100 cue 1 "Opening+Childhood"')
         assert "Opening+Childhood" in result
 
     @pytest.mark.asyncio
@@ -637,7 +637,7 @@ class TestLabelSequenceCueTool:
         client = _mock_client()
         mock_get.return_value = client
         result = await label_sequence_cue_tool(sequence="Set List", cue_id=1, name="Act 1", end_cue=5)
-        client.send_command.assert_called_once_with('label sequence "Set List" cue 1 thru 5 "Act 1"')
+        client.execute.assert_called_once_with('label sequence "Set List" cue 1 thru 5 "Act 1"')
         assert "thru 5" in result
 
 
@@ -751,7 +751,7 @@ class TestSetCueCmdTool:
 
         result = await set_cue_cmd(cue_id=1, sequence_id=100, command="Macro 101")
 
-        client.send_command.assert_called_once_with(
+        client.execute.assert_called_once_with(
             'assign cue 1 sequence 100 /cmd="Macro 101"'
         )
         assert "Cue 1" in result
@@ -767,7 +767,7 @@ class TestSetCueCmdTool:
 
         result = await set_cue_cmd(cue_id=5, sequence_id=200, command="Go Sequence 10")
 
-        client.send_command.assert_called_once_with(
+        client.execute.assert_called_once_with(
             'assign cue 5 sequence 200 /cmd="Go Sequence 10"'
         )
         assert "Cue 5" in result
@@ -784,7 +784,7 @@ class TestRunMacroTool:
 
         result = await run_macro(macro_id=5)
 
-        client.send_command.assert_called_once_with("go+ macro 1.5")
+        client.execute.assert_called_once_with("go+ macro 1.5")
         assert "Macro 5" in result
 
     @pytest.mark.asyncio
@@ -797,7 +797,7 @@ class TestRunMacroTool:
 
         result = await run_macro(macro_id=10, pool=2)
 
-        client.send_command.assert_called_once_with("go+ macro 2.10")
+        client.execute.assert_called_once_with("go+ macro 2.10")
         assert "10" in result
 
 
@@ -814,7 +814,7 @@ class TestCreateMacroTool:
             macro_id=10, commands=["Go Sequence 1", "Go Sequence 2"]
         )
 
-        calls = [c[0][0] for c in client.send_command.call_args_list]
+        calls = [c[0][0] for c in client.execute.call_args_list]
         assert calls[0] == "store macro 10"
         assert calls[1] == 'assign macro 1.10.1 /cmd="Go Sequence 1"'
         assert calls[2] == 'assign macro 1.10.2 /cmd="Go Sequence 2"'
@@ -832,7 +832,7 @@ class TestCreateMacroTool:
             macro_id=10, commands=["Go Sequence 1"], name="Start Show"
         )
 
-        calls = [c[0][0] for c in client.send_command.call_args_list]
+        calls = [c[0][0] for c in client.execute.call_args_list]
         assert calls[0] == "store macro 10"
         assert calls[1] == 'assign macro 1.10.1 /cmd="Go Sequence 1"'
         assert calls[2] == 'label macro 10 "Start Show"'
@@ -848,7 +848,7 @@ class TestCreateMacroTool:
 
         result = await create_macro(macro_id=10, commands=[])
 
-        client.send_command.assert_not_called()
+        client.execute.assert_not_called()
         assert "at least one command" in result.lower()
 
 
@@ -863,7 +863,7 @@ class TestLabelMacroTool:
 
         result = await label_macro_tool(macro_id=5, name="Blackout All")
 
-        client.send_command.assert_called_once_with('label macro 5 "Blackout All"')
+        client.execute.assert_called_once_with('label macro 5 "Blackout All"')
         assert "Macro 5" in result
         assert "Blackout All" in result
 
@@ -895,7 +895,7 @@ class TestDeleteMacroTool:
 
         result = await delete_macro_tool(macro_id=5)
 
-        client.send_command.assert_called_once_with("delete macro 1.5 /noconfirm")
+        client.execute.assert_called_once_with("delete macro 1.5 /noconfirm")
         assert "Macro 5" in result
 
     @pytest.mark.asyncio
@@ -922,7 +922,7 @@ class TestApplyEffectTool:
 
         result = await apply_effect(effect_id=5)
 
-        client.send_command.assert_called_once_with("effect 5")
+        client.execute.assert_called_once_with("effect 5")
         assert "Effect 5" in result
 
 
@@ -937,7 +937,7 @@ class TestSetEffectSpeedTool:
 
         result = await set_effect_speed(value=120, unit="bpm")
 
-        client.send_command.assert_called_once_with("effectbpm 120")
+        client.execute.assert_called_once_with("effectbpm 120")
         assert "120" in result
         assert "BPM" in result
 
@@ -951,7 +951,7 @@ class TestSetEffectSpeedTool:
 
         result = await set_effect_speed(value=2.5, unit="hz")
 
-        client.send_command.assert_called_once_with("effecthz 2.5")
+        client.execute.assert_called_once_with("effecthz 2.5")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -963,7 +963,7 @@ class TestSetEffectSpeedTool:
 
         result = await set_effect_speed(value=120, unit="mph")
 
-        client.send_command.assert_not_called()
+        client.execute.assert_not_called()
         assert "bpm" in result.lower()
         assert "hz" in result.lower()
 
@@ -979,7 +979,7 @@ class TestSetEffectFormTool:
 
         result = await set_effect_form(form="sin")
 
-        client.send_command.assert_called_once_with("effectform sin")
+        client.execute.assert_called_once_with("effectform sin")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -991,7 +991,7 @@ class TestSetEffectFormTool:
 
         result = await set_effect_form(form="6")
 
-        client.send_command.assert_called_once_with("effectform 6")
+        client.execute.assert_called_once_with("effectform 6")
 
 
 class TestSetEffectRangeTool:
@@ -1005,7 +1005,7 @@ class TestSetEffectRangeTool:
 
         result = await set_effect_range(high=100, low=0)
 
-        calls = [c[0][0] for c in client.send_command.call_args_list]
+        calls = [c[0][0] for c in client.execute.call_args_list]
         assert "effecthigh 100" in calls
         assert "effectlow 0" in calls
 
@@ -1019,7 +1019,7 @@ class TestSetEffectRangeTool:
 
         result = await set_effect_range(high=80)
 
-        client.send_command.assert_called_once_with("effecthigh 80")
+        client.execute.assert_called_once_with("effecthigh 80")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -1031,7 +1031,7 @@ class TestSetEffectRangeTool:
 
         result = await set_effect_range()
 
-        client.send_command.assert_not_called()
+        client.execute.assert_not_called()
         assert "at least one" in result.lower()
 
 
@@ -1046,7 +1046,7 @@ class TestSetEffectPhaseTool:
 
         result = await set_effect_phase(phase=180)
 
-        client.send_command.assert_called_once_with("effectphase 180")
+        client.execute.assert_called_once_with("effectphase 180")
 
 
 class TestSetEffectWidthTool:
@@ -1060,7 +1060,7 @@ class TestSetEffectWidthTool:
 
         result = await set_effect_width(width=50)
 
-        client.send_command.assert_called_once_with("effectwidth 50")
+        client.execute.assert_called_once_with("effectwidth 50")
 
 
 class TestStopEffectsTool:
@@ -1074,7 +1074,7 @@ class TestStopEffectsTool:
 
         result = await stop_effects()
 
-        client.send_command.assert_called_once_with("off effect")
+        client.execute.assert_called_once_with("off effect")
         assert "stop" in result.lower() or "off" in result.lower()
 
 
@@ -1089,7 +1089,7 @@ class TestSyncEffectsTool:
 
         result = await sync_effects_tool()
 
-        client.send_command.assert_called_once_with("synceffects")
+        client.execute.assert_called_once_with("synceffects")
         assert "sync" in result.lower()
 
 
@@ -1120,7 +1120,7 @@ class TestConnectionErrorHandling:
         from src.server import store_cue
 
         client = _mock_client()
-        client.send_command = AsyncMock(
+        client.execute = AsyncMock(
             side_effect=ConnectionError(
                 "failed to reconnect after 3 attempts to 127.0.0.1:30000"
             )
@@ -1242,3 +1242,70 @@ class TestMutatingToolsVerified:
         result = await apply_preset("color", 99)
 
         assert "Error #14" in result
+
+
+class TestRunVerifiedSequence:
+    """run_verified_sequence aborts on the first console error."""
+
+    @pytest.mark.asyncio
+    async def test_all_ok_returns_success(self):
+        from src.server import run_verified_sequence
+
+        client = _mock_client()  # execute default-ok
+        result = await run_verified_sequence(client, ["a", "b", "c"], "done")
+
+        assert result == "done"
+        assert client.execute.await_count == 3
+
+    @pytest.mark.asyncio
+    async def test_aborts_on_first_error(self):
+        from src.server import run_verified_sequence
+        from src.execution import ExecutionResult
+
+        client = _mock_client()
+        client.execute = AsyncMock(side_effect=[
+            ExecutionResult(ok=True, echo="ok", error_code=None, error_text=None, raw=""),
+            ExecutionResult(ok=False, echo="", error_code=9, error_text="ILLEGAL", raw=""),
+            ExecutionResult(ok=True, echo="ok", error_code=None, error_text=None, raw=""),
+        ])
+
+        result = await run_verified_sequence(client, ["a", "b", "c"], "done")
+
+        assert "Error #9" in result
+        assert client.execute.await_count == 2  # stopped after the failure
+
+
+class TestConvertedToolsSurfaceErrors:
+    """Spot-check that converted tools report console errors, not fake success."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_store_cue_surfaces_error(self, mock_get):
+        from src.server import store_cue
+
+        client = _mock_client()
+        client.execute = AsyncMock(return_value=_err_result(5, "ILLEGAL"))
+        mock_get.return_value = client
+
+        result = await store_cue(cue_id=1)
+
+        assert "Error #5" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_create_fixture_group_aborts_on_select_error(self, mock_get):
+        from src.server import create_fixture_group
+        from src.execution import ExecutionResult
+
+        client = _mock_client()
+        # First command (select) fails -> store must not run.
+        client.execute = AsyncMock(side_effect=[
+            _err_result(9, "ILLEGAL"),
+            ExecutionResult(ok=True, echo="", error_code=None, error_text=None, raw=""),
+        ])
+        mock_get.return_value = client
+
+        result = await create_fixture_group(1, 10, group_id=1)
+
+        assert "Error #9" in result
+        assert client.execute.await_count == 1  # aborted before store
