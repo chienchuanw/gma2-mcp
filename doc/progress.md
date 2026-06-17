@@ -400,3 +400,23 @@
 - **#39-#54 (one-tool-per-keyword expansion) is paused** pending #57 phases 2-4
   (selector grammar, show-introspection/name-resolution, three-tier surface) and a
   per-item re-triage (workflow vs covered-by-verified-command vs genuine keyword tool).
+
+## Session: 2026-06-17 (Session 13 -- Backlog Burndown: all open issues closed)
+
+Implemented and merged every open issue (PRs #62-#70), growing the surface from
+54 to 98 MCP tools, all on the verified execution path.
+
+- **#55** list_presets numeric pool addressing (PR #62)
+- **#59** all 41 mutating tools converted to run_verified / run_verified_sequence (PR #63)
+- **#40** variable write tools; **#39** timecode tools + builder module (PRs #64, #65)
+- **#41-#44** MAtricks, cue/step timing, flash/swop/stomp/temp, update cue (PR #66)
+- **#45-#48** blind/preview, clone, rate/speed, release/top (PR #67)
+- **#49-#54** copy/move (+ selector grammar), extended delete, effect extensions,
+  park/unpark, advanced selection, MIDI (PRs #68, #69)
+- **#57** selector grammar, show-introspection + attribute name resolution,
+  guidance block; design doc delivery status (PRs #68, #70)
+
+New modules: src/execution.py, src/commands/selector.py, src/introspection.py,
+src/commands/functions/timecode.py. Tests grew ~1055 -> 1179, all passing.
+
+All previously-open issues (#39-#59) are now closed.
