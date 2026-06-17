@@ -372,3 +372,31 @@
 | What's the goal? | Expand gma2-mcp from 54 to ~70+ tools, covering timecode, busking, blind programming, MAtricks, and advanced fixture control for music show workflows. |
 | What have I learned? | 83% of command builders (304/366) are unused -- massive runway for new tools with minimal new builder code. Most issues just need MCP tool registration. Timecode (#39) is the most complex new feature. |
 | What have I done? | 10 sessions: 24 issues resolved, 54 MCP tools, 15 GMA2Client workflows, response parser, connection resilience, configurable transport, 1055 tests. Session 11: capability exploration and 16 new issues created. |
+
+## Session: 2026-06-17 (Session 12 -- Reliability Pivot & Verified Execution Core)
+
+### Live console testing surfaced the real agent failure modes
+- Connected to onPC `100.110.79.101:30000`, created a red color preset for Group 3 (LED Par), RGBW 100,0,0,0 (Color 4.1 "Red").
+- Found the dominant agent error modes are **not** "too many tools": they are
+  **(C) silent failure** (tools fabricate success, swallow `Error #NN`) and
+  **(B) wrong argument** (agent can't know show-specific tokens, e.g. White = `COLORRGB5`, not 4).
+
+### Issues filed
+- **#55** -- `list_presets` name-based pool addressing (`List Preset "color"`) always errors; numeric `List Preset 4.1` works.
+- **#56** -- action tools report hardcoded success without checking the console.
+- **#57** -- tracking: tool-surface & reliability optimization (5 pillars, phased).
+- **#58** -- verified execution core (Phase 1).
+- **#59** -- follow-up: convert remaining ~40 mutating tools + workflow abort-on-error.
+
+### Delivered (PR #60, merged to dev)
+- Design doc `doc/design_tool_surface_optimization.md` (consensus from a grilling session).
+- Verified execution core: `strip_ansi` + `detect_error` (numbered and bare `Error :`),
+  `src/execution.py` (`ExecutionResult` + `build_result`), `GMA2TelnetClient.execute()`,
+  and `run_verified()` in the server.
+- Converted `send_raw_command`, `store_preset`, `apply_preset` to report real outcomes.
+- TDD throughout; suite grew 1055 -> 1078 tests, all passing.
+
+### Roadmap note
+- **#39-#54 (one-tool-per-keyword expansion) is paused** pending #57 phases 2-4
+  (selector grammar, show-introspection/name-resolution, three-tier surface) and a
+  per-item re-triage (workflow vs covered-by-verified-command vs genuine keyword tool).
