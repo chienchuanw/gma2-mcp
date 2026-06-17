@@ -131,6 +131,20 @@ async def run_verified(client, command: str, success: str) -> str:
     return success if result.ok else result.summary()
 
 
+async def run_verified_sequence(client, commands: list[str], success: str) -> str:
+    """Execute an ordered batch of commands, aborting on the first failure.
+
+    Returns ``success`` only if every command was accepted; otherwise returns
+    the first console error and does not run the remaining commands. Used by
+    multi-command workflow tools so a partial failure is surfaced, not hidden.
+    """
+    for command in commands:
+        result = await client.execute(command)
+        if not result.ok:
+            return result.summary()
+    return success
+
+
 mcp = FastMCP(
     name="grandMA2-MCP",
     lifespan=server_lifespan,
@@ -275,17 +289,15 @@ async def create_fixture_group(
     client = await get_client()
 
     select_cmd = select_fixture(start_fixture, end_fixture)
-    await client.send_command(select_cmd)
-
     store_cmd = store_group(group_id, name=group_name)
-    await client.send_command(store_cmd)
 
     if group_name:
-        return f'Created Group {group_id} "{group_name}" containing Fixtures {start_fixture} to {end_fixture}'
-
-    return (
-        f"Created Group {group_id} containing Fixtures {start_fixture} to {end_fixture}"
-    )
+        success = f'Created Group {group_id} "{group_name}" containing Fixtures {start_fixture} to {end_fixture}'
+    else:
+        success = (
+            f"Created Group {group_id} containing Fixtures {start_fixture} to {end_fixture}"
+        )
+    return await run_verified_sequence(client, [select_cmd, store_cmd], success)
 
 
 # ============================================================
@@ -323,9 +335,8 @@ async def store_cue(
     cmd = cmd_store_cue(
         cue_id, name=name, merge=merge, overwrite=overwrite, noconfirm=noconfirm
     )
-    await client.send_command(cmd)
     label_part = f' "{name}"' if name else ""
-    return f"Stored Cue {cue_id}{label_part}"
+    return await run_verified(client, cmd, f"Stored Cue {cue_id}{label_part}")
 
 
 @mcp.tool()
@@ -345,8 +356,9 @@ async def delete_cue(cue_id: int) -> str:
     """
     client = await get_client()
     cmd = cmd_delete_cue(cue_id)
-    await client.send_command(cmd)
-    return f"Deleted Cue {cue_id}" + _format_warnings("cue")
+    return await run_verified(
+        client, cmd, f"Deleted Cue {cue_id}" + _format_warnings("cue")
+    )
 
 
 @mcp.tool()
@@ -376,13 +388,12 @@ async def goto_cue_tool(
     """
     client = await get_client()
     cmd = goto(cue_id, executor=executor, sequence=sequence)
-    await client.send_command(cmd)
     target = ""
     if executor is not None:
         target = f" on Executor {executor}"
     elif sequence is not None:
         target = f" in Sequence {sequence}"
-    return f"Jumped to Cue {cue_id}{target}"
+    return await run_verified(client, cmd, f"Jumped to Cue {cue_id}{target}")
 
 
 # ============================================================
@@ -417,8 +428,9 @@ async def set_cue_cmd(
     """
     client = await get_client()
     cmd = assign_cue_cmd(cue_id, sequence_id, command)
-    await client.send_command(cmd)
-    return f'Set Cue {cue_id} Sequence {sequence_id} CMD to "{command}"'
+    return await run_verified(
+        client, cmd, f'Set Cue {cue_id} Sequence {sequence_id} CMD to "{command}"'
+    )
 
 
 # ============================================================
@@ -450,9 +462,10 @@ async def set_fixture_value(
     """
     client = await get_client()
     cmd = fixture_at(fixture_id, value, end=end_fixture)
-    await client.send_command(cmd)
     range_part = f" thru {end_fixture}" if end_fixture else ""
-    return f"Set Fixture {fixture_id}{range_part} to {value}%"
+    return await run_verified(
+        client, cmd, f"Set Fixture {fixture_id}{range_part} to {value}%"
+    )
 
 
 @mcp.tool()
@@ -486,11 +499,13 @@ async def set_fixture_attribute(
         fix_cmd = f"fixture {fixture_id} thru {end_fixture}"
     else:
         fix_cmd = fixture(fixture_id)
-    await client.send_command(fix_cmd)
     attr_cmd = attribute_at(attribute, value)
-    await client.send_command(attr_cmd)
     range_part = f" thru {end_fixture}" if end_fixture else ""
-    return f"Set {attribute} to {value} on Fixture {fixture_id}{range_part}"
+    return await run_verified_sequence(
+        client,
+        [fix_cmd, attr_cmd],
+        f"Set {attribute} to {value} on Fixture {fixture_id}{range_part}",
+    )
 
 
 @mcp.tool()
@@ -521,8 +536,7 @@ async def clear_programmer(
     }
     cmd_fn = mode_map.get(mode, clear)
     cmd = cmd_fn()
-    await client.send_command(cmd)
-    return f"Cleared programmer ({mode})"
+    return await run_verified(client, cmd, f"Cleared programmer ({mode})")
 
 
 # ============================================================
@@ -632,8 +646,7 @@ async def control_executor(
     if cmd_fn is None:
         return f"Unknown action: {action}. Use on, off, go, kill, or toggle."
     cmd = cmd_fn(executor_id)
-    await client.send_command(cmd)
-    return f"Executor {executor_id}: {action}"
+    return await run_verified(client, cmd, f"Executor {executor_id}: {action}")
 
 
 @mcp.tool()
@@ -657,8 +670,9 @@ async def set_executor_fader(
     """
     client = await get_client()
     cmd = executor_at(executor_id, value)
-    await client.send_command(cmd)
-    return f"Set Executor {executor_id} fader to {value}%"
+    return await run_verified(
+        client, cmd, f"Set Executor {executor_id} fader to {value}%"
+    )
 
 
 @mcp.tool()
@@ -682,8 +696,9 @@ async def assign_to_executor(
     """
     client = await get_client()
     cmd = assign("sequence", sequence_id, "executor", executor_id)
-    await client.send_command(cmd)
-    return f"Assigned Sequence {sequence_id} to Executor {executor_id}"
+    return await run_verified(
+        client, cmd, f"Assigned Sequence {sequence_id} to Executor {executor_id}"
+    )
 
 
 # ============================================================
@@ -702,8 +717,7 @@ async def toggle_blackout() -> str:
     """
     client = await get_client()
     cmd = blackout()
-    await client.send_command(cmd)
-    return "Toggled Blackout"
+    return await run_verified(client, cmd, "Toggled Blackout")
 
 
 @mcp.tool()
@@ -717,8 +731,7 @@ async def toggle_highlight() -> str:
     """
     client = await get_client()
     cmd = highlight()
-    await client.send_command(cmd)
-    return "Toggled Highlight"
+    return await run_verified(client, cmd, "Toggled Highlight")
 
 
 # ============================================================
@@ -750,8 +763,9 @@ async def label_object(
     """
     client = await get_client()
     cmd = label(object_type, object_id, name)
-    await client.send_command(cmd)
-    return f'Labeled {object_type} {object_id} as "{name}"'
+    return await run_verified(
+        client, cmd, f'Labeled {object_type} {object_id} as "{name}"'
+    )
 
 
 @mcp.tool()
@@ -788,9 +802,12 @@ async def label_sequence_cue(
     except (ValueError, TypeError):
         seq_param = sequence
     cmd = cmd_label_sequence_cue(seq_param, cue_id, name, end_cue=end_cue)
-    await client.send_command(cmd)
     range_part = f" thru {end_cue}" if end_cue else ""
-    return f'Labeled Sequence "{sequence}" Cue {cue_id}{range_part} as "{name}"'
+    return await run_verified(
+        client,
+        cmd,
+        f'Labeled Sequence "{sequence}" Cue {cue_id}{range_part} as "{name}"',
+    )
 
 
 # ============================================================
@@ -861,8 +878,9 @@ async def assign_appearance(
         saturation=saturation,
         brightness=brightness,
     )
-    await client.send_command(cmd)
-    return f"Applied appearance to {object_type} {object_id}"
+    return await run_verified(
+        client, cmd, f"Applied appearance to {object_type} {object_id}"
+    )
 
 
 # ============================================================
@@ -896,8 +914,9 @@ async def set_macro_line(
     """
     client = await get_client()
     cmd = assign_macro_cmd(macro_id, line, command, pool=pool)
-    await client.send_command(cmd)
-    return f'Set Macro {macro_id} Line {line} to "{command}" (Pool {pool})'
+    return await run_verified(
+        client, cmd, f'Set Macro {macro_id} Line {line} to "{command}" (Pool {pool})'
+    )
 
 
 @mcp.tool()
@@ -924,8 +943,7 @@ async def run_macro(
     """
     client = await get_client()
     cmd = f"go+ macro {pool}.{macro_id}"
-    await client.send_command(cmd)
-    return f"Executed Macro {macro_id} (Pool {pool})"
+    return await run_verified(client, cmd, f"Executed Macro {macro_id} (Pool {pool})")
 
 
 @mcp.tool()
@@ -960,20 +978,21 @@ async def create_macro(
 
     client = await get_client()
 
-    # Store empty macro
-    await client.send_command(cmd_store_macro(macro_id))
-
-    # Assign each command to a line
-    for i, command in enumerate(commands, start=1):
-        cmd = assign_macro_cmd(macro_id, i, command, pool=pool)
-        await client.send_command(cmd)
-
-    # Optionally label the macro
+    # Store empty macro, assign each command to a line, optionally label.
+    batch = [cmd_store_macro(macro_id)]
+    batch += [
+        assign_macro_cmd(macro_id, i, command, pool=pool)
+        for i, command in enumerate(commands, start=1)
+    ]
     if name is not None:
-        await client.send_command(cmd_label_macro(macro_id, name))
+        batch.append(cmd_label_macro(macro_id, name))
 
     label_msg = f' "{name}"' if name else ""
-    return f"Created Macro {macro_id}{label_msg} with {len(commands)} lines (Pool {pool})"
+    return await run_verified_sequence(
+        client,
+        batch,
+        f"Created Macro {macro_id}{label_msg} with {len(commands)} lines (Pool {pool})",
+    )
 
 
 @mcp.tool()
@@ -997,8 +1016,7 @@ async def label_macro_tool(
     """
     client = await get_client()
     cmd = cmd_label_macro(macro_id, name)
-    await client.send_command(cmd)
-    return f'Labeled Macro {macro_id} as "{name}"'
+    return await run_verified(client, cmd, f'Labeled Macro {macro_id} as "{name}"')
 
 
 @mcp.tool()
@@ -1038,8 +1056,9 @@ async def delete_macro_tool(
     """
     client = await get_client()
     cmd = cmd_delete_macro(macro_id, pool=pool)
-    await client.send_command(cmd)
-    return f"Deleted Macro {macro_id} (Pool {pool}){_format_warnings('macro')}"
+    return await run_verified(
+        client, cmd, f"Deleted Macro {macro_id} (Pool {pool}){_format_warnings('macro')}"
+    )
 
 
 # ============================================================
@@ -1068,8 +1087,9 @@ async def apply_effect(
     """
     client = await get_client()
     cmd = cmd_effect(effect_id)
-    await client.send_command(cmd)
-    return f"Applied Effect {effect_id} to current selection"
+    return await run_verified(
+        client, cmd, f"Applied Effect {effect_id} to current selection"
+    )
 
 
 @mcp.tool()
@@ -1101,8 +1121,9 @@ async def set_effect_speed(
         cmd = effect_bpm(value)
     else:
         cmd = effect_hz(value)
-    await client.send_command(cmd)
-    return f"Set effect speed to {value} {unit.upper()}"
+    return await run_verified(
+        client, cmd, f"Set effect speed to {value} {unit.upper()}"
+    )
 
 
 @mcp.tool()
@@ -1125,8 +1146,7 @@ async def set_effect_form(
     """
     client = await get_client()
     cmd = cmd_effect_form(form)
-    await client.send_command(cmd)
-    return f"Set effect form to {form}"
+    return await run_verified(client, cmd, f"Set effect form to {form}")
 
 
 @mcp.tool()
@@ -1155,14 +1175,17 @@ async def set_effect_range(
         return "Error: at least one of high or low must be provided."
 
     client = await get_client()
+    batch = []
     parts = []
     if high is not None:
-        await client.send_command(effect_high(high))
+        batch.append(effect_high(high))
         parts.append(f"high={high}")
     if low is not None:
-        await client.send_command(effect_low(low))
+        batch.append(effect_low(low))
         parts.append(f"low={low}")
-    return f"Set effect range: {', '.join(parts)}"
+    return await run_verified_sequence(
+        client, batch, f"Set effect range: {', '.join(parts)}"
+    )
 
 
 @mcp.tool()
@@ -1181,8 +1204,7 @@ async def set_effect_phase(
     """
     client = await get_client()
     cmd = cmd_effect_phase(phase)
-    await client.send_command(cmd)
-    return f"Set effect phase to {phase} degrees"
+    return await run_verified(client, cmd, f"Set effect phase to {phase} degrees")
 
 
 @mcp.tool()
@@ -1201,8 +1223,7 @@ async def set_effect_width(
     """
     client = await get_client()
     cmd = cmd_effect_width(width)
-    await client.send_command(cmd)
-    return f"Set effect width to {width}"
+    return await run_verified(client, cmd, f"Set effect width to {width}")
 
 
 @mcp.tool()
@@ -1217,8 +1238,9 @@ async def stop_effects() -> str:
         str: Operation result message
     """
     client = await get_client()
-    await client.send_command("off effect")
-    return "Stopped all effects for current selection (Off Effect)"
+    return await run_verified(
+        client, "off effect", "Stopped all effects for current selection (Off Effect)"
+    )
 
 
 @mcp.tool()
@@ -1234,8 +1256,7 @@ async def sync_effects_tool() -> str:
     """
     client = await get_client()
     cmd = sync_effects()
-    await client.send_command(cmd)
-    return "Synchronized all running effects"
+    return await run_verified(client, cmd, "Synchronized all running effects")
 
 
 # ============================================================
@@ -1399,20 +1420,19 @@ async def execute_sequence(
 
     if action == "go":
         cmd = go_sequence(sequence_id)
-        await client.send_command(cmd)
-        return f"Executed Sequence {sequence_id}"
+        return await run_verified(client, cmd, f"Executed Sequence {sequence_id}")
 
     elif action == "pause":
         cmd = pause_sequence(sequence_id)
-        await client.send_command(cmd)
-        return f"Paused Sequence {sequence_id}"
+        return await run_verified(client, cmd, f"Paused Sequence {sequence_id}")
 
     elif action == "goto":
         if cue_id is None:
             return "Error: goto action requires cue_id to be specified"
         cmd = goto_cue(sequence_id, cue_id)
-        await client.send_command(cmd)
-        return f"Jumped to Cue {cue_id} of Sequence {sequence_id}"
+        return await run_verified(
+            client, cmd, f"Jumped to Cue {cue_id} of Sequence {sequence_id}"
+        )
 
     return f"Unknown action: {action}, use go, pause, or goto"
 
@@ -1646,10 +1666,11 @@ async def save_show_tool(show_name: str | None = None) -> str:
     """
     client = await get_client()
     cmd = cmd_save_show(show_name, noconfirm=True)
-    await client.send_command(cmd)
     if show_name:
-        return f"Show saved as '{show_name}'."
-    return "Show saved successfully."
+        success = f"Show saved as '{show_name}'."
+    else:
+        success = "Show saved successfully."
+    return await run_verified(client, cmd, success)
 
 
 @mcp.tool()
@@ -1669,16 +1690,16 @@ async def load_show_tool(show_name: str, save_first: bool = False) -> str:
         str: confirmation message with warning about unsaved changes
     """
     client = await get_client()
+    batch = []
     if save_first:
-        await client.send_command(cmd_save_show(noconfirm=True))
-    cmd = cmd_load_show(show_name, noconfirm=True)
-    await client.send_command(cmd)
+        batch.append(cmd_save_show(noconfirm=True))
+    batch.append(cmd_load_show(show_name, noconfirm=True))
     msg = f"Loading show '{show_name}'."
     if not save_first:
         msg += " WARNING: Any unsaved changes to the previous show were lost."
     else:
         msg += " Previous show was saved first."
-    return msg
+    return await run_verified_sequence(client, batch, msg)
 
 
 @mcp.tool()
@@ -1702,17 +1723,17 @@ async def new_show_tool(show_name: str | None = None, save_first: bool = False) 
         str: confirmation message with warning about unsaved changes
     """
     client = await get_client()
+    batch = []
     if save_first:
-        await client.send_command(cmd_save_show(noconfirm=True))
-    cmd = cmd_new_show(show_name, noconfirm=True)
-    await client.send_command(cmd)
+        batch.append(cmd_save_show(noconfirm=True))
+    batch.append(cmd_new_show(show_name, noconfirm=True))
     name_part = f" '{show_name}'" if show_name else ""
     msg = f"Created new show{name_part}."
     if not save_first:
         msg += " WARNING: Any unsaved changes to the previous show were lost."
     else:
         msg += " Previous show was saved first."
-    return msg
+    return await run_verified_sequence(client, batch, msg)
 
 
 @mcp.tool()

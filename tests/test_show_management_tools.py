@@ -12,8 +12,15 @@ from unittest.mock import patch, AsyncMock, MagicMock
 
 def _mock_client(response=""):
     """create a mock client with both send_command and send_command_with_response."""
+    from src.execution import ExecutionResult
+
     client = MagicMock()
     client.send_command = AsyncMock()
+    client.execute = AsyncMock(
+        return_value=ExecutionResult(
+            ok=True, echo="OK", error_code=None, error_text=None, raw="OK"
+        )
+    )
     client.send_command_with_response = AsyncMock(return_value=response)
     return client
 
@@ -34,7 +41,7 @@ class TestSaveShowTool:
 
         result = await save_show_tool()
 
-        client.send_command.assert_called_once_with("saveshow /noconfirm")
+        client.execute.assert_called_once_with("saveshow /noconfirm")
         assert "saved" in result.lower()
 
     @pytest.mark.asyncio
@@ -47,7 +54,7 @@ class TestSaveShowTool:
 
         result = await save_show_tool(show_name="MyShow")
 
-        client.send_command.assert_called_once_with('saveshow "MyShow" /noconfirm')
+        client.execute.assert_called_once_with('saveshow "MyShow" /noconfirm')
         assert "MyShow" in result
 
     @pytest.mark.asyncio
@@ -56,7 +63,7 @@ class TestSaveShowTool:
         from src.server import save_show_tool
 
         client = _mock_client()
-        client.send_command.side_effect = ConnectionError("lost")
+        client.execute.side_effect = ConnectionError("lost")
         mock_get.return_value = client
 
         result = await save_show_tool()
@@ -80,7 +87,7 @@ class TestLoadShowTool:
 
         result = await load_show_tool(show_name="Macbeth")
 
-        client.send_command.assert_called_once_with('loadshow "Macbeth" /noconfirm')
+        client.execute.assert_called_once_with('loadshow "Macbeth" /noconfirm')
         assert "Macbeth" in result
 
     @pytest.mark.asyncio
@@ -93,7 +100,7 @@ class TestLoadShowTool:
 
         result = await load_show_tool(show_name="Macbeth", save_first=True)
 
-        calls = [c[0][0] for c in client.send_command.call_args_list]
+        calls = [c[0][0] for c in client.execute.call_args_list]
         assert calls[0] == "saveshow /noconfirm"
         assert calls[1] == 'loadshow "Macbeth" /noconfirm'
 
@@ -103,7 +110,7 @@ class TestLoadShowTool:
         from src.server import load_show_tool
 
         client = _mock_client()
-        client.send_command.side_effect = ConnectionError("lost")
+        client.execute.side_effect = ConnectionError("lost")
         mock_get.return_value = client
 
         result = await load_show_tool(show_name="Macbeth")
@@ -127,7 +134,7 @@ class TestNewShowTool:
 
         result = await new_show_tool(show_name="NewProject")
 
-        client.send_command.assert_called_once_with('newshow "NewProject" /noconfirm')
+        client.execute.assert_called_once_with('newshow "NewProject" /noconfirm')
         assert "NewProject" in result
 
     @pytest.mark.asyncio
@@ -140,7 +147,7 @@ class TestNewShowTool:
 
         result = await new_show_tool()
 
-        client.send_command.assert_called_once_with("newshow /noconfirm")
+        client.execute.assert_called_once_with("newshow /noconfirm")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -152,7 +159,7 @@ class TestNewShowTool:
 
         result = await new_show_tool(show_name="NewProject", save_first=True)
 
-        calls = [c[0][0] for c in client.send_command.call_args_list]
+        calls = [c[0][0] for c in client.execute.call_args_list]
         assert calls[0] == "saveshow /noconfirm"
         assert calls[1] == 'newshow "NewProject" /noconfirm'
 
@@ -162,7 +169,7 @@ class TestNewShowTool:
         from src.server import new_show_tool
 
         client = _mock_client()
-        client.send_command.side_effect = ConnectionError("lost")
+        client.execute.side_effect = ConnectionError("lost")
         mock_get.return_value = client
 
         result = await new_show_tool()
