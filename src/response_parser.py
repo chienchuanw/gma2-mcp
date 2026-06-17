@@ -29,26 +29,37 @@ def strip_ansi(text: str) -> str:
     return "\n".join(line.rstrip() for line in cleaned.split("\n"))
 
 
-# grandMA2 reports failures as "Error #NN: REASON" (after stripping ANSI).
+# grandMA2 reports failures as "Error #NN: REASON" (after stripping ANSI), and
+# sometimes as a bare "Error : <text>" line without a number.
 _ERROR_RE = re.compile(r"Error\s+#(\d+):\s*(.*)")
+_BARE_ERROR_RE = re.compile(r"Error\s*:\s*(.+)")
 
 
 def detect_error(raw: str) -> dict | None:
     """Detect a grandMA2 console error in a telnet response.
 
     grandMA2 reports failures inline as ``Error #NN: REASON`` (e.g.
-    ``Error #14: OBJECT DOES NOT EXIST``). A ``WARNING, ...`` line is not an
-    error and is ignored.
+    ``Error #14: OBJECT DOES NOT EXIST``), and occasionally as an un-numbered
+    ``Error : <text>`` line. A ``WARNING, ...`` line is not an error and is
+    ignored.
 
-    Returns ``{"error_code": int, "error_text": str}`` when a numbered error is
-    found, otherwise ``None``.
+    Returns ``{"error_code": int | None, "error_text": str}`` when an error is
+    found, otherwise ``None``. ``error_code`` is ``None`` for the un-numbered
+    form.
     """
     if not raw:
         return None
-    match = _ERROR_RE.search(strip_ansi(raw))
-    if not match:
-        return None
-    return {"error_code": int(match.group(1)), "error_text": match.group(2).strip()}
+    cleaned = strip_ansi(raw)
+    numbered = _ERROR_RE.search(cleaned)
+    if numbered:
+        return {
+            "error_code": int(numbered.group(1)),
+            "error_text": numbered.group(2).strip(),
+        }
+    bare = _BARE_ERROR_RE.search(cleaned)
+    if bare:
+        return {"error_code": None, "error_text": bare.group(1).strip()}
+    return None
 
 
 def _find_columns(header_line: str) -> list[tuple[str, int, int]]:
