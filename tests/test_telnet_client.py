@@ -292,3 +292,42 @@ class TestGMA2TelnetClientContextManager:
 
         # Verify connection was closed when exiting context
         mock_writer.close.assert_called_once()
+
+
+class TestExecute:
+    """Tests for the verified execute() path."""
+
+    @pytest.mark.asyncio
+    async def test_execute_success_returns_ok_result(self):
+        from src.telnet_client import GMA2TelnetClient
+        from src.execution import ExecutionResult
+
+        client = GMA2TelnetClient(host="192.168.1.100")
+        client.send_command_with_response = AsyncMock(
+            return_value="Executing : \x1b[32mClear\x1b[37m\n\r [Fixture]>\x1b[K"
+        )
+
+        result = await client.execute("Clear")
+
+        assert isinstance(result, ExecutionResult)
+        assert result.ok is True
+        assert result.error_code is None
+        client.send_command_with_response.assert_awaited_once_with("Clear")
+
+    @pytest.mark.asyncio
+    async def test_execute_surfaces_console_error(self):
+        from src.telnet_client import GMA2TelnetClient
+
+        client = GMA2TelnetClient(host="192.168.1.100")
+        client.send_command_with_response = AsyncMock(
+            return_value=(
+                'Executing : List Preset "color"\n\r'
+                "Error #14: OBJECT DOES NOT EXIST\n\r [Fixture]>"
+            )
+        )
+
+        result = await client.execute('List Preset "color"')
+
+        assert result.ok is False
+        assert result.error_code == 14
+        assert result.error_text == "OBJECT DOES NOT EXIST"

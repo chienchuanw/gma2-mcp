@@ -22,6 +22,8 @@ from typing import Any, Optional
 
 import telnetlib3
 
+from src.execution import ExecutionResult, build_result
+
 # Configure logger
 logger = logging.getLogger(__name__)
 
@@ -326,6 +328,22 @@ class GMA2TelnetClient:
             self._last_successful_command_time = time.monotonic()
             logger.debug(f"Response received: {len(response)} characters")
             return response
+
+    async def execute(self, command: str) -> "ExecutionResult":
+        """Send a command and return a verified, structured result.
+
+        Unlike :meth:`send_command` (fire-and-forget), this reads the console
+        reply and parses it for grandMA2 ``Error #NN`` failures, so callers can
+        report the console's actual outcome instead of assuming success.
+
+        Args:
+            command: MA command to send
+
+        Returns:
+            ExecutionResult: ``{ok, echo, error_code, error_text, raw}``
+        """
+        raw = await self.send_command_with_response(command)
+        return build_result(command, raw)
 
     async def disconnect(self) -> None:
         """Close the Telnet connection (async)."""
