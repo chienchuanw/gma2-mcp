@@ -1,6 +1,6 @@
 # GMA2 MCP
 
-An MCP server that lets AI assistants control grandMA2 lighting consoles via Telnet. It exposes 41 high-level tools for cue management, fixture control, preset management, executor control, macro editing, appearance assignment, bulk operations, console state queries, show file management, read-back verification, music show workflows, and more through the Model Context Protocol.
+An MCP server that lets AI assistants control grandMA2 lighting consoles via Telnet. It exposes 54 high-level tools for cue management, fixture control, preset management, executor control, macro editing, appearance assignment, bulk operations, console state queries, show file management, read-back verification, music show workflows, and more through the Model Context Protocol.
 
 ## Table of Contents
 
@@ -33,21 +33,23 @@ An MCP server that lets AI assistants control grandMA2 lighting consoles via Tel
 
 ## Overview
 
-grandMA2 consoles accept commands over Telnet, but building correct command strings requires knowledge of the MA2 syntax rules -- keyword ordering, preset type mappings, option flags, and object hierarchies. This project handles that complexity in two layers:
+grandMA2 consoles accept commands over Telnet, but building correct command strings requires knowledge of the MA2 syntax rules -- keyword ordering, preset type mappings, option flags, and object hierarchies. This project handles that complexity in layered components:
 
 1. **Command Builder** (`src/commands/`) -- Python functions that construct valid grandMA2 command strings following the official syntax rules. Each function is a thin wrapper that returns a string; it never touches the network.
-2. **MCP Server** (`src/server.py`) -- A FastMCP server that exposes 41 tools covering cue management, fixture control, presets, executors, global state, labeling, appearance assignment, macro editing, bulk cue operations, sequence playback, console state queries, show file management, read-back verification, music show workflows, and raw commands over stdio transport. It manages a persistent Telnet connection to the console and delegates command construction to the builder layer.
-3. **Response Parser** (`src/response_parser.py`) -- Pure functions for parsing grandMA2 Telnet output (from `List` commands) into structured data. Used by read-back tools to return parsed dicts instead of raw text.
-4. **GMA2Client** (`src/gma2_client.py`) -- A high-level orchestration class that composes multiple command builder calls into workflow-level methods (e.g., build an entire cue list, set up a fixture group with a preset, create song objects for music shows).
-5. **CommandSequence** (`src/command_sequence.py`) -- A builder-pattern class for composing multiple commands into an ordered batch that can be previewed and executed as a unit.
+2. **MCP Server** (`src/server.py`) -- A FastMCP server that exposes 54 tools covering cue management, fixture control, presets, executors, global state, labeling, appearance assignment, macro editing, bulk cue operations, sequence playback, console state queries, show file management, read-back verification, music show workflows, and raw commands over stdio transport. It manages a persistent Telnet connection to the console and delegates command construction to the builder layer.
+3. **Response Parser** (`src/response_parser.py`) -- Pure functions for parsing grandMA2 Telnet output: tabular `List` data into structured dicts, and inline `Error #NN: REASON` failures (with ANSI stripping) for the verified execution path.
+4. **Execution Core** (`src/execution.py`) -- `ExecutionResult` plus the pure `build_result()` that turns a raw Telnet reply into a structured `{ok, echo, error_code, error_text, raw}`. Mutating tools route through `GMA2TelnetClient.execute()` so they report the console's real outcome instead of fabricating success.
+5. **GMA2Client** (`src/gma2_client.py`) -- A high-level orchestration class that composes multiple command builder calls into workflow-level methods (e.g., build an entire cue list, set up a fixture group with a preset, create song objects for music shows).
+6. **CommandSequence** (`src/command_sequence.py`) -- A builder-pattern class for composing multiple commands into an ordered batch that can be previewed and executed as a unit.
 
 The command builder covers all grandMA2 command-line keywords organized by category: object keywords (fixtures, channels, groups, presets, cues, sequences, executors), function keywords (store, delete, copy, move, goto, label, assign, and many more), and helping keywords (thru, at, +).
 
 ## Features
 
-- **41 MCP tools** -- Cue management (store/delete/goto, CMD assignment), fixture control (set values, set attributes, clear programmer), preset management (store/apply), executor control (on/off/go/kill/toggle, fader level, sequence assignment), global state (blackout, highlight), object labeling (generic + sequence-scoped cue labeling), appearance assignment (RGB, HSB, hex, source copy), macro line editing, bulk cue operations across sequence ranges (store, label, appearance), sequence playback, console state queries (list groups/cues/presets/variables, read object annotations, generic object query), show file management (save/load/new/list shows), read-back verification (read macro lines, cue info, object labels with structured parsing), music show workflows (create song objects, setup song macros, build set lists), and raw command execution.
+- **54 MCP tools** -- Cue management (store/delete/goto, CMD assignment), fixture control (set values, set attributes, clear programmer), preset management (store/apply), executor control (on/off/go/kill/toggle, fader level, sequence assignment), global state (blackout, highlight), object labeling (generic + sequence-scoped cue labeling), appearance assignment (RGB, HSB, hex, source copy), macro line editing, bulk cue operations across sequence ranges (store, label, appearance), sequence playback, console state queries (list groups/cues/presets/variables, read object annotations, generic object query), show file management (save/load/new/list shows), read-back verification (read macro lines, cue info, object labels with structured parsing), music show workflows (create song objects, setup song macros, build set lists), and raw command execution.
+- **Verified command execution** -- grandMA2 reports failures inline in the Telnet reply (`Error #NN: REASON`). Mutating tools route through a verified execution core (`src/execution.py`) that parses the reply and returns the console's real outcome, so the assistant is not given false success on a rejected command.
 - **Destructive command safety warnings** -- Delete tools include informational warnings about downstream effects (orphaned executor handles, lost cue programming) to help AI assistants understand impact before confirming.
-- **Complete command builder** -- Over 200 Python functions covering all grandMA2 command-line keywords across 30+ modules, each returning a correctly formatted command string.
+- **Complete command builder** -- Over 350 Python functions covering all grandMA2 command-line keywords across 30+ modules, each returning a correctly formatted command string.
 - **High-level client** -- `GMA2Client` provides workflow-level methods: build cue lists, set up fixture groups with presets, quick look programming, batch executor assignments. Uses grandMA2's inline naming syntax to minimize Telnet round-trips.
 - **Command chaining** -- `CommandSequence` lets you compose multiple commands, preview them, and execute them as a batch.
 - **Resilient Telnet client** -- Built on `telnetlib3` with automatic login, persistent connections, connection health checking, auto-reconnection with bounded exponential backoff, command serialization via `asyncio.Lock`, and graceful shutdown. If the console restarts or the network drops, the client detects the failure and reconnects transparently before the next command.
@@ -258,7 +260,7 @@ claude mcp add gma2 \
 
 ### MCP Tools
 
-The server exposes 41 tools:
+The server exposes 54 tools:
 
 | Tool                              | Description                                                          |
 |-----------------------------------|----------------------------------------------------------------------|
@@ -654,7 +656,8 @@ gma2-mcp/
 │   ├── command_sequence.py     # CommandSequence for multi-command batching
 │   ├── gma2_client.py          # High-level workflow orchestration client (15 methods)
 │   ├── response_parser.py      # Parse grandMA2 Telnet output into structured data
-│   ├── server.py               # MCP server (FastMCP, 41 tools, configurable stdio/streamable-http transport)
+│   ├── execution.py            # Verified execution core (ExecutionResult, build_result)
+│   ├── server.py               # MCP server (FastMCP, 54 tools, configurable stdio/streamable-http transport)
 │   └── telnet_client.py        # Async Telnet client with health check, auto-reconnect, command lock, state tracking
 ├── tests/                      # Pytest test suite (one file per module)
 ├── doc/                        # grandMA2 user manual (PDF)
@@ -696,13 +699,14 @@ uv run pytest tests/test_playback.py -v
 
 ### Architecture
 
-The project has five layers:
+The project has six layers:
 
-1. **Telnet Client** (`src/telnet_client.py`) -- Low-level async Telnet communication with the console. Includes `ConnectionState` tracking (DISCONNECTED/CONNECTING/CONNECTED/RECONNECTING), health check probing, auto-reconnection with bounded exponential backoff (configurable retries and delay), health check TTL to skip redundant probes during rapid command sequences, `asyncio.Lock`-based command serialization for concurrent access safety, and graceful shutdown via the server lifespan hook.
+1. **Telnet Client** (`src/telnet_client.py`) -- Low-level async Telnet communication with the console. Includes `ConnectionState` tracking (DISCONNECTED/CONNECTING/CONNECTED/RECONNECTING), health check probing, auto-reconnection with bounded exponential backoff (configurable retries and delay), health check TTL to skip redundant probes during rapid command sequences, `asyncio.Lock`-based command serialization for concurrent access safety, graceful shutdown via the server lifespan hook, and a verified `execute()` that reads and checks the console reply.
 2. **Command Builder** (`src/commands/`) -- Pure functions that construct command strings. No network access.
-3. **Response Parser** (`src/response_parser.py`) -- Pure functions that parse grandMA2 Telnet `List` command output into structured dicts. Returns `parsed: False` on unrecognized formats.
-4. **Orchestration** (`src/gma2_client.py`, `src/command_sequence.py`) -- High-level workflow methods (15 methods including music show workflows) and command batching that compose builders + telnet.
-5. **MCP Server** (`src/server.py`) -- FastMCP server that exposes 41 tools over configurable transport (`stdio` or `streamable-http`), connecting the builder to the Telnet client.
+3. **Response Parser** (`src/response_parser.py`) -- Pure functions that parse grandMA2 Telnet output: `List` tables into structured dicts (`parsed: False` on unrecognized formats), and inline `Error #NN` failures via `detect_error()`/`strip_ansi()`.
+4. **Execution Core** (`src/execution.py`) -- Pure `build_result()` + `ExecutionResult`; turns a raw reply into `{ok, echo, error_code, error_text, raw}` so mutating tools report real outcomes.
+5. **Orchestration** (`src/gma2_client.py`, `src/command_sequence.py`) -- High-level workflow methods (15 methods including music show workflows) and command batching that compose builders + telnet.
+6. **MCP Server** (`src/server.py`) -- FastMCP server that exposes 54 tools over configurable transport (`stdio` or `streamable-http`), connecting the builder to the Telnet client.
 
 All console communication goes through the Telnet client layer.
 
