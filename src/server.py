@@ -146,6 +146,30 @@ from src.commands.functions.executor_control import (
     release as cmd_release,
     top as cmd_top,
 )
+from src.commands.selector import normalize_selector
+from src.commands.functions.edit import (
+    delete_fixture as cmd_delete_fixture,
+    delete_group as cmd_delete_group,
+    delete_preset as cmd_delete_preset,
+)
+from src.commands.functions.system import delete_show as cmd_delete_show
+from src.commands.functions.effect import (
+    effect_attack as cmd_effect_attack,
+    effect_decay as cmd_effect_decay,
+    effect_delay as cmd_effect_delay,
+    effect_fade as cmd_effect_fade,
+    effect_sec as cmd_effect_sec,
+    effect_speed_group as cmd_effect_speed_group,
+)
+from src.commands.functions.park import park as cmd_park, unpark as cmd_unpark
+from src.commands.functions.fixture_control import (
+    align as cmd_align,
+    next_keyword as cmd_next,
+    previous as cmd_previous,
+    invert as cmd_invert,
+    locate as cmd_locate,
+    fix as cmd_fix,
+)
 from src.response_parser import parse_macro_lines, parse_cue_info, parse_object_label
 
 load_dotenv()
@@ -288,6 +312,18 @@ DESTRUCTIVE_WARNINGS: dict[str, list[str]] = {
         "All macro lines and their commands are permanently lost",
         "Cue CMD triggers referencing this macro will fail silently",
         "Other macros calling this macro via 'Macro N' will reference a non-existent object",
+    ],
+    "fixture": [
+        "The fixture is removed from the patch; its DMX output stops",
+        "Cues, presets, and groups referencing this fixture lose that fixture's data",
+    ],
+    "preset": [
+        "Cues and objects referencing this preset lose the linked values",
+        "Other presets or sequences built from it may produce unexpected results",
+    ],
+    "show": [
+        "The show file is permanently removed from the console's drive",
+        "This does not affect the currently loaded show, only the stored file",
     ],
 }
 
@@ -2744,6 +2780,293 @@ async def top_executor(executor_id: int, page: int | None = None) -> str:
     target = _executor_target(executor_id, page)
     client = await get_client()
     return await run_verified(client, cmd_top(target), f"Set {target} to top priority")
+
+
+# ============================================================
+# Copy / Move Tools (Issue #49)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def copy_object(
+    object_type: str,
+    source: str,
+    target: str,
+    mode: str = "default",
+) -> str:
+    """
+    Copy an object (or range) to a new location.
+
+    ``source`` and ``target`` accept grandMA2 selection expressions: a single ID
+    or a range/list using thru / + / - (e.g. "1 thru 10", "1 + 3 + 5"), so a
+    whole range copies in one call.
+
+    Args:
+        object_type: Object type ("cue", "preset", "group", "sequence", "macro", ...)
+        source: Source selection expression
+        target: Target selection expression
+        mode: "default", "overwrite", or "merge"
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Copy cue 1 to cue 10: object_type="cue", source="1", target="10"
+        - Copy groups 1 thru 5 to 11: object_type="group", source="1 thru 5", target="11"
+    """
+    try:
+        src = normalize_selector(source)
+        tgt = normalize_selector(target)
+    except ValueError as e:
+        return f"Invalid selector: {e}"
+    cmd = f"copy {object_type} {src} at {tgt}"
+    if mode == "overwrite":
+        cmd += " /overwrite"
+    elif mode == "merge":
+        cmd += " /merge"
+    client = await get_client()
+    return await run_verified(
+        client, cmd, f"Copied {object_type} {src} to {tgt}"
+    )
+
+
+@mcp.tool()
+@handle_connection_error
+async def move_object(
+    object_type: str,
+    source: str,
+    target: str,
+) -> str:
+    """
+    Move an object (or range) to a new location. WARNING: removes from source.
+
+    ``source`` and ``target`` accept selection expressions (thru / + / -), so a
+    whole range moves in one call (e.g. move groups 1 thru 10 to 21).
+
+    Args:
+        object_type: Object type ("cue", "preset", "group", "sequence", "macro", ...)
+        source: Source selection expression
+        target: Target selection expression
+
+    Returns:
+        str: Operation result message
+    """
+    try:
+        src = normalize_selector(source)
+        tgt = normalize_selector(target)
+    except ValueError as e:
+        return f"Invalid selector: {e}"
+    cmd = f"move {object_type} {src} at {tgt}"
+    client = await get_client()
+    return await run_verified(
+        client, cmd, f"Moved {object_type} {src} to {tgt} (removed from source)"
+    )
+
+
+# ============================================================
+# Extended Delete Tools (Issue #50)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def delete_group(group_id: int) -> str:
+    """Delete a fixture group (destructive)."""
+    client = await get_client()
+    cmd = cmd_delete_group(group_id)
+    return await run_verified(
+        client, cmd, f"Deleted Group {group_id}{_format_warnings('group')}"
+    )
+
+
+@mcp.tool()
+@handle_connection_error
+async def delete_preset(preset_type: str, preset_id: int) -> str:
+    """Delete a preset (destructive). preset_type e.g. "color", "dimmer"."""
+    client = await get_client()
+    cmd = cmd_delete_preset(preset_type, preset_id)
+    return await run_verified(
+        client,
+        cmd,
+        f"Deleted {preset_type} Preset {preset_id}{_format_warnings('preset')}",
+    )
+
+
+@mcp.tool()
+@handle_connection_error
+async def delete_fixture(fixture_id: int) -> str:
+    """Delete a fixture from the patch (destructive)."""
+    client = await get_client()
+    cmd = cmd_delete_fixture(fixture_id)
+    return await run_verified(
+        client, cmd, f"Deleted Fixture {fixture_id}{_format_warnings('fixture')}"
+    )
+
+
+@mcp.tool()
+@handle_connection_error
+async def delete_show(show_name: str) -> str:
+    """Delete a show file from the console drive (destructive)."""
+    client = await get_client()
+    cmd = cmd_delete_show(show_name)
+    return await run_verified(
+        client, cmd, f"Deleted show '{show_name}'{_format_warnings('show')}"
+    )
+
+
+# ============================================================
+# Effect Extension Tools (Issue #51)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_effect_envelope(
+    attack: float | None = None,
+    decay: float | None = None,
+    delay: float | None = None,
+    fade: float | None = None,
+) -> str:
+    """
+    Set effect envelope parameters (attack, decay, delay, fade) on the selection.
+
+    Provide any subset (at least one required).
+
+    Returns:
+        str: Operation result message
+    """
+    params = [
+        (attack, cmd_effect_attack, "attack"),
+        (decay, cmd_effect_decay, "decay"),
+        (delay, cmd_effect_delay, "delay"),
+        (fade, cmd_effect_fade, "fade"),
+    ]
+    batch = [fn(val) for val, fn, _ in params if val is not None]
+    parts = [f"{name}={val}" for val, _, name in params if val is not None]
+    if not batch:
+        return "Error: provide at least one envelope parameter."
+    client = await get_client()
+    return await run_verified_sequence(
+        client, batch, f"Set effect envelope ({', '.join(parts)})"
+    )
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_effect_seconds(value: float) -> str:
+    """Set effect speed in seconds (alternative to BPM/Hz)."""
+    client = await get_client()
+    return await run_verified(
+        client, cmd_effect_sec(value), f"Set effect speed to {value}s"
+    )
+
+
+@mcp.tool()
+@handle_connection_error
+async def set_effect_speed_group(group_id: int) -> str:
+    """Assign the effect to a speed group for synchronized control."""
+    client = await get_client()
+    return await run_verified(
+        client, cmd_effect_speed_group(group_id), f"Assigned effect to speed group {group_id}"
+    )
+
+
+# ============================================================
+# Park / Unpark Tools (Issue #52)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def park_fixture(target: str | None = None, at_value: int | None = None) -> str:
+    """
+    Park DMX output (lock a value regardless of playback).
+
+    Args:
+        target: What to park (e.g. "fixture 1", "channel 5", "fixture 1 attribute dim").
+                Omit to park the current selection.
+        at_value: Optional value to park at (0-100); omit to park at current value.
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = cmd_park(target, at=at_value)
+    where = target or "current selection"
+    at_part = f" at {at_value}" if at_value is not None else ""
+    return await run_verified(client, cmd, f"Parked {where}{at_part}")
+
+
+@mcp.tool()
+@handle_connection_error
+async def unpark_fixture(target: str | None = None) -> str:
+    """
+    Unpark previously parked DMX output.
+
+    Args:
+        target: What to unpark (e.g. "fixture 1"); omit for the current selection.
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = cmd_unpark(target)
+    where = target or "current selection"
+    return await run_verified(client, cmd, f"Unparked {where}")
+
+
+# ============================================================
+# Advanced Selection Tools (Issue #54)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def align_selection(target: str | None = None) -> str:
+    """Align attribute values across the selected fixtures (fan first-to-last)."""
+    client = await get_client()
+    return await run_verified(client, cmd_align(target), "Aligned selection")
+
+
+@mcp.tool()
+@handle_connection_error
+async def next_fixture() -> str:
+    """Step to the next fixture in the current selection."""
+    client = await get_client()
+    return await run_verified(client, cmd_next(), "Stepped to next fixture")
+
+
+@mcp.tool()
+@handle_connection_error
+async def previous_fixture() -> str:
+    """Step to the previous fixture in the current selection."""
+    client = await get_client()
+    return await run_verified(client, cmd_previous(), "Stepped to previous fixture")
+
+
+@mcp.tool()
+@handle_connection_error
+async def invert_selection() -> str:
+    """Invert the current fixture selection."""
+    client = await get_client()
+    return await run_verified(client, cmd_invert(), "Inverted selection")
+
+
+@mcp.tool()
+@handle_connection_error
+async def locate_fixtures() -> str:
+    """Send the selected fixtures to home/default position (Locate)."""
+    client = await get_client()
+    return await run_verified(client, cmd_locate(), "Located fixtures (home position)")
+
+
+@mcp.tool()
+@handle_connection_error
+async def fix_selection(target: str | None = None) -> str:
+    """Fix (lock) the current fixture selection."""
+    client = await get_client()
+    return await run_verified(client, cmd_fix(target), "Fixed selection")
 
 
 # ============================================================
