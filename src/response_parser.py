@@ -14,6 +14,42 @@ from __future__ import annotations
 
 import re
 
+# CSI escape sequences, e.g. "\x1b[32m" (color) or "\x1b[K" (erase line)
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+
+
+def strip_ansi(text: str) -> str:
+    """Remove ANSI escape sequences from grandMA2 telnet output.
+
+    grandMA2 wraps console output in ANSI color codes (e.g. ``\\x1b[32m``) and
+    line-erase codes (``\\x1b[K``). This strips them so the text can be parsed
+    or shown plainly. Trailing whitespace per line is also trimmed.
+    """
+    cleaned = _ANSI_RE.sub("", text)
+    return "\n".join(line.rstrip() for line in cleaned.split("\n"))
+
+
+# grandMA2 reports failures as "Error #NN: REASON" (after stripping ANSI).
+_ERROR_RE = re.compile(r"Error\s+#(\d+):\s*(.*)")
+
+
+def detect_error(raw: str) -> dict | None:
+    """Detect a grandMA2 console error in a telnet response.
+
+    grandMA2 reports failures inline as ``Error #NN: REASON`` (e.g.
+    ``Error #14: OBJECT DOES NOT EXIST``). A ``WARNING, ...`` line is not an
+    error and is ignored.
+
+    Returns ``{"error_code": int, "error_text": str}`` when a numbered error is
+    found, otherwise ``None``.
+    """
+    if not raw:
+        return None
+    match = _ERROR_RE.search(strip_ansi(raw))
+    if not match:
+        return None
+    return {"error_code": int(match.group(1)), "error_text": match.group(2).strip()}
+
 
 def _find_columns(header_line: str) -> list[tuple[str, int, int]]:
     """Find column names and their start/end positions from the header line.
