@@ -718,6 +718,77 @@ class GMA2Client:
             "summary": f"Programmed {len(colors)} {preset_type} preset(s) into {target}{mode}",
         }
 
+    async def build_preset_palette(
+        self,
+        preset_type: str,
+        presets: list[dict[str, Any]],
+        *,
+        scope: str = "global",
+        merge: bool = False,
+        label: bool = True,
+    ) -> dict[str, Any]:
+        """
+        Build a preset palette of any type from per-fixture-type value sets.
+
+        Generalizes the color/beam/focus build pattern: for each preset, for each
+        target (a selection string), select the target, set its attributes, and
+        store the preset. The first target uses ``scope``; subsequent targets of
+        the same preset always merge (per-type accumulation into one preset).
+
+        Args:
+            preset_type: "color"/"beam"/"focus"/... (mapped to a pool number).
+            presets: list of ``{id, name?, by_target: [{target, attrs}]}`` where
+                ``target`` is a selection command and ``attrs`` is a list of
+                ``(attribute, value)`` pairs.
+            scope: "global", "selective", or "universal".
+            merge: if True, the FIRST target also merges (extend an existing
+                preset instead of replacing it).
+            label: apply each preset's name as its label.
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        pool = PRESET_TYPES.get(preset_type.lower(), 1)
+
+        def _scope_kwargs(do_merge: bool) -> dict[str, Any]:
+            kw: dict[str, Any] = {"noconfirm": True}
+            if scope == "global":
+                kw["global_scope"] = True
+            elif scope == "selective":
+                kw["selective"] = True
+            elif scope == "universal":
+                kw["universal"] = True
+            if do_merge:
+                kw["merge"] = True
+            return kw
+
+        sent: list[str] = []
+        for preset in presets:
+            pid = preset["id"]
+            for j, tgt in enumerate(preset.get("by_target", [])):
+                do_merge = merge if j == 0 else True
+                sent.append(await self._send("Clear"))
+                sent.append(await self._send(tgt["target"]))
+                for attr, val in tgt.get("attrs", []):
+                    sent.append(await self._send(attribute_at(attr, val)))
+                sent.append(
+                    await self._send(
+                        store_preset(preset_type, pid, **_scope_kwargs(do_merge))
+                    )
+                )
+            if label and preset.get("name"):
+                sent.append(
+                    await self._send(
+                        label_cmd("preset", f"{pool}.{pid}", preset["name"])
+                    )
+                )
+
+        return {
+            "commands_sent": sent,
+            "count": len(presets),
+            "summary": f"Built {len(presets)} {preset_type} preset(s)",
+        }
+
     async def setup_song_macro(
         self,
         macro_id: int,
