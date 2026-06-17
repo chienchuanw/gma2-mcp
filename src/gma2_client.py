@@ -18,6 +18,10 @@ import logging
 from typing import Any
 
 from src.telnet_client import GMA2TelnetClient
+from src.commands.functions.timecode import (
+    store_timecode,
+    assign_timecode_param,
+)
 from src.commands import (
     appearance,
     assign,
@@ -538,6 +542,40 @@ class GMA2Client:
             "commands_sent": sent,
             "count": len(sent),
             "summary": f'Created Sequence {song_id} and Page {song_id} "{song_name}"',
+        }
+
+    async def setup_timecode(
+        self,
+        tc_id: int,
+        name: str | None = None,
+        slot: int | None = None,
+    ) -> dict[str, Any]:
+        """
+        Create a timecode show and optionally name it and assign a slot.
+
+        Common SMPTE setup pattern: store the timecode pool object, label it,
+        and bind it to a timecode slot for cue triggering.
+
+        Args:
+            tc_id: Timecode show ID
+            name: Optional display name
+            slot: Optional timecode slot to assign
+
+        Returns:
+            Result dict with commands_sent, count, and summary.
+        """
+        sent: list[str] = []
+        sent.append(await self._send(store_timecode(tc_id)))
+        if name is not None:
+            sent.append(await self._send(assign_timecode_param(tc_id, "name", name)))
+        if slot is not None:
+            sent.append(await self._send(assign_timecode_param(tc_id, "slot", slot)))
+        name_part = f' "{name}"' if name else ""
+        slot_part = f" on slot {slot}" if slot is not None else ""
+        return {
+            "commands_sent": sent,
+            "count": len(sent),
+            "summary": f"Created Timecode {tc_id}{name_part}{slot_part}",
         }
 
     async def setup_song_macro(
