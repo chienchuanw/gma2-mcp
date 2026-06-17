@@ -3,8 +3,16 @@ from unittest.mock import patch, AsyncMock, MagicMock
 
 
 def _mock_client():
+    from src.execution import ExecutionResult
+
     client = MagicMock()
     client.send_command = AsyncMock()
+    # Tools converted to the verified path use execute(); default to success.
+    client.execute = AsyncMock(
+        return_value=ExecutionResult(
+            ok=True, echo="OK", error_code=None, error_text=None, raw="OK"
+        )
+    )
     return client
 
 
@@ -276,7 +284,7 @@ class TestStorePresetTool:
 
         result = await store_preset(preset_type="color", preset_id=1)
 
-        client.send_command.assert_called_once_with("store preset 4.1")
+        client.execute.assert_called_once_with("store preset 4.1")
         assert "color" in result
 
     @pytest.mark.asyncio
@@ -289,7 +297,7 @@ class TestStorePresetTool:
 
         result = await store_preset(preset_type="dimmer", preset_id=5, scope="global")
 
-        client.send_command.assert_called_once_with("store preset 1.5 /global")
+        client.execute.assert_called_once_with("store preset 1.5 /global")
         assert "global" in result
 
 
@@ -304,7 +312,7 @@ class TestApplyPresetTool:
 
         result = await apply_preset(preset_type="color", preset_id=3)
 
-        client.send_command.assert_called_once_with("preset 4.3")
+        client.execute.assert_called_once_with("preset 4.3")
         assert "color" in result
 
 
@@ -1133,3 +1141,104 @@ class TestConnectionErrorHandling:
         result = await store_cue(cue_id=1)
         assert "Cue 1" in result
         assert "connection" not in result.lower()
+
+
+class TestSendRawCommandVerified:
+    """send_raw_command must report the console's actual outcome (#56)."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_returns_console_output_on_success(self, mock_get):
+        from src.server import send_raw_command
+        from src.execution import ExecutionResult
+
+        client = _mock_client()
+        client.execute = AsyncMock(
+            return_value=ExecutionResult(
+                ok=True, echo="Executing : Clear\n [Fixture]>",
+                error_code=None, error_text=None, raw="raw",
+            )
+        )
+        mock_get.return_value = client
+
+        result = await send_raw_command("Clear")
+
+        client.execute.assert_awaited_once_with("Clear")
+        assert "Sent command" not in result  # no fabricated success
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_surfaces_console_error(self, mock_get):
+        from src.server import send_raw_command
+        from src.execution import ExecutionResult
+
+        client = _mock_client()
+        client.execute = AsyncMock(
+            return_value=ExecutionResult(
+                ok=False, echo='Error #14: OBJECT DOES NOT EXIST',
+                error_code=14, error_text="OBJECT DOES NOT EXIST", raw="raw",
+            )
+        )
+        mock_get.return_value = client
+
+        result = await send_raw_command('List Preset "color"')
+
+        assert "Error #14" in result
+        assert "OBJECT DOES NOT EXIST" in result
+
+
+def _ok_result(echo="OK"):
+    from src.execution import ExecutionResult
+    return ExecutionResult(ok=True, echo=echo, error_code=None, error_text=None, raw=echo)
+
+
+def _err_result(code=14, text="OBJECT DOES NOT EXIST"):
+    from src.execution import ExecutionResult
+    return ExecutionResult(
+        ok=False, echo=f"Error #{code}: {text}",
+        error_code=code, error_text=text, raw="raw",
+    )
+
+
+class TestMutatingToolsVerified:
+    """Mutating tools confirm success only when the console accepts (#56)."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_store_preset_success(self, mock_get):
+        from src.server import store_preset
+
+        client = _mock_client()
+        client.execute = AsyncMock(return_value=_ok_result())
+        mock_get.return_value = client
+
+        result = await store_preset("color", 1)
+
+        client.execute.assert_awaited_once()
+        assert "Preset 1" in result and "Error" not in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_store_preset_surfaces_error(self, mock_get):
+        from src.server import store_preset
+
+        client = _mock_client()
+        client.execute = AsyncMock(return_value=_err_result())
+        mock_get.return_value = client
+
+        result = await store_preset("color", 1)
+
+        assert "Error #14" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_apply_preset_surfaces_error(self, mock_get):
+        from src.server import apply_preset
+
+        client = _mock_client()
+        client.execute = AsyncMock(return_value=_err_result())
+        mock_get.return_value = client
+
+        result = await apply_preset("color", 99)
+
+        assert "Error #14" in result

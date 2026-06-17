@@ -120,6 +120,17 @@ def handle_connection_error(func):
     return wrapper
 
 
+async def run_verified(client, command: str, success: str) -> str:
+    """Execute a mutating command and report the console's actual outcome.
+
+    Returns ``success`` only when the console accepted the command; otherwise
+    returns the console's error (e.g. ``Error #14: OBJECT DOES NOT EXIST``)
+    instead of fabricating success. See #56.
+    """
+    result = await client.execute(command)
+    return success if result.ok else result.summary()
+
+
 mcp = FastMCP(
     name="grandMA2-MCP",
     lifespan=server_lifespan,
@@ -550,9 +561,10 @@ async def store_preset(
     elif scope == "universal":
         kwargs["universal"] = True
     cmd = cmd_store_preset(preset_type, preset_id, **kwargs)
-    await client.send_command(cmd)
     scope_part = f" ({scope})" if scope else ""
-    return f"Stored {preset_type} Preset {preset_id}{scope_part}"
+    return await run_verified(
+        client, cmd, f"Stored {preset_type} Preset {preset_id}{scope_part}"
+    )
 
 
 @mcp.tool()
@@ -577,8 +589,9 @@ async def apply_preset(
     """
     client = await get_client()
     cmd = preset(preset_type, preset_id)
-    await client.send_command(cmd)
-    return f"Applied {preset_type} Preset {preset_id}"
+    return await run_verified(
+        client, cmd, f"Applied {preset_type} Preset {preset_id}"
+    )
 
 
 # ============================================================
@@ -1749,8 +1762,8 @@ async def send_raw_command(command: str) -> str:
         - store sequence 1 cue 1
     """
     client = await get_client()
-    await client.send_command(command)
-    return f"Sent command: {command}"
+    result = await client.execute(command)
+    return result.summary()
 
 
 # ============================================================
