@@ -84,6 +84,14 @@ from src.commands import (
 )
 from src.commands.constants import PRESET_TYPES
 from src.gma2_client import GMA2Client
+from src.commands.functions.timecode import (
+    go_timecode,
+    pause_timecode,
+    off_timecode,
+    top_timecode,
+    record_timecode,
+    assign_timecode_param,
+)
 from src.response_parser import parse_macro_lines, parse_cue_info, parse_object_label
 
 load_dotenv()
@@ -2068,6 +2076,115 @@ async def build_set_list(
         sequence_id=sequence_id, sequence_name=sequence_name, songs=songs
     )
     return result["summary"]
+
+
+# ============================================================
+# Timecode Tools (Issue #39)
+# ============================================================
+
+
+@mcp.tool()
+@handle_connection_error
+async def create_timecode_pool(
+    tc_id: int,
+    name: str | None = None,
+    slot: int | None = None,
+) -> str:
+    """
+    Create a timecode show, optionally naming it and assigning a slot.
+
+    Standard SMPTE setup: store the timecode pool object, label it, and bind it
+    to a timecode slot for cue triggering. Timecode events themselves are
+    recorded in real time via control_timecode(action="record").
+
+    Args:
+        tc_id: Timecode show ID
+        name: Optional display name
+        slot: Optional timecode slot to assign
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Create timecode 1 named "Act 1" on slot 1
+    """
+    telnet = await get_client()
+    gma2 = GMA2Client(telnet)
+    result = await gma2.setup_timecode(tc_id, name=name, slot=slot)
+    return result["summary"]
+
+
+@mcp.tool()
+@handle_connection_error
+async def assign_timecode_slot(tc_id: int, slot: int) -> str:
+    """
+    Assign a timecode show to a timecode slot for cue triggering.
+
+    Args:
+        tc_id: Timecode show ID
+        slot: Timecode slot number
+
+    Returns:
+        str: Operation result message
+    """
+    client = await get_client()
+    cmd = assign_timecode_param(tc_id, "slot", slot)
+    return await run_verified(
+        client, cmd, f"Assigned Timecode {tc_id} to slot {slot}"
+    )
+
+
+@mcp.tool()
+@handle_connection_error
+async def control_timecode(tc_id: int, action: str) -> str:
+    """
+    Control timecode playback/recording.
+
+    Args:
+        tc_id: Timecode show ID
+        action: One of "go" (play), "pause", "off" (stop), "top" (rewind),
+                or "record" (arm real-time event recording)
+
+    Returns:
+        str: Operation result message
+
+    Examples:
+        - Start timecode 1: action="go"
+        - Record events into timecode 1: action="record"
+    """
+    action_map = {
+        "go": go_timecode,
+        "pause": pause_timecode,
+        "off": off_timecode,
+        "top": top_timecode,
+        "record": record_timecode,
+    }
+    cmd_fn = action_map.get(action.lower())
+    if cmd_fn is None:
+        return (
+            f"Unknown action: {action}. Use go, pause, off, top, or record."
+        )
+    client = await get_client()
+    cmd = cmd_fn(tc_id)
+    return await run_verified(client, cmd, f"Timecode {tc_id}: {action.lower()}")
+
+
+@mcp.tool()
+@handle_connection_error
+async def query_timecode(tc_id: int | None = None) -> str:
+    """
+    Read timecode pool status / configuration.
+
+    Args:
+        tc_id: Specific timecode ID (optional; lists the whole pool if omitted)
+
+    Returns:
+        str: raw console response with timecode listing
+    """
+    client = await get_client()
+    cmd = f"list timecode {tc_id}" if tc_id is not None else "list timecode"
+    response = await client.send_command_with_response(cmd)
+    return response if response.strip() else EMPTY_RESPONSE_MSG
 
 
 # ============================================================
