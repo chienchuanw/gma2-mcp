@@ -1,8 +1,30 @@
 # Visualizer screenshot bridge (#75)
 
-A minimal way to let an AI assistant (or any tailnet device) *see* the
+A minimal way to let an AI assistant (or any peer machine) *see* the
 visualizer (Depence) running on the grandMA2 onPC Windows machine, for
 closed-loop verification of position / beam / color looks.
+
+## Quick start — one launch (recommended)
+
+On the Windows / Depence machine, **double-click `Start-DepenceShot.cmd`**
+(or run `depence-shot-server.ps1`). Accept the UAC prompt. That's it — the
+script self-elevates, adds the firewall rule if missing, binds all interfaces,
+and prints the URL(s) to pull from. Leave the window open. Re-run it after a
+reboot; nothing else to configure.
+
+Then from a peer on the show network (e.g. the Mac at `2.0.0.x`):
+
+```bash
+curl -s -m 10 http://2.0.0.193:8099/shot.png -o /tmp/shot.png
+```
+
+This LAN/direct-cable path needs no Tailscale. The older loopback + Tailscale
+approach below is kept for the case where the two machines are only reachable
+over a tailnet.
+
+---
+
+
 
 Why this design: SSH-triggered screenshots on Windows often capture a black
 frame (the SSH process runs in non-interactive Session 0, with no access to the
