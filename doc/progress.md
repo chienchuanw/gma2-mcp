@@ -447,3 +447,28 @@ Group -> type map (confirmed): Spot=GEIST(101-128), Q4=B-EYE(201-215),
 LED Par=PAR(401-428), Wash=7x40(301-312), Strobe=Led-8(801-804).
 
 Open: #75 (visualizer/Depence screenshot bridge for closed-loop verification).
+
+## Session: 2026-06-21 (Session 15 -- gma2-workflow planning & contract tool)
+
+### Phase: Workflow productization & dependency contract
+- **Status:** in progress (Phase 1 of the workflow roadmap underway)
+- Actions taken:
+  - Designed a separate private repo `gma2-workflow` as the orchestration layer of
+    a four-repo grandMA2 stack: `gma2-mcp` (this, generic engine) / `gma2-workflow`
+    (private skills + show-profiles + Lua templates) / `gma2-plugins` (Lua library) /
+    `chuan-skills` (marketplace). Core rule: no skill hard-codes a show fact; all
+    show-specific knowledge lives in a versioned `show-profile` YAML.
+  - Validated the user's full 13-step showfile build process and classified it into
+    three buckets (external / standard-assets / show-specific), filed as a 13-issue
+    roadmap: `gma2-mcp` #85, #86; `gma2-workflow` #1-#11.
+  - **#85** (this repo): new `capabilities` MCP tool -- reports version, registered
+    tools, and profile schema version as the machine-readable contract surface for
+    the workflow's startup self-check. `src/capabilities.py` (pure
+    `build_capabilities` + `PROFILE_SCHEMA_VERSION`), tool in `src/server.py`
+    (metadata-only, no console connection). PR #87, rebase-merged to dev.
+  - Added a version-drift guard test (`src.__version__` vs `pyproject.toml`):
+    importlib.metadata is unavailable (package runs from source), so a single-source
+    refactor was rejected in favor of a cheap invariant test.
+- Tool count 100 -> 101. Tests 1204 -> 1212, all passing.
+
+Open in this repo: #86 (spike -- can MA2 telnet set layout element X/Y?).
