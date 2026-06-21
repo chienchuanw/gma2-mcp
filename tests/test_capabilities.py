@@ -74,6 +74,23 @@ class TestBuildCapabilities:
         }
 
 
+class TestVersionSourcing:
+    def test_version_matches_pyproject(self):
+        # The capabilities tool reports src.__version__; pyproject.toml carries its
+        # own version. They are two sources that can drift. This invariant guard
+        # makes any drift fail loudly instead of silently reporting a stale version.
+        import tomllib
+        from pathlib import Path
+
+        from src import __version__
+
+        pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+        with pyproject.open("rb") as f:
+            data = tomllib.load(f)
+
+        assert __version__ == data["project"]["version"]
+
+
 class TestCapabilitiesTool:
     @pytest.mark.asyncio
     async def test_reports_real_version_tools_and_schema(self):
