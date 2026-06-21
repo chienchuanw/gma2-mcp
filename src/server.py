@@ -16,6 +16,8 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
+from src import __version__
+from src.capabilities import PROFILE_SCHEMA_VERSION, build_capabilities
 from src.telnet_client import ConnectionState, GMA2TelnetClient
 from src.commands import (
     appearance as cmd_appearance,
@@ -282,6 +284,10 @@ mcp = FastMCP(
 
     Available tools by category:
 
+    Server Metadata:
+      - capabilities: Report server version, registered tools, and the
+        show-profile schema version (contract surface for clients' self-checks)
+
     Fixture Groups:
       - create_fixture_group: Select fixtures and store as a named group
 
@@ -407,6 +413,31 @@ async def get_client() -> GMA2TelnetClient:
         await _client.login()
         logger.info(f"Connected to grandMA2: {GMA_HOST}:{GMA_PORT}")
     return _client
+
+
+# ============================================================
+# Server Metadata Tools
+# ============================================================
+
+
+@mcp.tool()
+async def capabilities() -> dict:
+    """Report this server's version, registered tools, and profile schema version.
+
+    Machine-readable contract surface for the gma2-workflow startup self-check
+    (issue #85). Pure metadata: it does NOT open a console connection, so it is
+    intentionally not wrapped with ``@handle_connection_error``.
+
+    Returns:
+        dict: ``{version, tools (sorted), tool_count, profile_schema_version}``.
+    """
+    tools = await mcp.list_tools()
+    tool_names = [tool.name for tool in tools]
+    return build_capabilities(
+        version=__version__,
+        tool_names=tool_names,
+        profile_schema_version=PROFILE_SCHEMA_VERSION,
+    )
 
 
 # ============================================================
