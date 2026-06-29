@@ -10,8 +10,6 @@ Included functions:
 - learn: Learn speed from taps
 """
 
-from typing import Optional
-
 
 def full() -> str:
     """

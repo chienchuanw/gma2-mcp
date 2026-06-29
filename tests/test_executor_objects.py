@@ -5,8 +5,6 @@ Tests for grandMA2 Fader, FaderPage, ButtonPage, ChannelFader, ChannelPage,
 ExecButton1/2/3, and All*Executors object keyword command generation.
 """
 
-import pytest
-
 
 class TestFader:
     """Tests for Fader object keyword."""

@@ -20,8 +20,6 @@ Included functions:
 - sync_effects: Synchronize effects
 """
 
-from typing import Union
-
 
 def effect(effect_id: int) -> str:
     """
@@ -40,7 +38,7 @@ def effect(effect_id: int) -> str:
     return f"effect {effect_id}"
 
 
-def effect_attack(value: Union[int, float]) -> str:
+def effect_attack(value: int | float) -> str:
     """
     Construct an EffectAttack command.
 
@@ -57,7 +55,7 @@ def effect_attack(value: Union[int, float]) -> str:
     return f"effectattack {value}"
 
 
-def effect_bpm(value: Union[int, float]) -> str:
+def effect_bpm(value: int | float) -> str:
     """
     Construct an EffectBPM command.
 
@@ -74,7 +72,7 @@ def effect_bpm(value: Union[int, float]) -> str:
     return f"effectbpm {value}"
 
 
-def effect_decay(value: Union[int, float]) -> str:
+def effect_decay(value: int | float) -> str:
     """
     Construct an EffectDecay command.
 
@@ -91,7 +89,7 @@ def effect_decay(value: Union[int, float]) -> str:
     return f"effectdecay {value}"
 
 
-def effect_delay(value: Union[int, float]) -> str:
+def effect_delay(value: int | float) -> str:
     """
     Construct an EffectDelay command.
 
@@ -108,7 +106,7 @@ def effect_delay(value: Union[int, float]) -> str:
     return f"effectdelay {value}"
 
 
-def effect_fade(value: Union[int, float]) -> str:
+def effect_fade(value: int | float) -> str:
     """
     Construct an EffectFade command.
 
@@ -125,7 +123,7 @@ def effect_fade(value: Union[int, float]) -> str:
     return f"effectfade {value}"
 
 
-def effect_form(value: Union[int, str]) -> str:
+def effect_form(value: int | str) -> str:
     """
     Construct an EffectForm command to set waveform.
 
@@ -144,7 +142,7 @@ def effect_form(value: Union[int, str]) -> str:
     return f"effectform {value}"
 
 
-def effect_high(value: Union[int, float]) -> str:
+def effect_high(value: int | float) -> str:
     """
     Construct an EffectHigh command.
 
@@ -161,7 +159,7 @@ def effect_high(value: Union[int, float]) -> str:
     return f"effecthigh {value}"
 
 
-def effect_hz(value: Union[int, float]) -> str:
+def effect_hz(value: int | float) -> str:
     """
     Construct an EffectHZ command to set frequency.
 
@@ -195,7 +193,7 @@ def effect_id(value: int) -> str:
     return f"effectid {value}"
 
 
-def effect_low(value: Union[int, float]) -> str:
+def effect_low(value: int | float) -> str:
     """
     Construct an EffectLow command.
 
@@ -212,7 +210,7 @@ def effect_low(value: Union[int, float]) -> str:
     return f"effectlow {value}"
 
 
-def effect_phase(value: Union[int, float]) -> str:
+def effect_phase(value: int | float) -> str:
     """
     Construct an EffectPhase command.
 
@@ -229,7 +227,7 @@ def effect_phase(value: Union[int, float]) -> str:
     return f"effectphase {value}"
 
 
-def effect_sec(value: Union[int, float]) -> str:
+def effect_sec(value: int | float) -> str:
     """
     Construct an EffectSec command to set speed in seconds.
 
@@ -263,7 +261,7 @@ def effect_speed_group(value: int) -> str:
     return f"effectspeedgroup {value}"
 
 
-def effect_width(value: Union[int, float]) -> str:
+def effect_width(value: int | float) -> str:
     """
     Construct an EffectWidth command.
 

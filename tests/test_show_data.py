@@ -1,7 +1,5 @@
 """Tests for grandMA2 show data management keywords."""
 
-import pytest
-
 
 class TestShowData:
     def test_crash_log_copy(self):

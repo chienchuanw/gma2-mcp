@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from src.command_sequence import CommandSequence
 
@@ -109,7 +110,7 @@ class TestCommandSequenceExecute:
         seq = CommandSequence()
         seq.add("fixture 1 thru 10").add("at full").add("store group 1")
 
-        result = await seq.execute(mock_client)
+        await seq.execute(mock_client)
 
         assert mock_client.send_command.call_count == 3
         calls = [c[0][0] for c in mock_client.send_command.call_args_list]

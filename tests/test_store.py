@@ -9,8 +9,6 @@ Test Classes:
 - TestStoreCommands: Complete tests for Store keyword
 """
 
-import pytest
-
 
 class TestGroupCommands:
     """Tests for group-related commands."""

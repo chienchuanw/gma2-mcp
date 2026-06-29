@@ -51,4 +51,3 @@ def _build_store_options(**kwargs: Any) -> str:
     if options_parts:
         return " " + " ".join(options_parts)
     return ""
-

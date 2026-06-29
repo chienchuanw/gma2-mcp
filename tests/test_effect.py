@@ -7,8 +7,6 @@ EffectSec, EffectSpeedGroup, EffectWidth, and SyncEffects function keyword
 command generation.
 """
 
-import pytest
-
 
 class TestEffect:
     """Tests for Effect keyword."""

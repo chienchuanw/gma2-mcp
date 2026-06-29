@@ -6,8 +6,9 @@ Also includes negative tests verifying delete_show and create_backup
 are NOT registered as MCP tools.
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
 
 
 def _mock_client(response=""):
@@ -17,9 +18,7 @@ def _mock_client(response=""):
     client = MagicMock()
     client.send_command = AsyncMock()
     client.execute = AsyncMock(
-        return_value=ExecutionResult(
-            ok=True, echo="OK", error_code=None, error_text=None, raw="OK"
-        )
+        return_value=ExecutionResult(ok=True, echo="OK", error_code=None, error_text=None, raw="OK")
     )
     client.send_command_with_response = AsyncMock(return_value=response)
     return client
@@ -98,7 +97,7 @@ class TestLoadShowTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await load_show_tool(show_name="Macbeth", save_first=True)
+        await load_show_tool(show_name="Macbeth", save_first=True)
 
         calls = [c[0][0] for c in client.execute.call_args_list]
         assert calls[0] == "saveshow /noconfirm"
@@ -145,7 +144,7 @@ class TestNewShowTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await new_show_tool()
+        await new_show_tool()
 
         client.execute.assert_called_once_with("newshow /noconfirm")
 
@@ -157,7 +156,7 @@ class TestNewShowTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await new_show_tool(show_name="NewProject", save_first=True)
+        await new_show_tool(show_name="NewProject", save_first=True)
 
         calls = [c[0][0] for c in client.execute.call_args_list]
         assert calls[0] == "saveshow /noconfirm"
@@ -204,7 +203,7 @@ class TestListShowsTool:
         client = _mock_client("Macbeth.show.gz")
         mock_get.return_value = client
 
-        result = await list_shows_tool(filter="Mac*")
+        await list_shows_tool(filter="Mac*")
 
         client.send_command_with_response.assert_called_once_with("listshows Mac*")
 

@@ -12,8 +12,6 @@ Test Classes:
 - TestRemoveCommands: Tests for remove series
 """
 
-import pytest
-
 
 class TestEditCommands:
     """

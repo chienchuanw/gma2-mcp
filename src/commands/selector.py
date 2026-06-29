@@ -13,14 +13,13 @@ including command-injection attempts (``;``, letters, etc.).
 from __future__ import annotations
 
 import re
-from typing import Union
 
 _OPERATORS = {"thru", "+", "-"}
 # An ID is an integer or a pool.id decimal (e.g. "4.1" for preset 1 in pool 4).
 _ID_RE = re.compile(r"\d+(\.\d+)?")
 
 
-def normalize_selector(spec: Union[str, int]) -> str:
+def normalize_selector(spec: str | int) -> str:
     """Validate and normalize a grandMA2 selection expression.
 
     Args:

@@ -8,10 +8,9 @@ Uses pytest-asyncio for async testing.
 """
 
 import asyncio
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import pytest_asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
 
 
 class TestGMA2TelnetClientInit:
@@ -177,9 +176,7 @@ class TestGMA2TelnetClientCommandLock:
 
     @pytest.mark.asyncio
     @patch("src.telnet_client.telnetlib3.open_connection")
-    async def test_concurrent_send_command_with_response_serialized(
-        self, mock_open_connection
-    ):
+    async def test_concurrent_send_command_with_response_serialized(self, mock_open_connection):
         """Test that concurrent send_command_with_response() calls are serialized."""
         from src.telnet_client import GMA2TelnetClient
 
@@ -299,8 +296,8 @@ class TestExecute:
 
     @pytest.mark.asyncio
     async def test_execute_success_returns_ok_result(self):
-        from src.telnet_client import GMA2TelnetClient
         from src.execution import ExecutionResult
+        from src.telnet_client import GMA2TelnetClient
 
         client = GMA2TelnetClient(host="192.168.1.100")
         client.send_command_with_response = AsyncMock(
@@ -321,8 +318,7 @@ class TestExecute:
         client = GMA2TelnetClient(host="192.168.1.100")
         client.send_command_with_response = AsyncMock(
             return_value=(
-                'Executing : List Preset "color"\n\r'
-                "Error #14: OBJECT DOES NOT EXIST\n\r [Fixture]>"
+                'Executing : List Preset "color"\n\rError #14: OBJECT DOES NOT EXIST\n\r [Fixture]>'
             )
         )
 

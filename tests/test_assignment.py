@@ -8,8 +8,6 @@ Test Classes:
 - TestAssignCommands: Tests for assign, assign_function, assign_fade, assign_to_layout
 """
 
-import pytest
-
 
 class TestAssignCommands:
     """Tests for Assign keyword commands."""
@@ -159,7 +157,7 @@ class TestAssignMacroCmdCommands:
         from src.commands import assign_macro_cmd
 
         result = assign_macro_cmd(macro_id=101, line=1, command="SetVar $song='Opening+Childhood'")
-        assert result == 'assign macro 1.101.1 /cmd="SetVar $song=\'Opening+Childhood\'"'
+        assert result == "assign macro 1.101.1 /cmd=\"SetVar $song='Opening+Childhood'\""
 
     def test_assign_macro_cmd_custom_pool(self):
         """Test macro line assignment with custom pool."""

@@ -11,10 +11,8 @@ Included functions:
 - invert: Invert selection
 """
 
-from typing import Optional
 
-
-def align(target: Optional[str] = None) -> str:
+def align(target: str | None = None) -> str:
     """
     Construct an Align command to distribute values across selected fixtures.
 
@@ -52,7 +50,7 @@ def all_keyword() -> str:
     return "all"
 
 
-def fix(target: Optional[str] = None) -> str:
+def fix(target: str | None = None) -> str:
     """
     Construct a Fix command to fix attribute values.
 

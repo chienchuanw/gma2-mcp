@@ -10,8 +10,6 @@ Included functions:
 - solo: Toggle solo mode
 """
 
-from typing import Optional
-
 
 def blackout() -> str:
     """
@@ -27,7 +25,7 @@ def blackout() -> str:
     return "blackout"
 
 
-def black(target: Optional[str] = None) -> str:
+def black(target: str | None = None) -> str:
     """
     Construct a Black command to set output to black.
 
@@ -49,7 +47,7 @@ def black(target: Optional[str] = None) -> str:
     return "black"
 
 
-def freeze(target: Optional[str] = None) -> str:
+def freeze(target: str | None = None) -> str:
     """
     Construct a Freeze command to toggle freeze mode.
 

@@ -9,10 +9,8 @@ Included functions:
 - fade_path: Set fade path
 """
 
-from typing import Union
 
-
-def snap_percent(value: Union[int, float]) -> str:
+def snap_percent(value: int | float) -> str:
     """
     Construct a SnapPercent command to set snap percentage.
 
@@ -29,7 +27,7 @@ def snap_percent(value: Union[int, float]) -> str:
     return f"snappercent {value}"
 
 
-def step_fade(value: Union[int, float]) -> str:
+def step_fade(value: int | float) -> str:
     """
     Construct a StepFade command to set step fade time.
 
@@ -46,7 +44,7 @@ def step_fade(value: Union[int, float]) -> str:
     return f"stepfade {value}"
 
 
-def step_in_fade(value: Union[int, float]) -> str:
+def step_in_fade(value: int | float) -> str:
     """
     Construct a StepInFade command to set step in-fade time.
 
@@ -63,7 +61,7 @@ def step_in_fade(value: Union[int, float]) -> str:
     return f"stepinfade {value}"
 
 
-def step_out_fade(value: Union[int, float]) -> str:
+def step_out_fade(value: int | float) -> str:
     """
     Construct a StepOutFade command to set step out-fade time.
 
@@ -80,7 +78,7 @@ def step_out_fade(value: Union[int, float]) -> str:
     return f"stepoutfade {value}"
 
 
-def fade_path(value: Union[int, float]) -> str:
+def fade_path(value: int | float) -> str:
     """
     Construct a FadePath command to set fade path.
 

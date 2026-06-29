@@ -5,9 +5,7 @@ Parses MA2 fixture-type XML and resolves named channel functions
 (open/closed/strobe/random/iris/frost/prism) to per-type attribute values.
 """
 
-import pytest
-
-from src.profile_resolver import parse_fixture_profile, FixtureProfile
+from src.profile_resolver import FixtureProfile, parse_fixture_profile
 
 # Trimmed but real-structured MA2 fixture-type XML (based on the rig's profiles):
 # a SHUTTER channel with closed/strobe/open/random functions, plus IRIS and FROST.

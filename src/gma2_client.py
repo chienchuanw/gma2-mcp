@@ -17,49 +17,60 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from src.telnet_client import GMA2TelnetClient
-from src.commands.functions.timecode import (
-    store_timecode,
-    assign_timecode_param,
-)
-from src.commands.functions.matricks import (
-    matricks as _matricks,
-    matricks_blocks,
-    matricks_wings,
-    matricks_groups,
-    matricks_interleave,
-    matricks_filter,
-)
-from src.commands.constants import PRESET_TYPES
-# Aliased so build_color_palette can call them without its label/appearance
-# bool parameters shadowing the builders.
-from src.commands import appearance as appearance_cmd, label as label_cmd
 from src.commands import (
     appearance,
-    attribute_at,
-    store_preset,
     assign,
     assign_cue_cmd,
     assign_fade,
     assign_macro_cmd,
     at,
-    effect as cmd_effect,
+    attribute_at,
     effect_bpm,
-    effect_form as cmd_effect_form,
     effect_high,
     effect_low,
     executor_at,
-    fixture_at,
     label,
-    label_macro as cmd_label_macro,
     label_sequence_cue,
     preset,
     select_fixture,
     store,
     store_cue,
     store_group,
+    store_preset,
+)
+
+# Aliased so build_color_palette can call them without its label/appearance
+# bool parameters shadowing the builders.
+from src.commands import appearance as appearance_cmd
+from src.commands import (
+    effect as cmd_effect,
+)
+from src.commands import (
+    effect_form as cmd_effect_form,
+)
+from src.commands import label as label_cmd
+from src.commands import (
+    label_macro as cmd_label_macro,
+)
+from src.commands import (
     store_macro as cmd_store_macro,
 )
+from src.commands.constants import PRESET_TYPES
+from src.commands.functions.matricks import (
+    matricks as _matricks,
+)
+from src.commands.functions.matricks import (
+    matricks_blocks,
+    matricks_filter,
+    matricks_groups,
+    matricks_interleave,
+    matricks_wings,
+)
+from src.commands.functions.timecode import (
+    assign_timecode_param,
+    store_timecode,
+)
+from src.telnet_client import GMA2TelnetClient
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +81,7 @@ def _color_swatch(r: int, g: int, b: int, w: int) -> tuple[int, int, int]:
     The white channel lifts all three components toward white; a fully-off color
     gets a small floor so the pool button stays visible.
     """
+
     def lift(v: int) -> int:
         return min(100, round(v + w))
 
@@ -231,9 +243,7 @@ class GMA2Client:
         sent: list[str] = []
 
         for seq_id, exec_id in assignments:
-            sent.append(
-                await self._send(assign("sequence", seq_id, "executor", exec_id))
-            )
+            sent.append(await self._send(assign("sequence", seq_id, "executor", exec_id)))
 
         return {
             "commands_sent": sent,
@@ -328,9 +338,7 @@ class GMA2Client:
         sent: list[str] = []
 
         for seq in range(sequence_start, sequence_end + 1):
-            cmd = appearance(
-                f"sequence {seq} cue", str(cue_id), **color_kwargs
-            )
+            cmd = appearance(f"sequence {seq} cue", str(cue_id), **color_kwargs)
             sent.append(await self._send(cmd))
 
         count = sequence_end - sequence_start + 1
@@ -458,21 +466,13 @@ class GMA2Client:
             # Use page-qualified executor addressing: Executor [Page].[ID]
             page_exec = f"{page}.{exec_id}"
 
-            sent.append(
-                await self._send(
-                    assign("sequence", seq_id, "executor", page_exec)
-                )
-            )
+            sent.append(await self._send(assign("sequence", seq_id, "executor", page_exec)))
 
             if "label" in entry:
-                sent.append(
-                    await self._send(label("executor", page_exec, entry["label"]))
-                )
+                sent.append(await self._send(label("executor", page_exec, entry["label"])))
 
             if "fader_level" in entry:
-                sent.append(
-                    await self._send(executor_at(page_exec, entry["fader_level"]))
-                )
+                sent.append(await self._send(executor_at(page_exec, entry["fader_level"])))
 
         return {
             "commands_sent": sent,
@@ -532,9 +532,7 @@ class GMA2Client:
         sent.append(await self._send(cmd_store_macro(macro_id)))
 
         for i, command in enumerate(commands, start=1):
-            sent.append(
-                await self._send(assign_macro_cmd(macro_id, i, command, pool=pool))
-            )
+            sent.append(await self._send(assign_macro_cmd(macro_id, i, command, pool=pool)))
 
         if name is not None:
             sent.append(await self._send(cmd_label_macro(macro_id, name)))
@@ -696,13 +694,9 @@ class GMA2Client:
             sent.append(await self._send(attribute_at("COLORRGB2", g)))
             sent.append(await self._send(attribute_at("COLORRGB3", b)))
             sent.append(await self._send(attribute_at("COLORRGB5", w)))
-            sent.append(
-                await self._send(store_preset(preset_type, cid, **scope_kwargs))
-            )
+            sent.append(await self._send(store_preset(preset_type, cid, **scope_kwargs)))
             if label and color.get("name"):
-                sent.append(
-                    await self._send(label_cmd("preset", f"{pool}.{cid}", color["name"]))
-                )
+                sent.append(await self._send(label_cmd("preset", f"{pool}.{cid}", color["name"])))
             if appearance:
                 sr, sg, sb = _color_swatch(r, g, b, w)
                 sent.append(
@@ -763,24 +757,20 @@ class GMA2Client:
             return kw
 
         sent: list[str] = []
-        for preset in presets:
-            pid = preset["id"]
-            for j, tgt in enumerate(preset.get("by_target", [])):
+        for preset_spec in presets:
+            pid = preset_spec["id"]
+            for j, tgt in enumerate(preset_spec.get("by_target", [])):
                 do_merge = merge if j == 0 else True
                 sent.append(await self._send("Clear"))
                 sent.append(await self._send(tgt["target"]))
                 for attr, val in tgt.get("attrs", []):
                     sent.append(await self._send(attribute_at(attr, val)))
                 sent.append(
-                    await self._send(
-                        store_preset(preset_type, pid, **_scope_kwargs(do_merge))
-                    )
+                    await self._send(store_preset(preset_type, pid, **_scope_kwargs(do_merge)))
                 )
-            if label and preset.get("name"):
+            if label and preset_spec.get("name"):
                 sent.append(
-                    await self._send(
-                        label_cmd("preset", f"{pool}.{pid}", preset["name"])
-                    )
+                    await self._send(label_cmd("preset", f"{pool}.{pid}", preset_spec["name"]))
                 )
 
         return {
@@ -846,13 +836,9 @@ class GMA2Client:
             macro_id = song["macro_id"]
             name = song["name"]
             sent.append(
-                await self._send(
-                    store("sequence", f"{sequence_id} cue {cue_id}", name=name)
-                )
+                await self._send(store("sequence", f"{sequence_id} cue {cue_id}", name=name))
             )
-            sent.append(
-                await self._send(assign_cue_cmd(cue_id, sequence_id, f"Macro {macro_id}"))
-            )
+            sent.append(await self._send(assign_cue_cmd(cue_id, sequence_id, f"Macro {macro_id}")))
         return {
             "commands_sent": sent,
             "count": len(sent),

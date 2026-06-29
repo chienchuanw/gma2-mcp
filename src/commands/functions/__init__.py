@@ -20,135 +20,48 @@ Examples: Store, Delete, Copy, Goto, Clear, Label, SelFix, Go, Pause
 """
 
 # Store Function Keywords
-from .store import (
-    store,
-    store_cue,
-    store_group,
-    store_preset,
-)
+# Backward Compatibility Aliases
+# select_group -> group (from objects.py)
+# call_preset -> preset (from objects.py)
+from ..objects import group as select_group
+from ..objects import preset as call_preset
 
-# Selection Function Keywords (SelFix, Clear)
-from .selection import (
-    select_fixture,
-    clear,
-    clear_selection,
-    clear_active,
-    clear_all,
-)
-
-# Playback Function Keywords (Go, Pause, Goto, GoFast, DefGo)
-from .playback import (
-    go,
-    go_executor,
-    go_macro,
-    go_back,
-    go_back_executor,
-    goto,
-    go_sequence,
-    pause_sequence,
-    goto_cue,
-    go_fast_back,
-    go_fast_forward,
-    def_go_back,
-    def_go_forward,
-    def_go_pause,
-)
-
-# Edit Function Keywords (Edit, Cut, Paste, Copy, Move, Delete, Remove)
-from .edit import (
-    edit,
-    cut,
-    paste,
-    copy,
-    copy_cue,
-    move,
-    delete,
-    delete_cue,
-    delete_group,
-    delete_preset,
-    delete_fixture,
-    delete_messages,
-    remove,
-    remove_selection,
-    remove_preset_type,
-    remove_fixture,
-    remove_effect,
+# Advanced Edit Keywords
+from .advanced_edit import (
+    align_fader_modules,
+    all_rows,
+    auto_create,
+    circular_copy,
+    export_keyword,
+    flip,
+    identify_fader_module,
+    import_keyword,
+    interleave,
+    remove_individuals,
+    shuffle_selection,
+    shuffle_values,
 )
 
 # Assignment Function Keywords
 from .assignment import (
     assign,
     assign_cue_cmd,
-    assign_function,
     assign_fade,
+    assign_function,
     assign_macro_cmd,
     assign_to_layout,
     empty,
     temp_fader,
 )
 
-# Labeling Function Keywords (Label, Appearance)
-from .labeling import (
-    label,
-    label_group,
-    label_preset,
-    label_sequence_cue,
-    appearance,
-)
-
-# Values Function Keywords (At)
-from .values import (
-    at,
-    at_full,
-    at_zero,
-    fixture_at,
-    channel_at,
-    group_at,
-    executor_at,
-    preset_type_at,
-    attribute_at,
-)
-
-# Info Function Keywords (List, Info)
-from .info import (
-    list_objects,
-    list_cue,
-    list_group,
-    list_macro,
-    list_preset,
-    list_attribute,
-    list_messages,
-    list_sequence_cue,
-    info,
-    info_group,
-    info_cue,
-    info_preset,
-)
-
-# Macro Function Keywords
-from .macro import (
-    store_macro,
-    label_macro,
-    delete_macro,
-    macro_with_input_after,
-    macro_with_input_before,
-)
-
-# Helping Keywords (Plus +, Minus -, And, If)
-from .helping import (
-    at_relative,
-    add_to_selection,
-    remove_from_selection,
-    page_next,
-    page_previous,
-    condition_and,
-    if_condition,
-)
-
-# Park Function Keywords (Park, Unpark)
-from .park import (
-    park,
-    unpark,
+# Blackout & Global State Function Keywords
+from .blackout import (
+    black,
+    blackout,
+    freeze,
+    full_highlight,
+    highlight,
+    solo,
 )
 
 # Blind & Preview Function Keywords
@@ -159,62 +72,19 @@ from .blind import (
     preview_edit,
 )
 
-# Blackout & Global State Function Keywords
-from .blackout import (
-    blackout,
-    black,
-    freeze,
-    highlight,
-    full_highlight,
-    solo,
+# Call Function Keywords
+from .call import (
+    call,
 )
 
-# Cue Timing Function Keywords
-from .cue_timing import (
-    delay,
-    out_delay,
-    fade,
-    out_fade,
-)
-
-# Fixture Control Function Keywords
-from .fixture_control import (
-    align,
-    all_keyword,
-    fix,
-    locate,
-    next_keyword,
-    previous,
-    invert,
-)
-
-# Executor Control Function Keywords
-from .executor_control import (
-    off,
-    on,
-    kill,
-    flash,
-    swop,
-    stomp,
-    temp,
-    toggle,
-    release,
-    top,
-    select,
-)
-
-# Programmer & Show Data Function Keywords
-from .programmer import (
-    block,
-    unblock,
-    clone,
-    default,
-    extract,
-    insert,
-    record,
-    replace,
-    update,
-    oops,
+# Conditional/Flow Keywords
+from .conditionals import (
+    end_if,
+    if_active,
+    if_output,
+    if_prog,
+    or_keyword,
+    with_keyword,
 )
 
 # Crossfade Function Keywords
@@ -225,33 +95,33 @@ from .crossfade import (
     manual_xfade,
 )
 
-# Step Timing Function Keywords
-from .step_timing import (
-    snap_percent,
-    step_fade,
-    step_in_fade,
-    step_out_fade,
-    fade_path,
+# Cue Timing Function Keywords
+from .cue_timing import (
+    delay,
+    fade,
+    out_delay,
+    out_fade,
 )
 
-# Flash/Swop Extension Function Keywords
-from .flash_swop_ext import (
-    flash_go,
-    flash_on,
-    swop_go,
-    swop_on,
-    store_look,
-)
-
-# MAtricks Function Keywords
-from .matricks import (
-    matricks,
-    matricks_blocks,
-    matricks_filter,
-    matricks_groups,
-    matricks_interleave,
-    matricks_reset,
-    matricks_wings,
+# Edit Function Keywords (Edit, Cut, Paste, Copy, Move, Delete, Remove)
+from .edit import (
+    copy,
+    copy_cue,
+    cut,
+    delete,
+    delete_cue,
+    delete_fixture,
+    delete_group,
+    delete_messages,
+    delete_preset,
+    edit,
+    move,
+    paste,
+    remove,
+    remove_effect,
+    remove_fixture,
+    remove_preset_type,
+    remove_selection,
 )
 
 # Effect Function Keywords
@@ -274,15 +144,266 @@ from .effect import (
     sync_effects,
 )
 
+# Executor Control Function Keywords
+from .executor_control import (
+    flash,
+    kill,
+    off,
+    on,
+    release,
+    select,
+    stomp,
+    swop,
+    temp,
+    toggle,
+    top,
+)
+
+# Fixture Control Function Keywords
+from .fixture_control import (
+    align,
+    all_keyword,
+    fix,
+    invert,
+    locate,
+    next_keyword,
+    previous,
+)
+
+# Flash/Swop Extension Function Keywords
+from .flash_swop_ext import (
+    flash_go,
+    flash_on,
+    store_look,
+    swop_go,
+    swop_on,
+)
+
+# Helping Keywords (Plus +, Minus -, And, If)
+from .helping import (
+    add_to_selection,
+    at_relative,
+    condition_and,
+    if_condition,
+    page_next,
+    page_previous,
+    remove_from_selection,
+)
+
+# Info Function Keywords (List, Info)
+from .info import (
+    info,
+    info_cue,
+    info_group,
+    info_preset,
+    list_attribute,
+    list_cue,
+    list_group,
+    list_macro,
+    list_messages,
+    list_objects,
+    list_preset,
+    list_sequence_cue,
+)
+
+# Intensity & Misc Function Keywords
+from .intensity import (
+    full,
+    learn,
+    load,
+    to_full,
+    to_zero,
+    zero,
+)
+
+# Labeling Function Keywords (Label, Appearance)
+from .labeling import (
+    appearance,
+    label,
+    label_group,
+    label_preset,
+    label_sequence_cue,
+)
+
+# Extended List Keywords
+from .list_ext import (
+    list_effect_library,
+    list_fader_modules,
+    list_library,
+    list_macro_library,
+    list_oops,
+    list_owner,
+    list_plugin_library,
+    list_shows,
+    list_update,
+    list_user_var,
+    list_var,
+)
+
+# Macro Function Keywords
+from .macro import (
+    delete_macro,
+    label_macro,
+    macro_with_input_after,
+    macro_with_input_before,
+    store_macro,
+)
+
+# MAtricks Function Keywords
+from .matricks import (
+    matricks,
+    matricks_blocks,
+    matricks_filter,
+    matricks_groups,
+    matricks_interleave,
+    matricks_reset,
+    matricks_wings,
+)
+
+# MIDI Keywords
+from .midi import (
+    midi_control,
+    midi_note,
+    midi_program,
+)
+
+# Navigation Keywords
+from .navigation import (
+    agenda,
+    alert,
+    down,
+    load_next,
+    load_prev,
+    move_3d,
+    next_row,
+    prev_row,
+    preview_executor,
+    rotate_3d,
+    search,
+    up,
+)
+
+# Network/Session Keywords
+from .network import (
+    change_dest,
+    chat,
+    disconnect_station,
+    drop_control,
+    end_session,
+    invite_station,
+    join_session,
+    leave_session,
+    network_info,
+    network_node_info,
+    network_node_update,
+    network_speed_test,
+    remote,
+    remote_command,
+    take_control,
+    telnet,
+    web_remote_prog_only,
+)
+
+# Park Function Keywords (Park, Unpark)
+from .park import (
+    park,
+    unpark,
+)
+
+# Playback Function Keywords (Go, Pause, Goto, GoFast, DefGo)
+from .playback import (
+    def_go_back,
+    def_go_forward,
+    def_go_pause,
+    go,
+    go_back,
+    go_back_executor,
+    go_executor,
+    go_fast_back,
+    go_fast_forward,
+    go_macro,
+    go_sequence,
+    goto,
+    goto_cue,
+    pause_sequence,
+)
+
+# Programmer & Show Data Function Keywords
+from .programmer import (
+    block,
+    clone,
+    default,
+    extract,
+    insert,
+    oops,
+    record,
+    replace,
+    unblock,
+    update,
+)
+
 # Rate & Speed Function Keywords
 from .rate_speed import (
+    double_rate,
+    double_speed,
+    half_rate,
+    half_speed,
     rate,
     rate1,
-    double_rate,
-    half_rate,
-    double_speed,
-    half_speed,
     speed,
+)
+
+# RDM Keywords
+from .rdm import (
+    rdm_automatch,
+    rdm_autopatch,
+    rdm_fixture_type,
+    rdm_info,
+    rdm_list,
+    rdm_set_parameter,
+    rdm_setpatch,
+    rdm_unmatch,
+)
+
+# Selection Function Keywords (SelFix, Clear)
+from .selection import (
+    clear,
+    clear_active,
+    clear_all,
+    clear_selection,
+    select_fixture,
+)
+
+# Show Data Keywords
+from .show_data import (
+    crash_log_copy,
+    crash_log_delete,
+    crash_log_list,
+    lua,
+    psr,
+    psr_list,
+    psr_prepare,
+    reset_dmx_selection,
+    reset_guid,
+    thru,
+    update_firmware,
+    update_software,
+    update_thumbnails,
+)
+
+# Step Timing Function Keywords
+from .step_timing import (
+    fade_path,
+    snap_percent,
+    step_fade,
+    step_in_fade,
+    step_out_fade,
+)
+from .store import (
+    store,
+    store_cue,
+    store_group,
+    store_preset,
 )
 
 # System Management Keywords
@@ -316,148 +437,26 @@ from .system import (
     version,
 )
 
-# Network/Session Keywords
-from .network import (
-    change_dest,
-    chat,
-    disconnect_station,
-    drop_control,
-    end_session,
-    invite_station,
-    join_session,
-    leave_session,
-    network_info,
-    network_node_info,
-    network_node_update,
-    network_speed_test,
-    remote,
-    remote_command,
-    take_control,
-    telnet,
-    web_remote_prog_only,
-)
-
-# Extended List Keywords
-from .list_ext import (
-    list_effect_library,
-    list_fader_modules,
-    list_library,
-    list_macro_library,
-    list_oops,
-    list_owner,
-    list_plugin_library,
-    list_shows,
-    list_update,
-    list_user_var,
-    list_var,
-)
-
-# Advanced Edit Keywords
-from .advanced_edit import (
-    align_fader_modules,
-    all_rows,
-    auto_create,
-    circular_copy,
-    export_keyword,
-    flip,
-    identify_fader_module,
-    import_keyword,
-    interleave,
-    remove_individuals,
-    shuffle_selection,
-    shuffle_values,
-)
-
-# Conditional/Flow Keywords
-from .conditionals import (
-    end_if,
-    if_active,
-    if_output,
-    if_prog,
-    or_keyword,
-    with_keyword,
-)
-
-# Navigation Keywords
-from .navigation import (
-    agenda,
-    alert,
-    down,
-    load_next,
-    load_prev,
-    move_3d,
-    next_row,
-    preview_executor,
-    prev_row,
-    rotate_3d,
-    search,
-    up,
-)
-
-# Show Data Keywords
-from .show_data import (
-    crash_log_copy,
-    crash_log_delete,
-    crash_log_list,
-    lua,
-    psr,
-    psr_list,
-    psr_prepare,
-    reset_dmx_selection,
-    reset_guid,
-    thru,
-    update_firmware,
-    update_software,
-    update_thumbnails,
-)
-
-# RDM Keywords
-from .rdm import (
-    rdm_automatch,
-    rdm_autopatch,
-    rdm_fixture_type,
-    rdm_info,
-    rdm_list,
-    rdm_set_parameter,
-    rdm_setpatch,
-    rdm_unmatch,
-)
-
-# MIDI Keywords
-from .midi import (
-    midi_control,
-    midi_note,
-    midi_program,
-)
-
-# Intensity & Misc Function Keywords
-from .intensity import (
-    full,
-    to_full,
-    zero,
-    to_zero,
-    load,
-    learn,
-)
-
-# Call Function Keywords
-from .call import (
-    call,
+# Values Function Keywords (At)
+from .values import (
+    at,
+    at_full,
+    at_zero,
+    attribute_at,
+    channel_at,
+    executor_at,
+    fixture_at,
+    group_at,
+    preset_type_at,
 )
 
 # Variable Function Keywords
 from .variables import (
-    set_user_var,
-    set_var,
     add_user_var,
     add_var,
+    set_user_var,
+    set_var,
 )
-
-# Backward Compatibility Aliases
-# select_group -> group (from objects.py)
-# call_preset -> preset (from objects.py)
-from ..objects import group as select_group
-from ..objects import preset as call_preset
 
 __all__ = [
     # Store

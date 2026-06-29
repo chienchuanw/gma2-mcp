@@ -18,10 +18,8 @@ Included functions:
 - preview_edit: Toggle preview edit mode
 """
 
-from typing import Optional
 
-
-def blind(target: Optional[str] = None) -> str:
+def blind(target: str | None = None) -> str:
     """
     Construct a Blind command to toggle blind editing mode.
 
@@ -62,7 +60,7 @@ def blind_edit() -> str:
     return "blindedit"
 
 
-def preview(target: Optional[str] = None) -> str:
+def preview(target: str | None = None) -> str:
     """
     Construct a Preview command to toggle preview mode.
 

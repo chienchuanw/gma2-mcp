@@ -151,23 +151,27 @@ class TestLabelSequenceCueCommands:
     def test_label_cue_in_named_sequence(self):
         """Test label cue in named sequence."""
         from src.commands import label_sequence_cue
+
         result = label_sequence_cue(sequence="Set List", cue_id=1, name="Opening+Childhood")
         assert result == 'label sequence "Set List" cue 1 "Opening+Childhood"'
 
     def test_label_cue_in_numbered_sequence(self):
         """Test label cue in numbered sequence."""
         from src.commands import label_sequence_cue
+
         result = label_sequence_cue(sequence=100, cue_id=1, name="Opening+Childhood")
         assert result == 'label sequence 100 cue 1 "Opening+Childhood"'
 
     def test_label_cue_range_in_sequence(self):
         """Test label cue range in sequence."""
         from src.commands import label_sequence_cue
+
         result = label_sequence_cue(sequence="Set List", cue_id=1, name="Act 1", end_cue=5)
         assert result == 'label sequence "Set List" cue 1 thru 5 "Act 1"'
 
     def test_label_cue_with_quoted_name(self):
         """Test label cue with already-quoted name."""
         from src.commands import label_sequence_cue
+
         result = label_sequence_cue(sequence=100, cue_id=3, name='"Finale"')
         assert result == 'label sequence 100 cue 3 "Finale"'

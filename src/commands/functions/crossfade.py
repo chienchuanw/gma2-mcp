@@ -8,10 +8,8 @@ Included functions:
 - manual_xfade: Manual crossfade mode
 """
 
-from typing import Optional
 
-
-def crossfade(target: Optional[str] = None) -> str:
+def crossfade(target: str | None = None) -> str:
     """
     Construct a Crossfade command for manual crossfade control.
 

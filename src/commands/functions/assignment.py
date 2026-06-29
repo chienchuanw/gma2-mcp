@@ -15,26 +15,24 @@ Included functions:
 - assign_to_layout: Assign object to layout
 """
 
-from typing import List, Optional, Union
-
 
 def assign(
     source_type: str,
-    source_id: Union[int, str, List[int]],
-    target_type: Optional[str] = None,
-    target_id: Optional[Union[int, str, List[int]]] = None,
+    source_id: int | str | list[int],
+    target_type: str | None = None,
+    target_id: int | str | list[int] | None = None,
     *,
-    source_end: Optional[int] = None,
-    target_end: Optional[int] = None,
-    break_: Optional[int] = None,
-    multipatch: Optional[int] = None,
+    source_end: int | None = None,
+    target_end: int | None = None,
+    break_: int | None = None,
+    multipatch: int | None = None,
     reset: bool = False,
-    x: Optional[int] = None,
-    y: Optional[int] = None,
+    x: int | None = None,
+    y: int | None = None,
     noconfirm: bool = False,
-    special: Optional[str] = None,
-    cue_mode: Optional[str] = None,
-    password: Optional[str] = None,
+    special: str | None = None,
+    cue_mode: str | None = None,
+    password: str | None = None,
 ) -> str:
     """
     Construct an Assign command to define relationships between objects.
@@ -123,9 +121,9 @@ def assign(
 def assign_function(
     function: str,
     target_type: str,
-    target_id: Union[int, str],
+    target_id: int | str,
     *,
-    cue_mode: Optional[str] = None,
+    cue_mode: str | None = None,
 ) -> str:
     """
     Assign a function (Go, Toggle, etc.) to an object.
@@ -155,7 +153,7 @@ def assign_fade(
     fade_time: float,
     cue_id: int,
     *,
-    sequence_id: Optional[int] = None,
+    sequence_id: int | None = None,
 ) -> str:
     """
     Assign fade time to a cue.
@@ -182,12 +180,12 @@ def assign_fade(
 
 def assign_to_layout(
     object_type: str,
-    object_id: Union[int, List[int]],
+    object_id: int | list[int],
     layout_id: int,
     *,
-    x: Optional[int] = None,
-    y: Optional[int] = None,
-    end: Optional[int] = None,
+    x: int | None = None,
+    y: int | None = None,
+    end: int | None = None,
 ) -> str:
     """
     Assign an object to a layout at a specific position.
@@ -238,7 +236,7 @@ def empty() -> str:
     return "empty"
 
 
-def temp_fader(value: Optional[int] = None) -> str:
+def temp_fader(value: int | None = None) -> str:
     """
     Construct a TempFader command for temporary fader control.
 

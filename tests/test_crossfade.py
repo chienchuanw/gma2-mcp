@@ -5,8 +5,6 @@ Tests for grandMA2 Crossfade, CrossfadeA, CrossfadeB, and ManualXFade
 function keyword command generation.
 """
 
-import pytest
-
 
 class TestCrossfade:
     """Tests for Crossfade keyword - manual crossfade control."""

@@ -5,8 +5,7 @@ Tests for MCP_TRANSPORT, MCP_HOST, and MCP_PORT environment variable handling
 in the server's main() function.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 class TestTransportSelection:
@@ -35,9 +34,7 @@ class TestTransportSelection:
         """MCP_TRANSPORT=streamable-http should pass streamable-http to mcp.run()."""
         from src.server import main
 
-        with patch.dict(
-            "os.environ", {"MCP_TRANSPORT": "streamable-http"}, clear=False
-        ):
+        with patch.dict("os.environ", {"MCP_TRANSPORT": "streamable-http"}, clear=False):
             main()
 
         mock_mcp.run.assert_called_once()
@@ -65,9 +62,7 @@ class TestHttpHostPort:
         """Default host should be 127.0.0.1 and port 8000 for streamable-http."""
         from src.server import main
 
-        with patch.dict(
-            "os.environ", {"MCP_TRANSPORT": "streamable-http"}, clear=False
-        ):
+        with patch.dict("os.environ", {"MCP_TRANSPORT": "streamable-http"}, clear=False):
             # Remove MCP_HOST and MCP_PORT if set
             import os
 

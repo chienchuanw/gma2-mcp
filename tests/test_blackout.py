@@ -5,8 +5,6 @@ Tests for grandMA2 Blackout, Black, Freeze, Highlight, FullHighlight,
 and Solo function keyword command generation.
 """
 
-import pytest
-
 
 class TestBlackout:
     """Tests for Blackout keyword - toggles grand blackout."""

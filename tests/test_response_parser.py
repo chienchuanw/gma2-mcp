@@ -5,16 +5,13 @@ Tests for grandMA2 telnet response parsing functions.
 Uses sample telnet output strings as fixtures.
 """
 
-import pytest
-
 from src.response_parser import (
-    parse_macro_lines,
+    detect_error,
     parse_cue_info,
+    parse_macro_lines,
     parse_object_label,
     strip_ansi,
-    detect_error,
 )
-
 
 # ============================================================================
 # Fixtures - sample telnet output
@@ -28,16 +25,10 @@ MACRO_LIST_OUTPUT = (
 )
 
 MACRO_LIST_SINGLE_LINE = (
-    "No   Name           CMD\n"
-    "---  ----           ---\n"
-    " 1   MyLine         Blackout\n"
+    "No   Name           CMD\n---  ----           ---\n 1   MyLine         Blackout\n"
 )
 
-MACRO_LIST_EMPTY_CMD = (
-    "No   Name           CMD\n"
-    "---  ----           ---\n"
-    " 1   Placeholder    \n"
-)
+MACRO_LIST_EMPTY_CMD = "No   Name           CMD\n---  ----           ---\n 1   Placeholder    \n"
 
 CUE_LIST_OUTPUT = (
     "No       Name        Fade   OutFade  Delay  OutDelay  CMD\n"
@@ -57,17 +48,9 @@ CUE_LIST_MINIMAL = (
     " 1       Scene1      3.0    \n"
 )
 
-OBJECT_LABEL_OUTPUT = (
-    "No   Name\n"
-    "---  ----\n"
-    " 1   Front Wash\n"
-)
+OBJECT_LABEL_OUTPUT = "No   Name\n---  ----\n 1   Front Wash\n"
 
-OBJECT_LABEL_EMPTY_NAME = (
-    "No   Name\n"
-    "---  ----\n"
-    " 1   \n"
-)
+OBJECT_LABEL_EMPTY_NAME = "No   Name\n---  ----\n 1   \n"
 
 
 # ============================================================================

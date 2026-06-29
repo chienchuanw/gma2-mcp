@@ -5,8 +5,6 @@ Tests for grandMA2 MAtricks, MAtricksBlocks, MAtricksFilter, MAtricksGroups,
 MAtricksInterleave, MAtricksReset, and MAtricksWings function keyword command generation.
 """
 
-import pytest
-
 
 class TestMAtricks:
     """Tests for MAtricks keyword."""

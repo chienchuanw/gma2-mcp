@@ -15,10 +15,8 @@ Included functions:
 - select: Select objects
 """
 
-from typing import Optional
 
-
-def off(target: Optional[str] = None, *, executor: Optional[int] = None) -> str:
+def off(target: str | None = None, *, executor: int | None = None) -> str:
     """
     Construct an Off command to turn off an executor or object.
 
@@ -44,7 +42,7 @@ def off(target: Optional[str] = None, *, executor: Optional[int] = None) -> str:
     return "off"
 
 
-def on(target: Optional[str] = None, *, executor: Optional[int] = None) -> str:
+def on(target: str | None = None, *, executor: int | None = None) -> str:
     """
     Construct an On command to turn on an executor or object.
 
@@ -68,7 +66,7 @@ def on(target: Optional[str] = None, *, executor: Optional[int] = None) -> str:
     return "on"
 
 
-def kill(target: Optional[str] = None) -> str:
+def kill(target: str | None = None) -> str:
     """
     Construct a Kill command to immediately turn off an executor.
 
@@ -174,7 +172,7 @@ def toggle(target: str) -> str:
     return f"toggle {target}"
 
 
-def release(target: Optional[str] = None) -> str:
+def release(target: str | None = None) -> str:
     """
     Construct a Release command to release an executor.
 

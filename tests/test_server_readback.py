@@ -7,8 +7,9 @@ Tests for MCP tools that read back show object data:
 - read_object_label
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
 
 
 def _mock_client():
@@ -31,11 +32,7 @@ SAMPLE_CUE_OUTPUT = (
     " 1       Opening     2.0                               Go Macro 5\n"
 )
 
-SAMPLE_OBJECT_OUTPUT = (
-    "No   Name\n"
-    "---  ----\n"
-    " 1   Front Wash\n"
-)
+SAMPLE_OBJECT_OUTPUT = "No   Name\n---  ----\n 1   Front Wash\n"
 
 
 class TestReadMacroLines:
@@ -50,9 +47,7 @@ class TestReadMacroLines:
 
         result = await read_macro_lines(macro_id=101)
 
-        client.send_command_with_response.assert_called_once_with(
-            "list macro 1.101"
-        )
+        client.send_command_with_response.assert_called_once_with("list macro 1.101")
         assert result["macro_id"] == 101
         assert result["parsed"] is True
         assert len(result["lines"]) == 2
@@ -69,9 +64,7 @@ class TestReadMacroLines:
 
         result = await read_macro_lines(macro_id=5, pool=2)
 
-        client.send_command_with_response.assert_called_once_with(
-            "list macro 2.5"
-        )
+        client.send_command_with_response.assert_called_once_with("list macro 2.5")
         assert result["macro_id"] == 5
 
 
@@ -87,9 +80,7 @@ class TestReadCueInfo:
 
         result = await read_cue_info(sequence_id=101, cue_id=1)
 
-        client.send_command_with_response.assert_called_once_with(
-            "list cue 1 sequence 101"
-        )
+        client.send_command_with_response.assert_called_once_with("list cue 1 sequence 101")
         assert result["sequence_id"] == 101
         assert result["cue_id"] == 1
         assert result["parsed"] is True
@@ -105,11 +96,9 @@ class TestReadCueInfo:
 
         from src.server import read_cue_info
 
-        result = await read_cue_info(sequence_id=10, cue_id="2.5")
+        await read_cue_info(sequence_id=10, cue_id="2.5")
 
-        client.send_command_with_response.assert_called_once_with(
-            "list cue 2.5 sequence 10"
-        )
+        client.send_command_with_response.assert_called_once_with("list cue 2.5 sequence 10")
 
 
 class TestReadObjectLabel:
@@ -142,8 +131,6 @@ class TestReadObjectLabel:
 
         result = await read_object_label(object_type="sequence", object_id=5)
 
-        client.send_command_with_response.assert_called_once_with(
-            "list sequence 5"
-        )
+        client.send_command_with_response.assert_called_once_with("list sequence 5")
         assert result["object_type"] == "sequence"
         assert result["object_id"] == 5

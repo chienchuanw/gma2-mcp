@@ -1,7 +1,5 @@
 """Tests for grandMA2 RDM keywords."""
 
-import pytest
-
 
 class TestRdm:
     def test_rdm_automatch(self):

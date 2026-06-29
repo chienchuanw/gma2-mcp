@@ -7,7 +7,6 @@ Uses real captured console output (with ANSI codes) as fixtures.
 
 from src.execution import ExecutionResult, build_result
 
-
 CLEAR_OK_RAW = "Executing : \x1b[32mClear\x1b[37m\n\r [Fixture]>\x1b[K"
 LIST_PRESET_ERROR_RAW = (
     'Executing : \x1b[32mList\x1b[37m \x1b[32mPreset\x1b[37m "color"\n\r'
@@ -50,8 +49,11 @@ class TestBuildResult:
 class TestSummaryUnnumberedError:
     def test_summary_omits_none_code(self):
         result = ExecutionResult(
-            ok=False, echo="Error : illegal object",
-            error_code=None, error_text="illegal object", raw="raw",
+            ok=False,
+            echo="Error : illegal object",
+            error_code=None,
+            error_text="illegal object",
+            raw="raw",
         )
         summary = result.summary()
         assert "None" not in summary

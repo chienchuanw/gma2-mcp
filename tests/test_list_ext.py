@@ -1,7 +1,5 @@
 """Tests for grandMA2 extended list keywords."""
 
-import pytest
-
 
 class TestListExt:
     def test_list_effect_library(self):

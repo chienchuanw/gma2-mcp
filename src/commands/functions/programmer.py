@@ -14,10 +14,8 @@ Included functions:
 - oops: Undo last action
 """
 
-from typing import Optional
 
-
-def block(target: Optional[str] = None) -> str:
+def block(target: str | None = None) -> str:
     """
     Construct a Block command to block cue tracking.
 
@@ -38,7 +36,7 @@ def block(target: Optional[str] = None) -> str:
     return "block"
 
 
-def unblock(target: Optional[str] = None) -> str:
+def unblock(target: str | None = None) -> str:
     """
     Construct an Unblock command to remove tracking block.
 
@@ -76,7 +74,7 @@ def clone(target: str) -> str:
     return f"clone {target}"
 
 
-def default(target: Optional[str] = None) -> str:
+def default(target: str | None = None) -> str:
     """
     Construct a Default command to reset to default values.
 
@@ -97,7 +95,7 @@ def default(target: Optional[str] = None) -> str:
     return "default"
 
 
-def extract(target: Optional[str] = None) -> str:
+def extract(target: str | None = None) -> str:
     """
     Construct an Extract command to extract values from programmer.
 
@@ -133,7 +131,7 @@ def insert(target: str) -> str:
     return f"insert {target}"
 
 
-def record(target: Optional[str] = None) -> str:
+def record(target: str | None = None) -> str:
     """
     Construct a Record command to record show data.
 
@@ -152,7 +150,7 @@ def record(target: Optional[str] = None) -> str:
     return "record"
 
 
-def replace(target: Optional[str] = None) -> str:
+def replace(target: str | None = None) -> str:
     """
     Construct a Replace command to replace values.
 
@@ -173,7 +171,7 @@ def replace(target: Optional[str] = None) -> str:
     return "replace"
 
 
-def update(target: Optional[str] = None) -> str:
+def update(target: str | None = None) -> str:
     """
     Construct an Update command to update stored data.
 

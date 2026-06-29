@@ -9,8 +9,6 @@ Test Classes:
                   executor_at, preset_type_at, attribute_at
 """
 
-import pytest
-
 
 class TestAtCommands:
     """Tests for At keyword commands."""

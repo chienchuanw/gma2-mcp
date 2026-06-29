@@ -15,10 +15,8 @@ into either a correct command or a helpful, suggestion-bearing error.
 from __future__ import annotations
 
 import difflib
-from typing import Optional
 
 from src.response_parser import strip_ansi
-
 
 # Common longhand color names -> the single-letter screen names grandMA2 uses.
 _COLOR_ALIASES = {
@@ -71,7 +69,7 @@ class AttributeResolver:
 
     def __init__(self, client) -> None:
         self._client = client
-        self._map: Optional[dict[str, str]] = None
+        self._map: dict[str, str] | None = None
 
     async def _ensure(self) -> dict[str, str]:
         if self._map is None:
@@ -87,7 +85,7 @@ class AttributeResolver:
         """True if the attribute table was fetched and is non-empty."""
         return len(await self._ensure()) > 0
 
-    async def resolve(self, name: str) -> Optional[str]:
+    async def resolve(self, name: str) -> str | None:
         """Return the canonical attribute token for ``name``, or None if unknown."""
         mapping = await self._ensure()
         return mapping.get(name.strip().lower())

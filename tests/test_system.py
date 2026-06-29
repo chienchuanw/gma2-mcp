@@ -1,7 +1,5 @@
 """Tests for grandMA2 system management keywords."""
 
-import pytest
-
 
 class TestSystemNoArgs:
     def test_backup(self):

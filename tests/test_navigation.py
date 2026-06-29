@@ -1,7 +1,5 @@
 """Tests for grandMA2 navigation keywords."""
 
-import pytest
-
 
 class TestNavigation:
     def test_agenda(self):
