@@ -12,8 +12,9 @@ All tests mock get_client and verify:
 - Input validation (e.g., invalid preset types)
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
 
 
 def _mock_client(response=""):
@@ -51,11 +52,9 @@ class TestListGroupsTool:
         client = _mock_client("Group 1\nGroup 2")
         mock_get.return_value = client
 
-        result = await list_groups(group_id=1, end_group_id=10)
+        await list_groups(group_id=1, end_group_id=10)
 
-        client.send_command_with_response.assert_called_once_with(
-            "list group 1 thru 10"
-        )
+        client.send_command_with_response.assert_called_once_with("list group 1 thru 10")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -65,7 +64,7 @@ class TestListGroupsTool:
         client = _mock_client("Group 5 'Spots'")
         mock_get.return_value = client
 
-        result = await list_groups(group_id=5)
+        await list_groups(group_id=5)
 
         client.send_command_with_response.assert_called_once_with("list group 5")
 
@@ -109,7 +108,7 @@ class TestListCuesTool:
         client = _mock_client("Cue 1 'Opening'\nCue 2 'Scene 1'")
         mock_get.return_value = client
 
-        result = await list_cues()
+        await list_cues()
 
         client.send_command_with_response.assert_called_once_with("list cue")
 
@@ -121,11 +120,9 @@ class TestListCuesTool:
         client = _mock_client("Cue 1")
         mock_get.return_value = client
 
-        result = await list_cues(sequence_id=3)
+        await list_cues(sequence_id=3)
 
-        client.send_command_with_response.assert_called_once_with(
-            "list cue sequence 3"
-        )
+        client.send_command_with_response.assert_called_once_with("list cue sequence 3")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -135,11 +132,9 @@ class TestListCuesTool:
         client = _mock_client("Cue 1\nCue 5")
         mock_get.return_value = client
 
-        result = await list_cues(cue_id=1, end_cue_id=5)
+        await list_cues(cue_id=1, end_cue_id=5)
 
-        client.send_command_with_response.assert_called_once_with(
-            "list cue 1 thru 5"
-        )
+        client.send_command_with_response.assert_called_once_with("list cue 1 thru 5")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -168,11 +163,9 @@ class TestListPresetsTool:
         client = _mock_client("Preset 4.1 'Red'\nPreset 4.2 'Blue'")
         mock_get.return_value = client
 
-        result = await list_presets(preset_type="color")
+        await list_presets(preset_type="color")
 
-        client.send_command_with_response.assert_called_once_with(
-            "list preset 4.*"
-        )
+        client.send_command_with_response.assert_called_once_with("list preset 4.*")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -182,11 +175,9 @@ class TestListPresetsTool:
         client = _mock_client("Preset 2.1")
         mock_get.return_value = client
 
-        result = await list_presets(preset_type="position")
+        await list_presets(preset_type="position")
 
-        client.send_command_with_response.assert_called_once_with(
-            "list preset 2.*"
-        )
+        client.send_command_with_response.assert_called_once_with("list preset 2.*")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -196,11 +187,9 @@ class TestListPresetsTool:
         client = _mock_client("Preset 4.1 'Red'")
         mock_get.return_value = client
 
-        result = await list_presets(preset_type="color", preset_id=1)
+        await list_presets(preset_type="color", preset_id=1)
 
-        client.send_command_with_response.assert_called_once_with(
-            "list preset 4.1"
-        )
+        client.send_command_with_response.assert_called_once_with("list preset 4.1")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -242,7 +231,7 @@ class TestGetCueAnnotationTool:
         client = _mock_client("opening look")
         mock_get.return_value = client
 
-        result = await get_cue_annotation(cue_id=3)
+        await get_cue_annotation(cue_id=3)
 
         client.send_command_with_response.assert_called_once_with("info cue 3")
 
@@ -254,11 +243,9 @@ class TestGetCueAnnotationTool:
         client = _mock_client("scene note")
         mock_get.return_value = client
 
-        result = await get_cue_annotation(cue_id=3, sequence_id=1)
+        await get_cue_annotation(cue_id=3, sequence_id=1)
 
-        client.send_command_with_response.assert_called_once_with(
-            "info cue 3 sequence 1"
-        )
+        client.send_command_with_response.assert_called_once_with("info cue 3 sequence 1")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -287,7 +274,7 @@ class TestGetGroupAnnotationTool:
         client = _mock_client("these fixtures are in the backtruss")
         mock_get.return_value = client
 
-        result = await get_group_annotation(group_id=5)
+        await get_group_annotation(group_id=5)
 
         client.send_command_with_response.assert_called_once_with("info group 5")
 
@@ -318,7 +305,7 @@ class TestListVariablesTool:
         client = _mock_client("MYVAR=100\nOTHER=200")
         mock_get.return_value = client
 
-        result = await list_variables(variable_type="show")
+        await list_variables(variable_type="show")
 
         client.send_command_with_response.assert_called_once_with("listvar")
 
@@ -330,7 +317,7 @@ class TestListVariablesTool:
         client = _mock_client("USERVAR=50")
         mock_get.return_value = client
 
-        result = await list_variables(variable_type="user")
+        await list_variables(variable_type="user")
 
         client.send_command_with_response.assert_called_once_with("listuservar")
 
@@ -342,7 +329,7 @@ class TestListVariablesTool:
         client = _mock_client("FADE_TIME=3")
         mock_get.return_value = client
 
-        result = await list_variables(variable_type="show", filter="f*")
+        await list_variables(variable_type="show", filter="f*")
 
         client.send_command_with_response.assert_called_once_with("listvar f*")
 
@@ -354,7 +341,7 @@ class TestListVariablesTool:
         client = _mock_client("MY_VAR=10")
         mock_get.return_value = client
 
-        result = await list_variables(variable_type="user", filter="my_*")
+        await list_variables(variable_type="user", filter="my_*")
 
         client.send_command_with_response.assert_called_once_with("listuservar my_*")
 
@@ -398,7 +385,7 @@ class TestQueryObjectTool:
         client = _mock_client("Executor 1\nExecutor 2")
         mock_get.return_value = client
 
-        result = await query_object(object_type="executor", mode="list")
+        await query_object(object_type="executor", mode="list")
 
         client.send_command_with_response.assert_called_once_with("list executor")
 
@@ -410,9 +397,7 @@ class TestQueryObjectTool:
         client = _mock_client("user annotation text")
         mock_get.return_value = client
 
-        result = await query_object(
-            object_type="sequence", object_id=1, mode="annotation"
-        )
+        await query_object(object_type="sequence", object_id=1, mode="annotation")
 
         client.send_command_with_response.assert_called_once_with("info sequence 1")
 
@@ -424,7 +409,7 @@ class TestQueryObjectTool:
         client = _mock_client("Effect 1")
         mock_get.return_value = client
 
-        result = await query_object(object_type="effect")
+        await query_object(object_type="effect")
 
         client.send_command_with_response.assert_called_once_with("list effect")
 
@@ -436,7 +421,7 @@ class TestQueryObjectTool:
         client = _mock_client("Sequence 1")
         mock_get.return_value = client
 
-        result = await query_object(object_type="sequence", object_id=1)
+        await query_object(object_type="sequence", object_id=1)
 
         client.send_command_with_response.assert_called_once_with("list sequence 1")
 

@@ -11,10 +11,8 @@ Included functions:
 - matricks_wings: Set MAtricks wings value
 """
 
-from typing import Optional, Union
 
-
-def matricks(target: Optional[str] = None) -> str:
+def matricks(target: str | None = None) -> str:
     """
     Construct a MAtricks command.
 
@@ -35,7 +33,7 @@ def matricks(target: Optional[str] = None) -> str:
     return "matricks"
 
 
-def matricks_blocks(value: Optional[Union[int, float]] = None) -> str:
+def matricks_blocks(value: int | float | None = None) -> str:
     """
     Construct a MAtricksBlocks command to set blocks value.
 
@@ -56,7 +54,7 @@ def matricks_blocks(value: Optional[Union[int, float]] = None) -> str:
     return "matricksblocks"
 
 
-def matricks_filter(value: Union[int, float]) -> str:
+def matricks_filter(value: int | float) -> str:
     """
     Construct a MAtricksFilter command.
 
@@ -73,7 +71,7 @@ def matricks_filter(value: Union[int, float]) -> str:
     return f"matricksfilter {value}"
 
 
-def matricks_groups(value: Union[int, float]) -> str:
+def matricks_groups(value: int | float) -> str:
     """
     Construct a MAtricksGroups command.
 
@@ -90,7 +88,7 @@ def matricks_groups(value: Union[int, float]) -> str:
     return f"matricksgroups {value}"
 
 
-def matricks_interleave(value: Union[int, float]) -> str:
+def matricks_interleave(value: int | float) -> str:
     """
     Construct a MAtricksInterleave command.
 
@@ -121,7 +119,7 @@ def matricks_reset() -> str:
     return "matricksreset"
 
 
-def matricks_wings(value: Union[int, float]) -> str:
+def matricks_wings(value: int | float) -> str:
     """
     Construct a MAtricksWings command.
 

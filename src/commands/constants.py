@@ -67,4 +67,3 @@ STORE_VALUE_OPTIONS = {
     "x",  # x coordinate
     "y",  # y coordinate
 }
-

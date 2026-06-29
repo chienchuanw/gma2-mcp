@@ -2,15 +2,15 @@
 Show-introspection / attribute name-resolution tests (#57 phase 3).
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from src.introspection import (
-    parse_attribute_table,
-    build_resolution_map,
-    AttributeResolver,
-)
+import pytest
 
+from src.introspection import (
+    AttributeResolver,
+    build_resolution_map,
+    parse_attribute_table,
+)
 
 # Trimmed, ANSI-laden capture of `List Attribute` from a live onPC.
 LIST_ATTRIBUTE_RAW = (
@@ -38,8 +38,8 @@ class TestResolutionMap:
     def test_library_and_screen_names_resolve(self):
         rows = parse_attribute_table(LIST_ATTRIBUTE_RAW)
         m = build_resolution_map(rows)
-        assert m["white"] == "COLORRGB5"        # screen name
-        assert m["colorrgb5"] == "COLORRGB5"    # library name
+        assert m["white"] == "COLORRGB5"  # screen name
+        assert m["colorrgb5"] == "COLORRGB5"  # library name
         assert m["pan"] == "PAN"
 
     def test_common_color_aliases(self):
@@ -54,9 +54,7 @@ class TestResolutionMap:
 class TestAttributeResolver:
     def _client(self):
         client = MagicMock()
-        client.send_command_with_response = AsyncMock(
-            return_value=LIST_ATTRIBUTE_RAW
-        )
+        client.send_command_with_response = AsyncMock(return_value=LIST_ATTRIBUTE_RAW)
         return client
 
     @pytest.mark.asyncio

@@ -1,7 +1,5 @@
 """Tests for grandMA2 advanced editing keywords."""
 
-import pytest
-
 
 class TestAdvancedEdit:
     def test_align_fader_modules(self):

@@ -1,7 +1,8 @@
-import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from src.telnet_client import GMA2TelnetClient, ConnectionState
+import pytest
+
+from src.telnet_client import ConnectionState, GMA2TelnetClient
 
 
 class TestConnectionState:
@@ -112,7 +113,9 @@ class TestAutoReconnect:
                 client._writer = mock_writer
 
             with patch.object(client, "check_connection", side_effect=check_side_effect):
-                with patch.object(client, "connect", side_effect=reconnect_side_effect) as mock_reconnect:
+                with patch.object(
+                    client, "connect", side_effect=reconnect_side_effect
+                ) as mock_reconnect:
                     with patch.object(client, "login", new_callable=AsyncMock):
                         await client.send_command("test command")
                         mock_reconnect.assert_called_once()
@@ -130,9 +133,18 @@ class TestAutoReconnect:
             await client.connect()
 
             # Health check always fails, reconnect always fails
-            with patch.object(client, "check_connection", new_callable=AsyncMock, return_value=False):
-                with patch.object(client, "connect", new_callable=AsyncMock, side_effect=ConnectionError("refused")):
-                    with pytest.raises(ConnectionError, match="failed to reconnect after 3 attempts"):
+            with patch.object(
+                client, "check_connection", new_callable=AsyncMock, return_value=False
+            ):
+                with patch.object(
+                    client,
+                    "connect",
+                    new_callable=AsyncMock,
+                    side_effect=ConnectionError("refused"),
+                ):
+                    with pytest.raises(
+                        ConnectionError, match="failed to reconnect after 3 attempts"
+                    ):
                         await client.send_command("test command")
 
     @pytest.mark.asyncio
@@ -155,7 +167,9 @@ class TestAutoReconnect:
                 client._reader = mock_reader
                 client._writer = mock_writer
 
-            with patch.object(client, "check_connection", new_callable=AsyncMock, return_value=False):
+            with patch.object(
+                client, "check_connection", new_callable=AsyncMock, return_value=False
+            ):
                 with patch.object(client, "connect", side_effect=spy_connect):
                     with patch.object(client, "login", new_callable=AsyncMock):
                         with patch.object(client, "disconnect", new_callable=AsyncMock):
@@ -167,7 +181,9 @@ class TestHealthCheckTTL:
     @pytest.mark.asyncio
     async def test_skips_health_check_within_ttl(self):
         """Commands within TTL should not trigger health check."""
-        client = GMA2TelnetClient(host="127.0.0.1", health_check_ttl=5.0, max_retries=3, retry_base_delay=0.01)
+        client = GMA2TelnetClient(
+            host="127.0.0.1", health_check_ttl=5.0, max_retries=3, retry_base_delay=0.01
+        )
         mock_reader = MagicMock()
         mock_writer = MagicMock()
         mock_reader.read = AsyncMock(return_value="[user]>")
@@ -177,7 +193,9 @@ class TestHealthCheckTTL:
             await client.connect()
             await client.login()
 
-            with patch.object(client, "check_connection", new_callable=AsyncMock, return_value=True) as mock_check:
+            with patch.object(
+                client, "check_connection", new_callable=AsyncMock, return_value=True
+            ) as mock_check:
                 # First command triggers health check
                 await client.send_command("cmd1")
                 first_check_count = mock_check.call_count
@@ -189,7 +207,9 @@ class TestHealthCheckTTL:
     @pytest.mark.asyncio
     async def test_triggers_health_check_after_ttl(self):
         """Commands after TTL should trigger health check."""
-        client = GMA2TelnetClient(host="127.0.0.1", health_check_ttl=0.01, max_retries=3, retry_base_delay=0.01)
+        client = GMA2TelnetClient(
+            host="127.0.0.1", health_check_ttl=0.01, max_retries=3, retry_base_delay=0.01
+        )
         mock_reader = MagicMock()
         mock_writer = MagicMock()
         mock_reader.read = AsyncMock(return_value="[user]>")
@@ -199,12 +219,15 @@ class TestHealthCheckTTL:
             await client.connect()
             await client.login()
 
-            with patch.object(client, "check_connection", new_callable=AsyncMock, return_value=True) as mock_check:
+            with patch.object(
+                client, "check_connection", new_callable=AsyncMock, return_value=True
+            ) as mock_check:
                 await client.send_command("cmd1")
                 first_check_count = mock_check.call_count
 
                 # Wait for TTL to expire
                 import asyncio as aio
+
                 await aio.sleep(0.02)
 
                 await client.send_command("cmd2")
@@ -213,14 +236,15 @@ class TestHealthCheckTTL:
     @pytest.mark.asyncio
     async def test_send_command_with_response_updates_ttl(self):
         """send_command_with_response() should also update the TTL timestamp."""
-        import asyncio
 
-        client = GMA2TelnetClient(host="127.0.0.1", health_check_ttl=5.0, max_retries=3, retry_base_delay=0.01)
+        client = GMA2TelnetClient(
+            host="127.0.0.1", health_check_ttl=5.0, max_retries=3, retry_base_delay=0.01
+        )
         mock_reader = MagicMock()
         mock_writer = MagicMock()
         # Return data once for each read phase, then timeout to break the loop
         mock_reader.read = AsyncMock(
-            side_effect=["[user]>", "[user]>", "response data", asyncio.TimeoutError()]
+            side_effect=["[user]>", "[user]>", "response data", TimeoutError()]
         )
 
         with patch("telnetlib3.open_connection", new_callable=AsyncMock) as mock_conn:
@@ -228,11 +252,15 @@ class TestHealthCheckTTL:
             await client.connect()
             await client.login()
 
-            with patch.object(client, "check_connection", new_callable=AsyncMock, return_value=True) as mock_check:
+            with patch.object(
+                client, "check_connection", new_callable=AsyncMock, return_value=True
+            ) as mock_check:
                 # First call with response triggers health check
                 await client.send_command_with_response("list")
                 first_check_count = mock_check.call_count
 
                 # Second call (regular send_command) within TTL should skip
                 await client.send_command("cmd2")
-                assert mock_check.call_count == first_check_count  # TTL from response cmd still valid
+                assert (
+                    mock_check.call_count == first_check_count
+                )  # TTL from response cmd still valid

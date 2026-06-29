@@ -1,7 +1,5 @@
 """Tests for grandMA2 network/session keywords."""
 
-import pytest
-
 
 class TestNetworkNoArgs:
     def test_change_dest(self):

@@ -14,8 +14,6 @@ individual event at an arbitrary HH:MM:SS:FF timestamp.
 
 from __future__ import annotations
 
-from typing import Union
-
 
 def _timecode_action(action: str, tc_id: int) -> str:
     return f"{action} timecode {tc_id}"
@@ -54,7 +52,7 @@ def record_timecode(tc_id: int) -> str:
 def assign_timecode_param(
     tc_id: int,
     param: str,
-    value: Union[int, str],
+    value: int | str,
 ) -> str:
     """Assign a configuration parameter to a timecode show.
 

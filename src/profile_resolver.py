@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 def _local(tag: str) -> str:
@@ -78,7 +77,7 @@ class FixtureProfile:
     functions: dict[str, list[ChannelFunction]]
     features: dict[str, str] = field(default_factory=dict)
 
-    def _attrs(self, feature: Optional[str]):
+    def _attrs(self, feature: str | None):
         """Iterate (attribute, functions), optionally restricted to a feature."""
         for attr, funcs in self.functions.items():
             if feature is None or self.features.get(attr, "").upper() == feature:
@@ -88,8 +87,8 @@ class FixtureProfile:
         self,
         query: str,
         position: float = 0.5,
-        feature: Optional[str] = None,
-    ) -> Optional[tuple[str, float]]:
+        feature: str | None = None,
+    ) -> tuple[str, float] | None:
         """Resolve a named function to ``(attribute, at_percent)``.
 
         Args:
@@ -138,14 +137,14 @@ def _is_random(hay: str) -> bool:
     return "random" in hay or "rnd" in hay
 
 
-def _to_int(value: Optional[str]) -> int:
+def _to_int(value: str | None) -> int:
     return int(round(float(value))) if value is not None else 0
 
 
 def parse_fixture_profile(xml: str) -> FixtureProfile:
     """Parse an MA2 fixture-type XML (string or file path) into a FixtureProfile."""
     if "<" not in xml:  # treat as a file path
-        with open(xml, "r", encoding="utf-8") as fh:
+        with open(xml, encoding="utf-8") as fh:
             xml = fh.read()
     root = ET.fromstring(xml)
 

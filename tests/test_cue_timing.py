@@ -5,8 +5,6 @@ Tests for grandMA2 Delay, OutDelay, Fade, and OutFade
 function keyword command generation.
 """
 
-import pytest
-
 
 class TestDelay:
     """Tests for Delay keyword - sets delay time."""

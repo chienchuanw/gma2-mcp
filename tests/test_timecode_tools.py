@@ -2,8 +2,9 @@
 MCP tool + GMA2Client workflow tests for timecode (Issue #39).
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
 
 
 def _mock_client():
@@ -12,9 +13,7 @@ def _mock_client():
     client = MagicMock()
     client.send_command = AsyncMock()
     client.execute = AsyncMock(
-        return_value=ExecutionResult(
-            ok=True, echo="OK", error_code=None, error_text=None, raw="OK"
-        )
+        return_value=ExecutionResult(ok=True, echo="OK", error_code=None, error_text=None, raw="OK")
     )
     client.send_command_with_response = AsyncMock(return_value="Timecode 1 'Act 1'")
     return client

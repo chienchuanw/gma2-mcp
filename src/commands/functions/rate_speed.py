@@ -11,10 +11,8 @@ Included functions:
 - speed: Set speed of executor
 """
 
-from typing import Optional
 
-
-def rate(target: Optional[str] = None) -> str:
+def rate(target: str | None = None) -> str:
     """
     Construct a Rate command to set rate of executor.
 
@@ -33,7 +31,7 @@ def rate(target: Optional[str] = None) -> str:
     return "rate"
 
 
-def rate1(target: Optional[str] = None) -> str:
+def rate1(target: str | None = None) -> str:
     """
     Construct a Rate1 command to reset rate to 1:1.
 
@@ -52,7 +50,7 @@ def rate1(target: Optional[str] = None) -> str:
     return "rate1"
 
 
-def double_rate(target: Optional[str] = None) -> str:
+def double_rate(target: str | None = None) -> str:
     """
     Construct a DoubleRate command to double the rate.
 
@@ -71,7 +69,7 @@ def double_rate(target: Optional[str] = None) -> str:
     return "doublerate"
 
 
-def half_rate(target: Optional[str] = None) -> str:
+def half_rate(target: str | None = None) -> str:
     """
     Construct a HalfRate command to halve the rate.
 
@@ -90,7 +88,7 @@ def half_rate(target: Optional[str] = None) -> str:
     return "halfrate"
 
 
-def double_speed(target: Optional[str] = None) -> str:
+def double_speed(target: str | None = None) -> str:
     """
     Construct a DoubleSpeed command to double the speed.
 
@@ -109,7 +107,7 @@ def double_speed(target: Optional[str] = None) -> str:
     return "doublespeed"
 
 
-def half_speed(target: Optional[str] = None) -> str:
+def half_speed(target: str | None = None) -> str:
     """
     Construct a HalfSpeed command to halve the speed.
 
@@ -128,7 +126,7 @@ def half_speed(target: Optional[str] = None) -> str:
     return "halfspeed"
 
 
-def speed(target: Optional[str] = None) -> str:
+def speed(target: str | None = None) -> str:
     """
     Construct a Speed command to set speed of executor.
 

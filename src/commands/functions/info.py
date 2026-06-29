@@ -21,7 +21,6 @@ Included functions:
 
 from ..constants import PRESET_TYPES
 
-
 # ============================================================================
 # LIST FUNCTION KEYWORD
 # ============================================================================
@@ -92,7 +91,7 @@ def list_objects(
 def list_cue(
     cue_id: int | float | str | None = None,
     *,
-    end: int | None = None,
+    end: int | float | None = None,
     sequence_id: int | None = None,
     filename: str | None = None,
 ) -> str:
@@ -343,9 +342,7 @@ def info(
     return cmd
 
 
-def info_group(
-    group_id: int, *, end: int | None = None, text: str | None = None
-) -> str:
+def info_group(group_id: int, *, end: int | None = None, text: str | None = None) -> str:
     """
     Construct an Info command for groups.
 

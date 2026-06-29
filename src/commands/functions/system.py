@@ -1,7 +1,5 @@
 """System management keywords for grandMA2 Command Builder."""
 
-from typing import Optional, Union
-
 
 def backup() -> str:
     return "backup"
@@ -11,7 +9,7 @@ def black_screen() -> str:
     return "blackscreen"
 
 
-def cmd_delay(value: Union[int, float]) -> str:
+def cmd_delay(value: int | float) -> str:
     return f"cmddelay {value}"
 
 

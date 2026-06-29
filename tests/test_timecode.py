@@ -6,13 +6,13 @@ Store/Go/Pause/Off/Top/Record Timecode N, Assign Timecode N /Slot = S.
 """
 
 from src.commands.functions.timecode import (
-    store_timecode,
-    go_timecode,
-    pause_timecode,
-    off_timecode,
-    top_timecode,
-    record_timecode,
     assign_timecode_param,
+    go_timecode,
+    off_timecode,
+    pause_timecode,
+    record_timecode,
+    store_timecode,
+    top_timecode,
 )
 
 
@@ -42,12 +42,8 @@ class TestAssignTimecodeParam:
 
     def test_length(self):
         assert (
-            assign_timecode_param(1, "length", "1h30m0s")
-            == "assign timecode 1 /length = 1h30m0s"
+            assign_timecode_param(1, "length", "1h30m0s") == "assign timecode 1 /length = 1h30m0s"
         )
 
     def test_name_is_quoted(self):
-        assert (
-            assign_timecode_param(1, "name", "MyShow")
-            == 'assign timecode 1 /name = "MyShow"'
-        )
+        assert assign_timecode_param(1, "name", "MyShow") == 'assign timecode 1 /name = "MyShow"'

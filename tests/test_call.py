@@ -15,8 +15,6 @@ Options:
     toggle_activation (t) - toggles activation state
 """
 
-import pytest
-
 
 class TestCall:
     """
@@ -108,4 +106,3 @@ class TestCall:
 
         result = call("cue 5", status=True, layer=True)
         assert result == "call cue 5 /status=true /layer"
-

@@ -3,8 +3,9 @@ MCP tool tests for P2 features: blind/preview (#45), clone (#46),
 rate/speed (#47), release/top (#48).
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
 
 
 def _mock_client():
@@ -13,9 +14,7 @@ def _mock_client():
     client = MagicMock()
     client.send_command = AsyncMock()
     client.execute = AsyncMock(
-        return_value=ExecutionResult(
-            ok=True, echo="OK", error_code=None, error_text=None, raw="OK"
-        )
+        return_value=ExecutionResult(ok=True, echo="OK", error_code=None, error_text=None, raw="OK")
     )
     return client
 

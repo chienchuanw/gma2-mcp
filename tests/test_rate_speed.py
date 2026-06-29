@@ -5,8 +5,6 @@ Tests for grandMA2 Rate, Rate1, DoubleRate, HalfRate,
 DoubleSpeed, HalfSpeed, and Speed function keyword command generation.
 """
 
-import pytest
-
 
 class TestRate:
     """Tests for Rate keyword - set rate of executor."""

@@ -5,8 +5,6 @@ Tests for grandMA2 Full, ToFull, Zero, ToZero, Load, and Learn
 function keyword command generation.
 """
 
-import pytest
-
 
 class TestFull:
     """Tests for Full keyword - sets to full intensity."""

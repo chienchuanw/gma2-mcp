@@ -15,10 +15,8 @@ This is completely different from the "At" keyword.
 - @ at the beginning: User input will come before the command (CLI must be disabled)
 """
 
-from typing import Optional
 
-
-def store_macro(macro_id: int, name: Optional[str] = None) -> str:
+def store_macro(macro_id: int, name: str | None = None) -> str:
     """
     Construct a Store Macro command.
 

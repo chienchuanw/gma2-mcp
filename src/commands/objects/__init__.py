@@ -39,38 +39,40 @@ Time related:
 """
 
 # Fixture/Channel related
-from .fixtures import channel, fixture
-
-# Group/Selection related
-from .groups import group
-
-# Preset related
-from .presets import preset, preset_type
-
 # Attribute/Feature related
 from .attributes import attribute, feature
 
 # Cue/Sequence related
 from .cues import cue, cue_part, sequence
 
-# Executor related
-from .executors import executor
+# DMX related
+from .dmx import dmx, dmx_universe
 
 # Executor Object Keywords
 from .executor_objects import (
-    fader,
-    fader_page,
+    all_button_executors,
+    all_chase_executors,
+    all_fader_executors,
+    all_seq_executors,
     button_page,
     channel_fader,
     channel_page,
     exec_button_1,
     exec_button_2,
     exec_button_3,
-    all_button_executors,
-    all_chase_executors,
-    all_fader_executors,
-    all_seq_executors,
+    fader,
+    fader_page,
 )
+
+# Executor related
+from .executors import executor
+from .fixtures import channel, fixture
+
+# Group/Selection related
+from .groups import group
+
+# Layout/View related
+from .layouts import layout
 
 # Misc Object Keywords
 from .misc_objects import (
@@ -111,11 +113,8 @@ from .misc_objects import (
     world,
 )
 
-# Layout/View related
-from .layouts import layout
-
-# DMX related
-from .dmx import dmx, dmx_universe
+# Preset related
+from .presets import preset, preset_type
 
 # Time related
 from .time import timecode, timecode_slot, timer

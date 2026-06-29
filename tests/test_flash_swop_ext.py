@@ -5,8 +5,6 @@ Tests for grandMA2 FlashGo, FlashOn, SwopGo, SwopOn, and StoreLook
 function keyword command generation.
 """
 
-import pytest
-
 
 class TestFlashGo:
     """Tests for FlashGo keyword - flash and go."""

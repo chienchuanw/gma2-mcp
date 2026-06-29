@@ -3,8 +3,9 @@ Tests for store_preset merge/overwrite flags and the build_color_palette
 workflow (Issue #72).
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
 
 
 def _exec_client():
@@ -13,9 +14,7 @@ def _exec_client():
     client = MagicMock()
     client.send_command = AsyncMock()
     client.execute = AsyncMock(
-        return_value=ExecutionResult(
-            ok=True, echo="OK", error_code=None, error_text=None, raw="OK"
-        )
+        return_value=ExecutionResult(ok=True, echo="OK", error_code=None, error_text=None, raw="OK")
     )
     return client
 
@@ -31,9 +30,7 @@ class TestStorePresetMerge:
 
         await store_preset("color", 1, scope="global", merge=True)
 
-        client.execute.assert_called_once_with(
-            "store preset 4.1 /global /noconfirm /merge"
-        )
+        client.execute.assert_called_once_with("store preset 4.1 /global /noconfirm /merge")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -45,9 +42,7 @@ class TestStorePresetMerge:
 
         await store_preset("color", 2, scope="global", overwrite=True)
 
-        client.execute.assert_called_once_with(
-            "store preset 4.2 /global /noconfirm /overwrite"
-        )
+        client.execute.assert_called_once_with("store preset 4.2 /global /noconfirm /overwrite")
 
 
 class TestBuildColorPaletteWorkflow:

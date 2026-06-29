@@ -1020,6 +1020,4 @@ class TestPresetTypesMapping:
         from src.commands.constants import PRESET_TYPES
 
         values = list(PRESET_TYPES.values())
-        assert len(values) == len(set(values)), (
-            f"Duplicate preset type IDs found: {values}"
-        )
+        assert len(values) == len(set(values)), f"Duplicate preset type IDs found: {values}"

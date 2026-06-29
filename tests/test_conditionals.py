@@ -1,7 +1,5 @@
 """Tests for grandMA2 conditional/flow keywords."""
 
-import pytest
-
 
 class TestConditionals:
     def test_end_if(self):

@@ -5,8 +5,6 @@ Tests for grandMA2 SnapPercent, StepFade, StepInFade, StepOutFade,
 and FadePath function keyword command generation.
 """
 
-import pytest
-
 
 class TestSnapPercent:
     """Tests for SnapPercent keyword - set snap percentage."""

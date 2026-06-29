@@ -5,8 +5,6 @@ Tests for grandMA2 Off, On, Kill, Flash, Swop, Stomp, Temp, Toggle,
 Release, Top, and Select function keyword command generation.
 """
 
-import pytest
-
 
 class TestOff:
     """Tests for Off keyword - turns off executor."""

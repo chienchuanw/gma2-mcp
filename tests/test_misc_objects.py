@@ -8,8 +8,6 @@ Root, Screen, SearchResult, Selection, SpecialMaster, Surface, User, UserProfile
 Value, View, ViewButton, ViewPage, World.
 """
 
-import pytest
-
 
 class TestObjectsWithId:
     """Tests for object keywords that accept an integer ID."""

@@ -18,7 +18,7 @@ import asyncio
 import enum
 import logging
 import time
-from typing import Any, Optional
+from typing import Any
 
 import telnetlib3
 
@@ -101,16 +101,14 @@ class GMA2TelnetClient:
         self.retry_base_delay = retry_base_delay
         self.health_check_ttl = health_check_ttl
         # telnetlib3 uses reader/writer pattern
-        self._reader: Optional[Any] = None
-        self._writer: Optional[Any] = None
-        self._connection: Optional[Any] = None  # Kept for compatibility checks
+        self._reader: Any | None = None
+        self._writer: Any | None = None
+        self._connection: Any | None = None  # Kept for compatibility checks
         self._state = ConnectionState.DISCONNECTED
         self._last_successful_command_time: float = 0.0
         self._lock = asyncio.Lock()
 
-        logger.debug(
-            f"GMA2TelnetClient initialized: host={host}, port={port}, user={user}"
-        )
+        logger.debug(f"GMA2TelnetClient initialized: host={host}, port={port}, user={user}")
 
     @property
     def state(self) -> ConnectionState:
@@ -154,7 +152,7 @@ class GMA2TelnetClient:
         except Exception as e:
             self._state = ConnectionState.DISCONNECTED
             logger.error(f"Connection failed: {e}")
-            raise ConnectionError(f"Unable to connect to {self.host}:{self.port}: {e}")
+            raise ConnectionError(f"Unable to connect to {self.host}:{self.port}: {e}") from e
 
     async def login(self) -> bool:
         """
@@ -185,7 +183,7 @@ class GMA2TelnetClient:
                 timeout=1.0,
             )
             logger.debug(f"Login response: {response}")
-        except asyncio.TimeoutError:
+        except TimeoutError:
             # Timeout is normal behavior, grandMA2 may not respond immediately
             logger.debug("Login response timeout (normal behavior)")
 
@@ -213,7 +211,7 @@ class GMA2TelnetClient:
 
         self._state = ConnectionState.RECONNECTING
         for attempt in range(self.max_retries):
-            delay = self.retry_base_delay * (2 ** attempt)
+            delay = self.retry_base_delay * (2**attempt)
             try:
                 await self.disconnect()
                 await self.connect()
@@ -230,8 +228,7 @@ class GMA2TelnetClient:
 
         self._state = ConnectionState.DISCONNECTED
         raise ConnectionError(
-            f"failed to reconnect after {self.max_retries} attempts to "
-            f"{self.host}:{self.port}"
+            f"failed to reconnect after {self.max_retries} attempts to {self.host}:{self.port}"
         )
 
     async def send_command(self, command: str, delay: float = 0.3) -> None:
@@ -294,7 +291,7 @@ class GMA2TelnetClient:
             # Clear any pending data
             try:
                 await asyncio.wait_for(self._reader.read(4096), timeout=0.1)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass
 
             # Send command
@@ -310,16 +307,14 @@ class GMA2TelnetClient:
                 # Continue reading until no more data
                 while True:
                     try:
-                        chunk = await asyncio.wait_for(
-                            self._reader.read(4096), timeout=timeout
-                        )
+                        chunk = await asyncio.wait_for(self._reader.read(4096), timeout=timeout)
                         if chunk:
                             response_parts.append(chunk)
                             # Shorten timeout for subsequent reads
                             timeout = 0.3
                         else:
                             break
-                    except asyncio.TimeoutError:
+                    except TimeoutError:
                         break
             except Exception as e:
                 logger.warning(f"Error reading response: {e}")

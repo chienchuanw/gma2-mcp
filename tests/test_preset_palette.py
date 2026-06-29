@@ -2,8 +2,9 @@
 Tests for the generalized build_preset_palette workflow (#79).
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
 
 
 def _client():
@@ -12,9 +13,7 @@ def _client():
     c = MagicMock()
     c.send_command = AsyncMock()
     c.execute = AsyncMock(
-        return_value=ExecutionResult(
-            ok=True, echo="OK", error_code=None, error_text=None, raw="OK"
-        )
+        return_value=ExecutionResult(ok=True, echo="OK", error_code=None, error_text=None, raw="OK")
     )
     return c
 
@@ -27,9 +26,15 @@ class TestBuildPresetPalette:
         gma2 = GMA2Client(_client())
         result = await gma2.build_preset_palette(
             "beam",
-            [{"id": 1, "name": "Open", "by_target": [
-                {"target": "Fixture 401 Thru 428", "attrs": [("SHUTTER", 0)]},
-            ]}],
+            [
+                {
+                    "id": 1,
+                    "name": "Open",
+                    "by_target": [
+                        {"target": "Fixture 401 Thru 428", "attrs": [("SHUTTER", 0)]},
+                    ],
+                }
+            ],
             scope="global",
         )
         sent = result["commands_sent"]
@@ -46,10 +51,16 @@ class TestBuildPresetPalette:
         gma2 = GMA2Client(_client())
         result = await gma2.build_preset_palette(
             "beam",
-            [{"id": 3, "name": "Strobe", "by_target": [
-                {"target": "Fixture 401 Thru 428", "attrs": [("SHUTTER", 50)]},
-                {"target": "Fixture 201 Thru 215", "attrs": [("MASTERSHUTTERSTROBE", 21)]},
-            ]}],
+            [
+                {
+                    "id": 3,
+                    "name": "Strobe",
+                    "by_target": [
+                        {"target": "Fixture 401 Thru 428", "attrs": [("SHUTTER", 50)]},
+                        {"target": "Fixture 201 Thru 215", "attrs": [("MASTERSHUTTERSTROBE", 21)]},
+                    ],
+                }
+            ],
             scope="global",
         )
         sent = result["commands_sent"]
@@ -65,9 +76,15 @@ class TestBuildPresetPalette:
         gma2 = GMA2Client(_client())
         result = await gma2.build_preset_palette(
             "focus",
-            [{"id": 1, "name": "V.Narrow", "by_target": [
-                {"target": "Fixture 101 Thru 128", "attrs": [("ZOOM", 0), ("FOCUS", 100)]},
-            ]}],
+            [
+                {
+                    "id": 1,
+                    "name": "V.Narrow",
+                    "by_target": [
+                        {"target": "Fixture 101 Thru 128", "attrs": [("ZOOM", 0), ("FOCUS", 100)]},
+                    ],
+                }
+            ],
             scope="selective",
         )
         sent = result["commands_sent"]
@@ -82,9 +99,15 @@ class TestBuildPresetPalette:
         gma2 = GMA2Client(_client())
         result = await gma2.build_preset_palette(
             "beam",
-            [{"id": 1, "name": "Open", "by_target": [
-                {"target": "Group 4", "attrs": [("SHUTTER", 41)]},
-            ]}],
+            [
+                {
+                    "id": 1,
+                    "name": "Open",
+                    "by_target": [
+                        {"target": "Group 4", "attrs": [("SHUTTER", 41)]},
+                    ],
+                }
+            ],
             scope="global",
             merge=True,
         )
@@ -98,9 +121,15 @@ class TestBuildPresetPalette:
         gma2 = GMA2Client(_client())
         result = await gma2.build_preset_palette(
             "beam",
-            [{"id": 1, "name": "Open", "by_target": [
-                {"target": "Group 1", "attrs": [("SHUTTER", 0)]},
-            ]}],
+            [
+                {
+                    "id": 1,
+                    "name": "Open",
+                    "by_target": [
+                        {"target": "Group 1", "attrs": [("SHUTTER", 0)]},
+                    ],
+                }
+            ],
             label=False,
         )
         assert not any(s.startswith("label") for s in result["commands_sent"])
@@ -113,9 +142,15 @@ class TestBuildPresetPalette:
         mock_get.return_value = _client()
         result = await build_preset_palette(
             "beam",
-            [{"id": 1, "name": "Open", "by_target": [
-                {"target": "Group 1", "attrs": [["SHUTTER", 0]]},
-            ]}],
+            [
+                {
+                    "id": 1,
+                    "name": "Open",
+                    "by_target": [
+                        {"target": "Group 1", "attrs": [["SHUTTER", 0]]},
+                    ],
+                }
+            ],
         )
         assert "1" in result  # count in summary
 
@@ -128,9 +163,15 @@ class TestCommandOrder:
         gma2 = GMA2Client(_client())
         result = await gma2.build_preset_palette(
             "beam",
-            [{"id": 1, "name": "Open", "by_target": [
-                {"target": "Group 1", "attrs": [("SHUTTER", 0)]},
-            ]}],
+            [
+                {
+                    "id": 1,
+                    "name": "Open",
+                    "by_target": [
+                        {"target": "Group 1", "attrs": [("SHUTTER", 0)]},
+                    ],
+                }
+            ],
         )
         # Clear -> select -> set -> store -> label, in order
         assert result["commands_sent"] == [

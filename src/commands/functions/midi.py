@@ -12,10 +12,8 @@ Control is used. Calling a builder with no arguments returns the bare keyword.
 
 from __future__ import annotations
 
-from typing import Optional
 
-
-def _addressed(channel: Optional[int], number: int) -> str:
+def _addressed(channel: int | None, number: int) -> str:
     """Render an optional ``channel.number`` address (or just ``number``)."""
     if channel is not None:
         return f"{channel}.{number}"
@@ -23,10 +21,10 @@ def _addressed(channel: Optional[int], number: int) -> str:
 
 
 def midi_note(
-    note: Optional[int] = None,
+    note: int | None = None,
     *,
-    velocity: Optional[int] = None,
-    channel: Optional[int] = None,
+    velocity: int | None = None,
+    channel: int | None = None,
     off: bool = False,
 ) -> str:
     """Send a MIDI note message via the MIDI Out port.
@@ -57,10 +55,10 @@ def midi_note(
 
 
 def midi_control(
-    controller: Optional[int] = None,
-    value: Optional[int] = None,
+    controller: int | None = None,
+    value: int | None = None,
     *,
-    channel: Optional[int] = None,
+    channel: int | None = None,
 ) -> str:
     """Send a MIDI control-change message via the MIDI Out port.
 
@@ -81,9 +79,9 @@ def midi_control(
 
 
 def midi_program(
-    program: Optional[int] = None,
+    program: int | None = None,
     *,
-    channel: Optional[int] = None,
+    channel: int | None = None,
 ) -> str:
     """Send a MIDI program-change message via the MIDI Out port.
 

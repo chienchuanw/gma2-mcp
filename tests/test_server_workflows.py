@@ -1,7 +1,8 @@
 """Tests for music show workflow MCP tools in server.py."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 
 def _mock_client():
@@ -51,9 +52,7 @@ class TestSetupSongMacroTool:
 
         from src.server import setup_song_macro
 
-        result = await setup_song_macro(
-            macro_id=101, song_name="Opening+Childhood"
-        )
+        result = await setup_song_macro(macro_id=101, song_name="Opening+Childhood")
 
         calls = [c[0][0] for c in client.send_command.call_args_list]
         assert calls[0] == "store macro 101"
@@ -69,9 +68,7 @@ class TestSetupSongMacroTool:
 
         from src.server import setup_song_macro
 
-        result = await setup_song_macro(
-            macro_id=10, song_name="Test", var_name="$current"
-        )
+        result = await setup_song_macro(macro_id=10, song_name="Test", var_name="$current")
 
         calls = [c[0][0] for c in client.send_command.call_args_list]
         assert "SetVar $current='Test'" in calls[2]
@@ -91,9 +88,7 @@ class TestBuildSetListTool:
             {"cue_id": 1, "macro_id": 101, "name": "Opening"},
             {"cue_id": 2, "macro_id": 102, "name": "Finale"},
         ]
-        result = await build_set_list(
-            sequence_id=100, sequence_name="Main Set", songs=songs
-        )
+        result = await build_set_list(sequence_id=100, sequence_name="Main Set", songs=songs)
 
         calls = [c[0][0] for c in client.send_command.call_args_list]
         assert calls[0] == 'store sequence 100 "Main Set"'
@@ -112,9 +107,7 @@ class TestBuildSetListTool:
 
         from src.server import build_set_list
 
-        result = await build_set_list(
-            sequence_id=100, sequence_name="Empty Set", songs=[]
-        )
+        result = await build_set_list(sequence_id=100, sequence_name="Empty Set", songs=[])
 
         calls = [c[0][0] for c in client.send_command.call_args_list]
         assert len(calls) == 1

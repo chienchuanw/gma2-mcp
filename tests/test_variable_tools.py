@@ -4,8 +4,9 @@ MCP tool tests for variable write tools (Issue #40).
 set_variable, set_user_variable, add_variable, add_user_variable.
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
 
 
 def _mock_client():
@@ -13,9 +14,7 @@ def _mock_client():
 
     client = MagicMock()
     client.execute = AsyncMock(
-        return_value=ExecutionResult(
-            ok=True, echo="OK", error_code=None, error_text=None, raw="OK"
-        )
+        return_value=ExecutionResult(ok=True, echo="OK", error_code=None, error_text=None, raw="OK")
     )
     return client
 
@@ -101,14 +100,12 @@ class TestAddVariable:
     @pytest.mark.asyncio
     @patch("src.server.get_client")
     async def test_surfaces_error(self, mock_get):
-        from src.server import add_variable
         from src.execution import ExecutionResult
+        from src.server import add_variable
 
         client = _mock_client()
         client.execute = AsyncMock(
-            return_value=ExecutionResult(
-                ok=False, echo="", error_code=3, error_text="BAD", raw=""
-            )
+            return_value=ExecutionResult(ok=False, echo="", error_code=3, error_text="BAD", raw="")
         )
         mock_get.return_value = client
 

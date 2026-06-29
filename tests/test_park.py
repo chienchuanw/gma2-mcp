@@ -17,8 +17,6 @@ Test Classes:
 - TestUnpark: Tests for Unpark command generation
 """
 
-import pytest
-
 
 class TestPark:
     """
@@ -147,4 +145,3 @@ class TestUnpark:
 
         result = unpark()
         assert result == "unpark"
-

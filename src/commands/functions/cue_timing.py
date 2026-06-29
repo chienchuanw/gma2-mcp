@@ -8,10 +8,8 @@ Included functions:
 - out_fade: Set output fade time
 """
 
-from typing import Optional, Union
 
-
-def delay(value: Union[int, float], *, target: Optional[str] = None) -> str:
+def delay(value: int | float, *, target: str | None = None) -> str:
     """
     Construct a Delay command to set delay time.
 
@@ -34,7 +32,7 @@ def delay(value: Union[int, float], *, target: Optional[str] = None) -> str:
     return " ".join(parts)
 
 
-def out_delay(value: Union[int, float]) -> str:
+def out_delay(value: int | float) -> str:
     """
     Construct an OutDelay command to set output delay time.
 
@@ -51,7 +49,7 @@ def out_delay(value: Union[int, float]) -> str:
     return f"outdelay {value}"
 
 
-def fade(value: Union[int, float], *, target: Optional[str] = None) -> str:
+def fade(value: int | float, *, target: str | None = None) -> str:
     """
     Construct a Fade command to set fade time.
 
@@ -74,7 +72,7 @@ def fade(value: Union[int, float], *, target: Optional[str] = None) -> str:
     return " ".join(parts)
 
 
-def out_fade(value: Union[int, float]) -> str:
+def out_fade(value: int | float) -> str:
     """
     Construct an OutFade command to set output fade time.
 

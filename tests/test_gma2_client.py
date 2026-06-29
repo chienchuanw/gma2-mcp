@@ -1,5 +1,6 @@
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from src.gma2_client import GMA2Client
 
@@ -307,9 +308,7 @@ class TestCloneFixtures:
         telnet = _mock_telnet()
         client = GMA2Client(telnet)
 
-        result = await client.clone_fixtures(
-            source_fixture=1, target_fixture=5, mode="overwrite"
-        )
+        result = await client.clone_fixtures(source_fixture=1, target_fixture=5, mode="overwrite")
 
         cmds = result["commands_sent"]
         assert cmds[0] == "clone fixture 1 at fixture 5 /overwrite /noconfirm"
@@ -319,9 +318,7 @@ class TestCloneFixtures:
         telnet = _mock_telnet()
         client = GMA2Client(telnet)
 
-        result = await client.clone_fixtures(
-            source_fixture=1, target_fixture=5, mode="merge"
-        )
+        result = await client.clone_fixtures(source_fixture=1, target_fixture=5, mode="merge")
 
         cmds = result["commands_sent"]
         assert cmds[0] == "clone fixture 1 at fixture 5 /merge /noconfirm"
@@ -508,9 +505,7 @@ class TestSetupSongMacro:
         telnet = _mock_telnet()
         client = GMA2Client(telnet)
 
-        result = await client.setup_song_macro(
-            macro_id=10, song_name="Test", var_name="$current"
-        )
+        result = await client.setup_song_macro(macro_id=10, song_name="Test", var_name="$current")
 
         cmds = result["commands_sent"]
         assert "SetVar $current='Test'" in cmds[2]
@@ -527,9 +522,7 @@ class TestBuildSetList:
             {"cue_id": 1, "macro_id": 101, "name": "Opening"},
             {"cue_id": 2, "macro_id": 102, "name": "Finale"},
         ]
-        result = await client.build_set_list(
-            sequence_id=100, sequence_name="Main Set", songs=songs
-        )
+        result = await client.build_set_list(sequence_id=100, sequence_name="Main Set", songs=songs)
 
         cmds = result["commands_sent"]
         # First command: store the set-list sequence
@@ -550,9 +543,7 @@ class TestBuildSetList:
         telnet = _mock_telnet()
         client = GMA2Client(telnet)
 
-        result = await client.build_set_list(
-            sequence_id=100, sequence_name="Empty Set", songs=[]
-        )
+        result = await client.build_set_list(sequence_id=100, sequence_name="Empty Set", songs=[])
 
         cmds = result["commands_sent"]
         assert len(cmds) == 1

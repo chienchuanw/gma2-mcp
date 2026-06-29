@@ -5,8 +5,6 @@ Tests for grandMA2 Block, Unblock, Clone, Default, Extract, Insert,
 Record, Replace, Update, and Oops function keyword command generation.
 """
 
-import pytest
-
 
 class TestBlock:
     """Tests for Block keyword - blocks cue tracking."""

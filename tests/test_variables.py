@@ -18,8 +18,6 @@ Syntax:
     AddUserVar $variablename = "text"
 """
 
-import pytest
-
 
 class TestSetUserVar:
     """
@@ -54,7 +52,7 @@ class TestSetUserVar:
         assert result == 'setuservar $CueNumber = ("Cue number to store?")'
 
     def test_set_user_var_delete(self):
-        """Test delete user var: setuservar $CueNumber = """
+        """Test delete user var: setuservar $CueNumber ="""
         from src.commands import set_user_var
 
         result = set_user_var("$CueNumber", None)
@@ -94,7 +92,7 @@ class TestSetVar:
         assert result == 'setvar $Songname = ("Which song?")'
 
     def test_set_var_delete(self):
-        """Test delete var: setvar $CueNumber = """
+        """Test delete var: setvar $CueNumber ="""
         from src.commands import set_var
 
         result = set_var("$CueNumber", None)
@@ -147,4 +145,3 @@ class TestAddVar:
 
         result = add_var("$myname", " Doe")
         assert result == 'addvar $myname = " Doe"'
-

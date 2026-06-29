@@ -1,5 +1,6 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
 
 
 def _mock_client():
@@ -9,9 +10,7 @@ def _mock_client():
     client.send_command = AsyncMock()
     # Tools converted to the verified path use execute(); default to success.
     client.execute = AsyncMock(
-        return_value=ExecutionResult(
-            ok=True, echo="OK", error_code=None, error_text=None, raw="OK"
-        )
+        return_value=ExecutionResult(ok=True, echo="OK", error_code=None, error_text=None, raw="OK")
     )
     return client
 
@@ -85,9 +84,7 @@ class TestCreateFixtureGroupTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await create_fixture_group(
-            start_fixture=1, end_fixture=10, group_id=1
-        )
+        result = await create_fixture_group(start_fixture=1, end_fixture=10, group_id=1)
 
         calls = [c[0][0] for c in client.execute.call_args_list]
         assert len(calls) == 2
@@ -463,7 +460,7 @@ class TestLabelObjectTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await label_object(object_type="cue", object_id=5, name="Intro")
+        await label_object(object_type="cue", object_id=5, name="Intro")
 
         client.execute.assert_called_once_with('label cue 5 "Intro"')
 
@@ -477,13 +474,9 @@ class TestAssignAppearanceTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await assign_appearance(
-            object_type="group", object_id=1, red=100, green=0, blue=0
-        )
+        result = await assign_appearance(object_type="group", object_id=1, red=100, green=0, blue=0)
 
-        client.execute.assert_called_once_with(
-            "appearance group 1 /r=100 /g=0 /b=0"
-        )
+        client.execute.assert_called_once_with("appearance group 1 /r=100 /g=0 /b=0")
         assert "group" in result
         assert "1" in result
 
@@ -495,13 +488,9 @@ class TestAssignAppearanceTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await assign_appearance(
-            object_type="preset", object_id="0.1", color="FF0000"
-        )
+        result = await assign_appearance(object_type="preset", object_id="0.1", color="FF0000")
 
-        client.execute.assert_called_once_with(
-            "appearance preset 0.1 /color=FF0000"
-        )
+        client.execute.assert_called_once_with("appearance preset 0.1 /color=FF0000")
         assert "preset" in result
 
     @pytest.mark.asyncio
@@ -520,9 +509,7 @@ class TestAssignAppearanceTool:
             brightness=50,
         )
 
-        client.execute.assert_called_once_with(
-            "appearance cue 5 /h=240 /s=100 /br=50"
-        )
+        client.execute.assert_called_once_with("appearance cue 5 /h=240 /s=100 /br=50")
         assert "cue" in result
 
     @pytest.mark.asyncio
@@ -537,9 +524,7 @@ class TestAssignAppearanceTool:
             object_type="group", object_id=1, end=5, red=0, green=100, blue=0
         )
 
-        client.execute.assert_called_once_with(
-            "appearance group 1 thru 5 /r=0 /g=100 /b=0"
-        )
+        client.execute.assert_called_once_with("appearance group 1 thru 5 /r=0 /g=100 /b=0")
         assert "group" in result
 
     @pytest.mark.asyncio
@@ -557,9 +542,7 @@ class TestAssignAppearanceTool:
             source_id=13,
         )
 
-        client.execute.assert_called_once_with(
-            "appearance macro 2 at macro 13"
-        )
+        client.execute.assert_called_once_with("appearance macro 2 at macro 13")
         assert "macro" in result
 
     @pytest.mark.asyncio
@@ -570,13 +553,9 @@ class TestAssignAppearanceTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await assign_appearance(
-            object_type="group", object_id=1, reset=True
-        )
+        result = await assign_appearance(object_type="group", object_id=1, reset=True)
 
-        client.execute.assert_called_once_with(
-            "appearance group 1 /reset"
-        )
+        client.execute.assert_called_once_with("appearance group 1 /reset")
         assert "group" in result
 
 
@@ -589,9 +568,13 @@ class TestSetMacroLineTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await set_macro_line(macro_id=101, line=1, command="SetVar $song='Opening+Childhood'")
+        result = await set_macro_line(
+            macro_id=101, line=1, command="SetVar $song='Opening+Childhood'"
+        )
 
-        client.execute.assert_called_once_with('assign macro 1.101.1 /cmd="SetVar $song=\'Opening+Childhood\'"')
+        client.execute.assert_called_once_with(
+            "assign macro 1.101.1 /cmd=\"SetVar $song='Opening+Childhood'\""
+        )
         assert "Line 1" in result
         assert "Macro 101" in result
 
@@ -614,16 +597,22 @@ class TestLabelSequenceCueTool:
     @patch("src.server.get_client")
     async def test_label_sequence_cue_named(self, mock_get):
         from src.server import label_sequence_cue as label_sequence_cue_tool
+
         client = _mock_client()
         mock_get.return_value = client
-        result = await label_sequence_cue_tool(sequence="Set List", cue_id=1, name="Opening+Childhood")
-        client.execute.assert_called_once_with('label sequence "Set List" cue 1 "Opening+Childhood"')
+        result = await label_sequence_cue_tool(
+            sequence="Set List", cue_id=1, name="Opening+Childhood"
+        )
+        client.execute.assert_called_once_with(
+            'label sequence "Set List" cue 1 "Opening+Childhood"'
+        )
         assert "Opening+Childhood" in result
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
     async def test_label_sequence_cue_numbered(self, mock_get):
         from src.server import label_sequence_cue as label_sequence_cue_tool
+
         client = _mock_client()
         mock_get.return_value = client
         result = await label_sequence_cue_tool(sequence="100", cue_id=1, name="Opening+Childhood")
@@ -634,9 +623,12 @@ class TestLabelSequenceCueTool:
     @patch("src.server.get_client")
     async def test_label_sequence_cue_with_end_cue(self, mock_get):
         from src.server import label_sequence_cue as label_sequence_cue_tool
+
         client = _mock_client()
         mock_get.return_value = client
-        result = await label_sequence_cue_tool(sequence="Set List", cue_id=1, name="Act 1", end_cue=5)
+        result = await label_sequence_cue_tool(
+            sequence="Set List", cue_id=1, name="Act 1", end_cue=5
+        )
         client.execute.assert_called_once_with('label sequence "Set List" cue 1 thru 5 "Act 1"')
         assert "thru 5" in result
 
@@ -751,9 +743,7 @@ class TestSetCueCmdTool:
 
         result = await set_cue_cmd(cue_id=1, sequence_id=100, command="Macro 101")
 
-        client.execute.assert_called_once_with(
-            'assign cue 1 sequence 100 /cmd="Macro 101"'
-        )
+        client.execute.assert_called_once_with('assign cue 1 sequence 100 /cmd="Macro 101"')
         assert "Cue 1" in result
         assert "Sequence 100" in result
 
@@ -767,9 +757,7 @@ class TestSetCueCmdTool:
 
         result = await set_cue_cmd(cue_id=5, sequence_id=200, command="Go Sequence 10")
 
-        client.execute.assert_called_once_with(
-            'assign cue 5 sequence 200 /cmd="Go Sequence 10"'
-        )
+        client.execute.assert_called_once_with('assign cue 5 sequence 200 /cmd="Go Sequence 10"')
         assert "Cue 5" in result
 
 
@@ -810,9 +798,7 @@ class TestCreateMacroTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await create_macro(
-            macro_id=10, commands=["Go Sequence 1", "Go Sequence 2"]
-        )
+        result = await create_macro(macro_id=10, commands=["Go Sequence 1", "Go Sequence 2"])
 
         calls = [c[0][0] for c in client.execute.call_args_list]
         assert calls[0] == "store macro 10"
@@ -828,9 +814,7 @@ class TestCreateMacroTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await create_macro(
-            macro_id=10, commands=["Go Sequence 1"], name="Start Show"
-        )
+        result = await create_macro(macro_id=10, commands=["Go Sequence 1"], name="Start Show")
 
         calls = [c[0][0] for c in client.execute.call_args_list]
         assert calls[0] == "store macro 10"
@@ -949,7 +933,7 @@ class TestSetEffectSpeedTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await set_effect_speed(value=2.5, unit="hz")
+        await set_effect_speed(value=2.5, unit="hz")
 
         client.execute.assert_called_once_with("effecthz 2.5")
 
@@ -977,7 +961,7 @@ class TestSetEffectFormTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await set_effect_form(form="sin")
+        await set_effect_form(form="sin")
 
         client.execute.assert_called_once_with("effectform sin")
 
@@ -989,7 +973,7 @@ class TestSetEffectFormTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await set_effect_form(form="6")
+        await set_effect_form(form="6")
 
         client.execute.assert_called_once_with("effectform 6")
 
@@ -1003,7 +987,7 @@ class TestSetEffectRangeTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await set_effect_range(high=100, low=0)
+        await set_effect_range(high=100, low=0)
 
         calls = [c[0][0] for c in client.execute.call_args_list]
         assert "effecthigh 100" in calls
@@ -1017,7 +1001,7 @@ class TestSetEffectRangeTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await set_effect_range(high=80)
+        await set_effect_range(high=80)
 
         client.execute.assert_called_once_with("effecthigh 80")
 
@@ -1044,7 +1028,7 @@ class TestSetEffectPhaseTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await set_effect_phase(phase=180)
+        await set_effect_phase(phase=180)
 
         client.execute.assert_called_once_with("effectphase 180")
 
@@ -1058,7 +1042,7 @@ class TestSetEffectWidthTool:
         client = _mock_client()
         mock_get.return_value = client
 
-        result = await set_effect_width(width=50)
+        await set_effect_width(width=50)
 
         client.execute.assert_called_once_with("effectwidth 50")
 
@@ -1097,8 +1081,8 @@ class TestGracefulShutdown:
     @pytest.mark.asyncio
     async def test_lifespan_disconnects_on_exit(self):
         """Server lifespan should call disconnect() on shutdown."""
-        from src.server import server_lifespan
         import src.server as server_module
+        from src.server import server_lifespan
 
         mock_client = MagicMock()
         mock_client.disconnect = AsyncMock()
@@ -1121,9 +1105,7 @@ class TestConnectionErrorHandling:
 
         client = _mock_client()
         client.execute = AsyncMock(
-            side_effect=ConnectionError(
-                "failed to reconnect after 3 attempts to 127.0.0.1:30000"
-            )
+            side_effect=ConnectionError("failed to reconnect after 3 attempts to 127.0.0.1:30000")
         )
         mock_get.return_value = client
 
@@ -1149,14 +1131,17 @@ class TestSendRawCommandVerified:
     @pytest.mark.asyncio
     @patch("src.server.get_client")
     async def test_returns_console_output_on_success(self, mock_get):
-        from src.server import send_raw_command
         from src.execution import ExecutionResult
+        from src.server import send_raw_command
 
         client = _mock_client()
         client.execute = AsyncMock(
             return_value=ExecutionResult(
-                ok=True, echo="Executing : Clear\n [Fixture]>",
-                error_code=None, error_text=None, raw="raw",
+                ok=True,
+                echo="Executing : Clear\n [Fixture]>",
+                error_code=None,
+                error_text=None,
+                raw="raw",
             )
         )
         mock_get.return_value = client
@@ -1169,14 +1154,17 @@ class TestSendRawCommandVerified:
     @pytest.mark.asyncio
     @patch("src.server.get_client")
     async def test_surfaces_console_error(self, mock_get):
-        from src.server import send_raw_command
         from src.execution import ExecutionResult
+        from src.server import send_raw_command
 
         client = _mock_client()
         client.execute = AsyncMock(
             return_value=ExecutionResult(
-                ok=False, echo='Error #14: OBJECT DOES NOT EXIST',
-                error_code=14, error_text="OBJECT DOES NOT EXIST", raw="raw",
+                ok=False,
+                echo="Error #14: OBJECT DOES NOT EXIST",
+                error_code=14,
+                error_text="OBJECT DOES NOT EXIST",
+                raw="raw",
             )
         )
         mock_get.return_value = client
@@ -1189,14 +1177,19 @@ class TestSendRawCommandVerified:
 
 def _ok_result(echo="OK"):
     from src.execution import ExecutionResult
+
     return ExecutionResult(ok=True, echo=echo, error_code=None, error_text=None, raw=echo)
 
 
 def _err_result(code=14, text="OBJECT DOES NOT EXIST"):
     from src.execution import ExecutionResult
+
     return ExecutionResult(
-        ok=False, echo=f"Error #{code}: {text}",
-        error_code=code, error_text=text, raw="raw",
+        ok=False,
+        echo=f"Error #{code}: {text}",
+        error_code=code,
+        error_text=text,
+        raw="raw",
     )
 
 
@@ -1259,15 +1252,17 @@ class TestRunVerifiedSequence:
 
     @pytest.mark.asyncio
     async def test_aborts_on_first_error(self):
-        from src.server import run_verified_sequence
         from src.execution import ExecutionResult
+        from src.server import run_verified_sequence
 
         client = _mock_client()
-        client.execute = AsyncMock(side_effect=[
-            ExecutionResult(ok=True, echo="ok", error_code=None, error_text=None, raw=""),
-            ExecutionResult(ok=False, echo="", error_code=9, error_text="ILLEGAL", raw=""),
-            ExecutionResult(ok=True, echo="ok", error_code=None, error_text=None, raw=""),
-        ])
+        client.execute = AsyncMock(
+            side_effect=[
+                ExecutionResult(ok=True, echo="ok", error_code=None, error_text=None, raw=""),
+                ExecutionResult(ok=False, echo="", error_code=9, error_text="ILLEGAL", raw=""),
+                ExecutionResult(ok=True, echo="ok", error_code=None, error_text=None, raw=""),
+            ]
+        )
 
         result = await run_verified_sequence(client, ["a", "b", "c"], "done")
 
@@ -1294,15 +1289,17 @@ class TestConvertedToolsSurfaceErrors:
     @pytest.mark.asyncio
     @patch("src.server.get_client")
     async def test_create_fixture_group_aborts_on_select_error(self, mock_get):
-        from src.server import create_fixture_group
         from src.execution import ExecutionResult
+        from src.server import create_fixture_group
 
         client = _mock_client()
         # First command (select) fails -> store must not run.
-        client.execute = AsyncMock(side_effect=[
-            _err_result(9, "ILLEGAL"),
-            ExecutionResult(ok=True, echo="", error_code=None, error_text=None, raw=""),
-        ])
+        client.execute = AsyncMock(
+            side_effect=[
+                _err_result(9, "ILLEGAL"),
+                ExecutionResult(ok=True, echo="", error_code=None, error_text=None, raw=""),
+            ]
+        )
         mock_get.return_value = client
 
         result = await create_fixture_group(1, 10, group_id=1)

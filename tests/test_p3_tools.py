@@ -3,8 +3,9 @@ MCP tool tests for P3 wrapper features: copy/move (#49), extended delete (#50),
 effect extensions (#51), park/unpark (#52), advanced selection (#54).
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
 
 
 def _mock_client():
@@ -12,9 +13,7 @@ def _mock_client():
 
     client = MagicMock()
     client.execute = AsyncMock(
-        return_value=ExecutionResult(
-            ok=True, echo="OK", error_code=None, error_text=None, raw="OK"
-        )
+        return_value=ExecutionResult(ok=True, echo="OK", error_code=None, error_text=None, raw="OK")
     )
     return client
 
@@ -200,10 +199,10 @@ class TestAdvancedSelection:
     @patch("src.server.get_client")
     async def test_next_previous_invert_locate(self, mock_get):
         from src.server import (
-            next_fixture,
-            previous_fixture,
             invert_selection,
             locate_fixtures,
+            next_fixture,
+            previous_fixture,
         )
 
         client = _mock_client()

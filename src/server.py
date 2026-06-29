@@ -12,15 +12,16 @@ import functools
 import logging
 import os
 from contextlib import asynccontextmanager
+from typing import Any
 
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
 from src import __version__
 from src.capabilities import PROFILE_SCHEMA_VERSION, build_capabilities
-from src.telnet_client import ConnectionState, GMA2TelnetClient
 from src.commands import (
-    appearance as cmd_appearance,
+    add_user_var,
+    add_var,
     assign,
     assign_cue_cmd,
     assign_macro_cmd,
@@ -30,16 +31,10 @@ from src.commands import (
     clear_active,
     clear_all,
     clear_selection,
-    delete_cue as cmd_delete_cue,
-    delete_macro as cmd_delete_macro,
-    effect as cmd_effect,
     effect_bpm,
-    effect_form as cmd_effect_form,
     effect_high,
     effect_hz,
     effect_low,
-    effect_phase as cmd_effect_phase,
-    effect_width as cmd_effect_width,
     executor_at,
     fixture,
     fixture_at,
@@ -48,137 +43,269 @@ from src.commands import (
     goto,
     goto_cue,
     highlight,
-    info as cmd_info,
-    info_cue as cmd_info_cue,
-    info_group as cmd_info_group,
     kill,
     label,
-    label_group,
-    label_macro as cmd_label_macro,
-    label_sequence_cue as cmd_label_sequence_cue,
-    list_cue as cmd_list_cue,
-    list_group as cmd_list_group,
-    list_macro as cmd_list_macro,
-    list_objects as cmd_list_objects,
-    list_preset as cmd_list_preset,
-    list_sequence_cue as cmd_list_sequence_cue,
-    list_shows as cmd_list_shows,
     list_user_var,
     list_var,
-    set_var,
-    set_user_var,
-    add_var,
-    add_user_var,
-    load_show as cmd_load_show,
-    new_show as cmd_new_show,
     off,
     on,
     pause_sequence,
     preset,
     select_fixture,
-    save_show as cmd_save_show,
-    store_cue as cmd_store_cue,
+    set_user_var,
+    set_var,
     store_group,
-    store_macro as cmd_store_macro,
-    store_preset as cmd_store_preset,
     sync_effects,
     toggle,
 )
-from src.commands.constants import PRESET_TYPES
-from src.gma2_client import GMA2Client
-from src.commands.functions.timecode import (
-    go_timecode,
-    pause_timecode,
-    off_timecode,
-    top_timecode,
-    record_timecode,
-    assign_timecode_param,
+from src.commands import (
+    appearance as cmd_appearance,
 )
-from src.commands.functions.matricks import (
-    matricks as cmd_matricks,
-    matricks_blocks,
-    matricks_wings,
-    matricks_groups,
-    matricks_interleave,
-    matricks_filter,
-    matricks_reset,
+from src.commands import (
+    delete_cue as cmd_delete_cue,
+)
+from src.commands import (
+    delete_macro as cmd_delete_macro,
+)
+from src.commands import (
+    effect as cmd_effect,
+)
+from src.commands import (
+    effect_form as cmd_effect_form,
+)
+from src.commands import (
+    effect_phase as cmd_effect_phase,
+)
+from src.commands import (
+    effect_width as cmd_effect_width,
+)
+from src.commands import (
+    info as cmd_info,
+)
+from src.commands import (
+    info_cue as cmd_info_cue,
+)
+from src.commands import (
+    info_group as cmd_info_group,
+)
+from src.commands import (
+    label_macro as cmd_label_macro,
+)
+from src.commands import (
+    label_sequence_cue as cmd_label_sequence_cue,
+)
+from src.commands import (
+    list_cue as cmd_list_cue,
+)
+from src.commands import (
+    list_group as cmd_list_group,
+)
+from src.commands import (
+    list_macro as cmd_list_macro,
+)
+from src.commands import (
+    list_objects as cmd_list_objects,
+)
+from src.commands import (
+    list_preset as cmd_list_preset,
+)
+from src.commands import (
+    list_sequence_cue as cmd_list_sequence_cue,
+)
+from src.commands import (
+    list_shows as cmd_list_shows,
+)
+from src.commands import (
+    load_show as cmd_load_show,
+)
+from src.commands import (
+    new_show as cmd_new_show,
+)
+from src.commands import (
+    save_show as cmd_save_show,
+)
+from src.commands import (
+    store_cue as cmd_store_cue,
+)
+from src.commands import (
+    store_macro as cmd_store_macro,
+)
+from src.commands import (
+    store_preset as cmd_store_preset,
+)
+from src.commands.constants import PRESET_TYPES
+from src.commands.functions.blind import (
+    blind as cmd_blind,
+)
+from src.commands.functions.blind import (
+    blind_edit as cmd_blind_edit,
+)
+from src.commands.functions.blind import (
+    preview as cmd_preview,
+)
+from src.commands.functions.blind import (
+    preview_edit as cmd_preview_edit,
+)
+from src.commands.functions.cue_timing import (
+    delay as cmd_delay,
 )
 from src.commands.functions.cue_timing import (
     fade as cmd_fade,
-    delay as cmd_delay,
-    out_fade as cmd_out_fade,
+)
+from src.commands.functions.cue_timing import (
     out_delay as cmd_out_delay,
 )
-from src.commands.functions.step_timing import (
-    snap_percent as cmd_snap_percent,
-    step_fade as cmd_step_fade,
-    step_in_fade as cmd_step_in_fade,
-    step_out_fade as cmd_step_out_fade,
-    fade_path as cmd_fade_path,
+from src.commands.functions.cue_timing import (
+    out_fade as cmd_out_fade,
+)
+from src.commands.functions.edit import (
+    delete_fixture as cmd_delete_fixture,
+)
+from src.commands.functions.edit import (
+    delete_group as cmd_delete_group,
+)
+from src.commands.functions.edit import (
+    delete_preset as cmd_delete_preset,
+)
+from src.commands.functions.effect import (
+    effect_attack as cmd_effect_attack,
+)
+from src.commands.functions.effect import (
+    effect_decay as cmd_effect_decay,
+)
+from src.commands.functions.effect import (
+    effect_delay as cmd_effect_delay,
+)
+from src.commands.functions.effect import (
+    effect_fade as cmd_effect_fade,
+)
+from src.commands.functions.effect import (
+    effect_sec as cmd_effect_sec,
+)
+from src.commands.functions.effect import (
+    effect_speed_group as cmd_effect_speed_group,
 )
 from src.commands.functions.executor_control import (
     flash as cmd_flash,
-    swop as cmd_swop,
-    stomp as cmd_stomp,
-    temp as cmd_temp,
-)
-from src.commands.functions.flash_swop_ext import (
-    flash_go as cmd_flash_go,
-    flash_on as cmd_flash_on,
-    swop_go as cmd_swop_go,
-    swop_on as cmd_swop_on,
-)
-from src.commands.functions.programmer import update as cmd_update
-from src.commands.functions.blind import (
-    blind as cmd_blind,
-    blind_edit as cmd_blind_edit,
-    preview as cmd_preview,
-    preview_edit as cmd_preview_edit,
-)
-from src.commands.functions.rate_speed import (
-    rate as cmd_rate,
-    rate1 as cmd_rate1,
-    half_rate as cmd_half_rate,
-    double_rate as cmd_double_rate,
-    speed as cmd_speed,
-    half_speed as cmd_half_speed,
-    double_speed as cmd_double_speed,
 )
 from src.commands.functions.executor_control import (
     release as cmd_release,
+)
+from src.commands.functions.executor_control import (
+    stomp as cmd_stomp,
+)
+from src.commands.functions.executor_control import (
+    swop as cmd_swop,
+)
+from src.commands.functions.executor_control import (
+    temp as cmd_temp,
+)
+from src.commands.functions.executor_control import (
     top as cmd_top,
-)
-from src.commands.selector import normalize_selector
-from src.commands.functions.edit import (
-    delete_fixture as cmd_delete_fixture,
-    delete_group as cmd_delete_group,
-    delete_preset as cmd_delete_preset,
-)
-from src.commands.functions.system import delete_show as cmd_delete_show
-from src.commands.functions.effect import (
-    effect_attack as cmd_effect_attack,
-    effect_decay as cmd_effect_decay,
-    effect_delay as cmd_effect_delay,
-    effect_fade as cmd_effect_fade,
-    effect_sec as cmd_effect_sec,
-    effect_speed_group as cmd_effect_speed_group,
-)
-from src.commands.functions.park import park as cmd_park, unpark as cmd_unpark
-from src.commands.functions.midi import (
-    midi_note as cmd_midi_note,
-    midi_control as cmd_midi_control,
-    midi_program as cmd_midi_program,
 )
 from src.commands.functions.fixture_control import (
     align as cmd_align,
-    next_keyword as cmd_next,
-    previous as cmd_previous,
-    invert as cmd_invert,
-    locate as cmd_locate,
+)
+from src.commands.functions.fixture_control import (
     fix as cmd_fix,
 )
-from src.response_parser import parse_macro_lines, parse_cue_info, parse_object_label
+from src.commands.functions.fixture_control import (
+    invert as cmd_invert,
+)
+from src.commands.functions.fixture_control import (
+    locate as cmd_locate,
+)
+from src.commands.functions.fixture_control import (
+    next_keyword as cmd_next,
+)
+from src.commands.functions.fixture_control import (
+    previous as cmd_previous,
+)
+from src.commands.functions.flash_swop_ext import (
+    flash_go as cmd_flash_go,
+)
+from src.commands.functions.flash_swop_ext import (
+    flash_on as cmd_flash_on,
+)
+from src.commands.functions.flash_swop_ext import (
+    swop_go as cmd_swop_go,
+)
+from src.commands.functions.flash_swop_ext import (
+    swop_on as cmd_swop_on,
+)
+from src.commands.functions.matricks import (
+    matricks as cmd_matricks,
+)
+from src.commands.functions.matricks import (
+    matricks_blocks,
+    matricks_filter,
+    matricks_groups,
+    matricks_interleave,
+    matricks_reset,
+    matricks_wings,
+)
+from src.commands.functions.midi import (
+    midi_control as cmd_midi_control,
+)
+from src.commands.functions.midi import (
+    midi_note as cmd_midi_note,
+)
+from src.commands.functions.midi import (
+    midi_program as cmd_midi_program,
+)
+from src.commands.functions.park import park as cmd_park
+from src.commands.functions.park import unpark as cmd_unpark
+from src.commands.functions.programmer import update as cmd_update
+from src.commands.functions.rate_speed import (
+    double_rate as cmd_double_rate,
+)
+from src.commands.functions.rate_speed import (
+    double_speed as cmd_double_speed,
+)
+from src.commands.functions.rate_speed import (
+    half_rate as cmd_half_rate,
+)
+from src.commands.functions.rate_speed import (
+    half_speed as cmd_half_speed,
+)
+from src.commands.functions.rate_speed import (
+    rate as cmd_rate,
+)
+from src.commands.functions.rate_speed import (
+    rate1 as cmd_rate1,
+)
+from src.commands.functions.rate_speed import (
+    speed as cmd_speed,
+)
+from src.commands.functions.step_timing import (
+    fade_path as cmd_fade_path,
+)
+from src.commands.functions.step_timing import (
+    snap_percent as cmd_snap_percent,
+)
+from src.commands.functions.step_timing import (
+    step_fade as cmd_step_fade,
+)
+from src.commands.functions.step_timing import (
+    step_in_fade as cmd_step_in_fade,
+)
+from src.commands.functions.step_timing import (
+    step_out_fade as cmd_step_out_fade,
+)
+from src.commands.functions.system import delete_show as cmd_delete_show
+from src.commands.functions.timecode import (
+    assign_timecode_param,
+    go_timecode,
+    off_timecode,
+    pause_timecode,
+    record_timecode,
+    top_timecode,
+)
+from src.commands.selector import normalize_selector
+from src.gma2_client import GMA2Client
 from src.introspection import AttributeResolver
+from src.response_parser import parse_cue_info, parse_macro_lines, parse_object_label
+from src.telnet_client import ConnectionState, GMA2TelnetClient
 
 load_dotenv()
 
@@ -192,6 +319,7 @@ GMA_HOST = os.getenv("GMA_HOST", "127.0.0.1")
 GMA_PORT = int(os.getenv("GMA_PORT", "30000"))
 GMA_USER = os.getenv("GMA_USER", "administrator")
 GMA_PASSWORD = os.getenv("GMA_PASSWORD", "admin")
+
 
 @asynccontextmanager
 async def server_lifespan(app):
@@ -480,9 +608,7 @@ async def create_fixture_group(
     if group_name:
         success = f'Created Group {group_id} "{group_name}" containing Fixtures {start_fixture} to {end_fixture}'
     else:
-        success = (
-            f"Created Group {group_id} containing Fixtures {start_fixture} to {end_fixture}"
-        )
+        success = f"Created Group {group_id} containing Fixtures {start_fixture} to {end_fixture}"
     return await run_verified_sequence(client, [select_cmd, store_cmd], success)
 
 
@@ -518,9 +644,7 @@ async def store_cue(
         - Store cue 5 with name "Blackout" and merge enabled
     """
     client = await get_client()
-    cmd = cmd_store_cue(
-        cue_id, name=name, merge=merge, overwrite=overwrite, noconfirm=noconfirm
-    )
+    cmd = cmd_store_cue(cue_id, name=name, merge=merge, overwrite=overwrite, noconfirm=noconfirm)
     label_part = f' "{name}"' if name else ""
     return await run_verified(client, cmd, f"Stored Cue {cue_id}{label_part}")
 
@@ -542,9 +666,7 @@ async def delete_cue(cue_id: int) -> str:
     """
     client = await get_client()
     cmd = cmd_delete_cue(cue_id)
-    return await run_verified(
-        client, cmd, f"Deleted Cue {cue_id}" + _format_warnings("cue")
-    )
+    return await run_verified(client, cmd, f"Deleted Cue {cue_id}" + _format_warnings("cue"))
 
 
 @mcp.tool()
@@ -649,9 +771,7 @@ async def set_fixture_value(
     client = await get_client()
     cmd = fixture_at(fixture_id, value, end=end_fixture)
     range_part = f" thru {end_fixture}" if end_fixture else ""
-    return await run_verified(
-        client, cmd, f"Set Fixture {fixture_id}{range_part} to {value}%"
-    )
+    return await run_verified(client, cmd, f"Set Fixture {fixture_id}{range_part} to {value}%")
 
 
 @mcp.tool()
@@ -789,9 +909,7 @@ async def store_preset(
     if overwrite:
         extra.append("overwritten")
     suffix = f" ({', '.join(extra)})" if extra else ""
-    return await run_verified(
-        client, cmd, f"Stored {preset_type} Preset {preset_id}{suffix}"
-    )
+    return await run_verified(client, cmd, f"Stored {preset_type} Preset {preset_id}{suffix}")
 
 
 @mcp.tool()
@@ -816,9 +934,7 @@ async def apply_preset(
     """
     client = await get_client()
     cmd = preset(preset_type, preset_id)
-    return await run_verified(
-        client, cmd, f"Applied {preset_type} Preset {preset_id}"
-    )
+    return await run_verified(client, cmd, f"Applied {preset_type} Preset {preset_id}")
 
 
 # ============================================================
@@ -883,9 +999,7 @@ async def set_executor_fader(
     """
     client = await get_client()
     cmd = executor_at(executor_id, value)
-    return await run_verified(
-        client, cmd, f"Set Executor {executor_id} fader to {value}%"
-    )
+    return await run_verified(client, cmd, f"Set Executor {executor_id} fader to {value}%")
 
 
 @mcp.tool()
@@ -976,9 +1090,7 @@ async def label_object(
     """
     client = await get_client()
     cmd = label(object_type, object_id, name)
-    return await run_verified(
-        client, cmd, f'Labeled {object_type} {object_id} as "{name}"'
-    )
+    return await run_verified(client, cmd, f'Labeled {object_type} {object_id} as "{name}"')
 
 
 @mcp.tool()
@@ -1010,6 +1122,7 @@ async def label_sequence_cue(
         - Label cues 1 thru 5 in "Set List" as "Act 1"
     """
     client = await get_client()
+    seq_param: int | str
     try:
         seq_param = int(sequence)
     except (ValueError, TypeError):
@@ -1091,9 +1204,7 @@ async def assign_appearance(
         saturation=saturation,
         brightness=brightness,
     )
-    return await run_verified(
-        client, cmd, f"Applied appearance to {object_type} {object_id}"
-    )
+    return await run_verified(client, cmd, f"Applied appearance to {object_type} {object_id}")
 
 
 # ============================================================
@@ -1300,9 +1411,7 @@ async def apply_effect(
     """
     client = await get_client()
     cmd = cmd_effect(effect_id)
-    return await run_verified(
-        client, cmd, f"Applied Effect {effect_id} to current selection"
-    )
+    return await run_verified(client, cmd, f"Applied Effect {effect_id} to current selection")
 
 
 @mcp.tool()
@@ -1334,9 +1443,7 @@ async def set_effect_speed(
         cmd = effect_bpm(value)
     else:
         cmd = effect_hz(value)
-    return await run_verified(
-        client, cmd, f"Set effect speed to {value} {unit.upper()}"
-    )
+    return await run_verified(client, cmd, f"Set effect speed to {value} {unit.upper()}")
 
 
 @mcp.tool()
@@ -1396,9 +1503,7 @@ async def set_effect_range(
     if low is not None:
         batch.append(effect_low(low))
         parts.append(f"low={low}")
-    return await run_verified_sequence(
-        client, batch, f"Set effect range: {', '.join(parts)}"
-    )
+    return await run_verified_sequence(client, batch, f"Set effect range: {', '.join(parts)}")
 
 
 @mcp.tool()
@@ -1584,7 +1689,7 @@ async def appearance_cue_across_sequences(
     """
     telnet = await get_client()
     gma2 = GMA2Client(telnet)
-    kwargs = {}
+    kwargs: dict[str, Any] = {}
     if red is not None:
         kwargs["red"] = red
     if green is not None:
@@ -1643,9 +1748,7 @@ async def execute_sequence(
         if cue_id is None:
             return "Error: goto action requires cue_id to be specified"
         cmd = goto_cue(sequence_id, cue_id)
-        return await run_verified(
-            client, cmd, f"Jumped to Cue {cue_id} of Sequence {sequence_id}"
-        )
+        return await run_verified(client, cmd, f"Jumped to Cue {cue_id} of Sequence {sequence_id}")
 
     return f"Unknown action: {action}, use go, pause, or goto"
 
@@ -1654,16 +1757,12 @@ async def execute_sequence(
 # Query / Introspection Tools (Issue #4)
 # ============================================================
 
-EMPTY_RESPONSE_MSG = (
-    "No data returned. The list may be empty or the console did not respond."
-)
+EMPTY_RESPONSE_MSG = "No data returned. The list may be empty or the console did not respond."
 
 
 @mcp.tool()
 @handle_connection_error
-async def list_groups(
-    group_id: int | None = None, end_group_id: int | None = None
-) -> str:
+async def list_groups(group_id: int | None = None, end_group_id: int | None = None) -> str:
     """
     list all defined groups on the grandMA2 console.
 
@@ -1728,10 +1827,7 @@ async def list_presets(
     """
     valid_types = set(PRESET_TYPES.keys())
     if preset_type.lower() not in valid_types:
-        return (
-            f"Invalid preset type '{preset_type}'. "
-            f"Valid types: {', '.join(sorted(valid_types))}"
-        )
+        return f"Invalid preset type '{preset_type}'. Valid types: {', '.join(sorted(valid_types))}"
 
     client = await get_client()
     cmd = cmd_list_preset(preset_type, preset_id)
@@ -1741,9 +1837,7 @@ async def list_presets(
 
 @mcp.tool()
 @handle_connection_error
-async def get_cue_annotation(
-    cue_id: int | float, sequence_id: int | None = None
-) -> str:
+async def get_cue_annotation(cue_id: int | float, sequence_id: int | None = None) -> str:
     """
     read the user-added annotation text on a cue.
 
@@ -1794,9 +1888,7 @@ async def get_group_annotation(group_id: int) -> str:
 
 @mcp.tool()
 @handle_connection_error
-async def list_variables(
-    variable_type: str, filter: str | None = None
-) -> str:
+async def list_variables(variable_type: str, filter: str | None = None) -> str:
     """
     list show variables or user variables on the grandMA2 console.
 
@@ -1812,10 +1904,7 @@ async def list_variables(
     elif variable_type.lower() == "user":
         cmd = list_user_var(filter)
     else:
-        return (
-            f"Invalid variable type '{variable_type}'. "
-            f"Valid types: show, user"
-        )
+        return f"Invalid variable type '{variable_type}'. Valid types: show, user"
 
     client = await get_client()
     response = await client.send_command_with_response(cmd)
@@ -2238,9 +2327,7 @@ async def setup_song_macro(
     """
     telnet = await get_client()
     gma2 = GMA2Client(telnet)
-    result = await gma2.setup_song_macro(
-        macro_id=macro_id, song_name=song_name, var_name=var_name
-    )
+    result = await gma2.setup_song_macro(macro_id=macro_id, song_name=song_name, var_name=var_name)
     return result["summary"]
 
 
@@ -2330,9 +2417,7 @@ async def assign_timecode_slot(tc_id: int, slot: int) -> str:
     """
     client = await get_client()
     cmd = assign_timecode_param(tc_id, "slot", slot)
-    return await run_verified(
-        client, cmd, f"Assigned Timecode {tc_id} to slot {slot}"
-    )
+    return await run_verified(client, cmd, f"Assigned Timecode {tc_id} to slot {slot}")
 
 
 @mcp.tool()
@@ -2362,9 +2447,7 @@ async def control_timecode(tc_id: int, action: str) -> str:
     }
     cmd_fn = action_map.get(action.lower())
     if cmd_fn is None:
-        return (
-            f"Unknown action: {action}. Use go, pause, off, top, or record."
-        )
+        return f"Unknown action: {action}. Use go, pause, off, top, or record."
     client = await get_client()
     cmd = cmd_fn(tc_id)
     return await run_verified(client, cmd, f"Timecode {tc_id}: {action.lower()}")
@@ -2494,9 +2577,7 @@ async def set_cue_timing(
 
     client = await get_client()
     where = f" on {target}" if target else ""
-    return await run_verified_sequence(
-        client, batch, f"Set cue timing ({', '.join(parts)}){where}"
-    )
+    return await run_verified_sequence(client, batch, f"Set cue timing ({', '.join(parts)}){where}")
 
 
 @mcp.tool()
@@ -2536,9 +2617,7 @@ async def set_step_timing(
         return "Error: provide at least one step timing value."
 
     client = await get_client()
-    return await run_verified_sequence(
-        client, batch, f"Set step timing ({', '.join(parts)})"
-    )
+    return await run_verified_sequence(client, batch, f"Set step timing ({', '.join(parts)})")
 
 
 # ============================================================
@@ -2683,9 +2762,7 @@ async def update_cue(
     if tracking:
         cmd += " /tracking"
     client = await get_client()
-    return await run_verified(
-        client, cmd, f"Updated Cue {cue_id} (modifies existing programming)"
-    )
+    return await run_verified(client, cmd, f"Updated Cue {cue_id} (modifies existing programming)")
 
 
 # ============================================================
@@ -2739,9 +2816,7 @@ async def toggle_preview(
     """
     client = await get_client()
     if edit_mode:
-        return await run_verified(
-            client, cmd_preview_edit(), "Toggled preview-edit mode"
-        )
+        return await run_verified(client, cmd_preview_edit(), "Toggled preview-edit mode")
     target = _executor_target(executor_id, page) if executor_id is not None else None
     where = f" for {target}" if target else ""
     return await run_verified(client, cmd_preview(target), f"Toggled preview{where}")
@@ -2937,9 +3012,7 @@ async def copy_object(
     elif mode == "merge":
         cmd += " /merge"
     client = await get_client()
-    return await run_verified(
-        client, cmd, f"Copied {object_type} {src} to {tgt}"
-    )
+    return await run_verified(client, cmd, f"Copied {object_type} {src} to {tgt}")
 
 
 @mcp.tool()
@@ -2986,9 +3059,7 @@ async def delete_group(group_id: int) -> str:
     """Delete a fixture group (destructive)."""
     client = await get_client()
     cmd = cmd_delete_group(group_id)
-    return await run_verified(
-        client, cmd, f"Deleted Group {group_id}{_format_warnings('group')}"
-    )
+    return await run_verified(client, cmd, f"Deleted Group {group_id}{_format_warnings('group')}")
 
 
 @mcp.tool()
@@ -3021,9 +3092,7 @@ async def delete_show(show_name: str) -> str:
     """Delete a show file from the console drive (destructive)."""
     client = await get_client()
     cmd = cmd_delete_show(show_name)
-    return await run_verified(
-        client, cmd, f"Deleted show '{show_name}'{_format_warnings('show')}"
-    )
+    return await run_verified(client, cmd, f"Deleted show '{show_name}'{_format_warnings('show')}")
 
 
 # ============================================================
@@ -3058,9 +3127,7 @@ async def set_effect_envelope(
     if not batch:
         return "Error: provide at least one envelope parameter."
     client = await get_client()
-    return await run_verified_sequence(
-        client, batch, f"Set effect envelope ({', '.join(parts)})"
-    )
+    return await run_verified_sequence(client, batch, f"Set effect envelope ({', '.join(parts)})")
 
 
 @mcp.tool()
@@ -3068,9 +3135,7 @@ async def set_effect_envelope(
 async def set_effect_seconds(value: float) -> str:
     """Set effect speed in seconds (alternative to BPM/Hz)."""
     client = await get_client()
-    return await run_verified(
-        client, cmd_effect_sec(value), f"Set effect speed to {value}s"
-    )
+    return await run_verified(client, cmd_effect_sec(value), f"Set effect speed to {value}s")
 
 
 @mcp.tool()
@@ -3233,9 +3298,7 @@ async def send_midi_control(
     """
     client = await get_client()
     cmd = cmd_midi_control(controller, value, channel=channel)
-    return await run_verified(
-        client, cmd, f"Sent MIDI CC {controller}={value}"
-    )
+    return await run_verified(client, cmd, f"Sent MIDI CC {controller}={value}")
 
 
 @mcp.tool()
@@ -3370,7 +3433,7 @@ def main():
     logger.info(f"Starting grandMA2 MCP Server (transport: {transport})...")
     logger.info(f"Connecting to grandMA2: {GMA_HOST}:{GMA_PORT}")
 
-    kwargs = {"transport": transport}
+    kwargs: dict[str, Any] = {"transport": transport}
     if transport == "streamable-http":
         kwargs["host"] = os.environ.get("MCP_HOST", "127.0.0.1")
         kwargs["port"] = int(os.environ.get("MCP_PORT", "8000"))

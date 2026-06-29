@@ -9,8 +9,6 @@ Included functions:
 - store_look: Store a look
 """
 
-from typing import Optional
-
 
 def flash_go(target: str) -> str:
     """
@@ -80,7 +78,7 @@ def swop_on(target: str) -> str:
     return f"swopon {target}"
 
 
-def store_look(target: Optional[str] = None) -> str:
+def store_look(target: str | None = None) -> str:
     """
     Construct a StoreLook command to store a look.
 

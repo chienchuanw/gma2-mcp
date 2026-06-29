@@ -3,8 +3,9 @@ MCP tool tests for P1 features: MAtricks (#41), cue timing (#42),
 flash/swop/stomp/temp (#43), update cue (#44).
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
 
 
 def _mock_client():
@@ -12,9 +13,7 @@ def _mock_client():
 
     client = MagicMock()
     client.execute = AsyncMock(
-        return_value=ExecutionResult(
-            ok=True, echo="OK", error_code=None, error_text=None, raw="OK"
-        )
+        return_value=ExecutionResult(ok=True, echo="OK", error_code=None, error_text=None, raw="OK")
     )
     return client
 
@@ -204,8 +203,8 @@ class TestUpdateCue:
     @pytest.mark.asyncio
     @patch("src.server.get_client")
     async def test_surfaces_error(self, mock_get):
-        from src.server import update_cue
         from src.execution import ExecutionResult
+        from src.server import update_cue
 
         client = _mock_client()
         client.execute = AsyncMock(

@@ -5,8 +5,6 @@ Tests for grandMA2 Align, All, Fix, Locate, Next, Previous, and Invert
 function keyword command generation.
 """
 
-import pytest
-
 
 class TestAlign:
     """Tests for Align keyword - distributes values across fixtures."""
