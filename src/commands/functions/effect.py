@@ -3,6 +3,7 @@ Effect Keywords for grandMA2 Command Builder
 
 Included functions:
 - effect: Reference/select effect
+- at_effect: Apply an effect to the selection (``at effect N``)
 - effect_attack: Set effect attack
 - effect_bpm: Set effect BPM
 - effect_decay: Set effect decay
@@ -15,7 +16,7 @@ Included functions:
 - effect_low: Set effect low value
 - effect_phase: Set effect phase
 - effect_sec: Set effect speed in seconds
-- effect_speed_group: Assign effect to speed group
+- effect_speed_group: Switch to the effect Speed Group layer (no argument)
 - effect_width: Set effect width
 - sync_effects: Synchronize effects
 """
@@ -36,6 +37,27 @@ def effect(effect_id: int) -> str:
         'effect 5'
     """
     return f"effect {effect_id}"
+
+
+def at_effect(effect_id: int) -> str:
+    """
+    Construct an At Effect command to apply an effect to the current selection.
+
+    Always use this (not the bare ``effect()``) to apply: ``Effect`` is an
+    object keyword with no apply default, and the bare form fails silently
+    over telnet on 3.9.60 (#92).
+
+    Args:
+        effect_id: Effect number in the effect pool
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> at_effect(5)
+        'at effect 5'
+    """
+    return f"at {effect(effect_id)}"
 
 
 def effect_attack(value: int | float) -> str:
@@ -244,21 +266,23 @@ def effect_sec(value: int | float) -> str:
     return f"effectsec {value}"
 
 
-def effect_speed_group(value: int) -> str:
+def effect_speed_group() -> str:
     """
-    Construct an EffectSpeedGroup command.
+    Construct an EffectSpeedGroup command (switch to the Speed Group layer).
 
-    Args:
-        value: Speed group number
+    EffectSpeedGroup takes no argument: it switches the encoders to the
+    effect Speed Group layer (manual 10.2.89). ``effectspeedgroup 1`` returns
+    Error #27 SYNTAX ERROR (#92). To link the programmer's effect to a speed
+    master, use ``assign specialmaster 3.<n>`` instead.
 
     Returns:
         str: MA command string
 
     Examples:
-        >>> effect_speed_group(1)
-        'effectspeedgroup 1'
+        >>> effect_speed_group()
+        'effectspeedgroup'
     """
-    return f"effectspeedgroup {value}"
+    return "effectspeedgroup"
 
 
 def effect_width(value: int | float) -> str:

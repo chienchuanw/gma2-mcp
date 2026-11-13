@@ -17,6 +17,19 @@ class TestEffect:
         assert effect(5) == "effect 5"
 
 
+class TestAtEffect:
+    """Tests for at_effect(): applying an effect to the selection (#92).
+
+    A bare ``effect N`` fails silently over telnet on 3.9.60, so applying
+    must use the explicit ``at effect N`` form.
+    """
+
+    def test_at_effect_with_id(self):
+        from src.commands import at_effect
+
+        assert at_effect(5) == "at effect 5"
+
+
 class TestEffectAttack:
     """Tests for EffectAttack keyword."""
 
@@ -133,10 +146,12 @@ class TestEffectSec:
 class TestEffectSpeedGroup:
     """Tests for EffectSpeedGroup keyword."""
 
-    def test_effect_speed_group_value(self):
+    def test_effect_speed_group_is_layer_switch(self):
+        """EffectSpeedGroup takes no argument -- it switches the encoder layer
+        (manual 10.2.89). ``effectspeedgroup 1`` is Error #27 (#92)."""
         from src.commands import effect_speed_group
 
-        assert effect_speed_group(1) == "effectspeedgroup 1"
+        assert effect_speed_group() == "effectspeedgroup"
 
 
 class TestEffectWidth:

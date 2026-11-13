@@ -126,6 +126,7 @@ from .edit import (
 
 # Effect Function Keywords
 from .effect import (
+    at_effect,
     effect,
     effect_attack,
     effect_bpm,
@@ -666,6 +667,7 @@ __all__ = [
     "matricks_reset",
     "matricks_wings",
     # Effect Function Keywords
+    "at_effect",
     "effect",
     "effect_attack",
     "effect_bpm",

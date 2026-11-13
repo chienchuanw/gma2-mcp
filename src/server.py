@@ -25,6 +25,8 @@ from src.commands import (
     assign,
     assign_cue_cmd,
     assign_macro_cmd,
+    at_effect,
+    at_preset,
     attribute_at,
     blackout,
     clear,
@@ -50,7 +52,6 @@ from src.commands import (
     off,
     on,
     pause_sequence,
-    preset,
     select_fixture,
     set_user_var,
     set_var,
@@ -66,9 +67,6 @@ from src.commands import (
 )
 from src.commands import (
     delete_macro as cmd_delete_macro,
-)
-from src.commands import (
-    effect as cmd_effect,
 )
 from src.commands import (
     effect_form as cmd_effect_form,
@@ -181,9 +179,6 @@ from src.commands.functions.effect import (
 )
 from src.commands.functions.effect import (
     effect_sec as cmd_effect_sec,
-)
-from src.commands.functions.effect import (
-    effect_speed_group as cmd_effect_speed_group,
 )
 from src.commands.functions.executor_control import (
     flash as cmd_flash,
@@ -933,7 +928,7 @@ async def apply_preset(
         - Apply position preset 1
     """
     client = await get_client()
-    cmd = preset(preset_type, preset_id)
+    cmd = at_preset(preset_type, preset_id)
     return await run_verified(client, cmd, f"Applied {preset_type} Preset {preset_id}")
 
 
@@ -1410,7 +1405,7 @@ async def apply_effect(
         - Apply effect 5 to selected fixtures
     """
     client = await get_client()
-    cmd = cmd_effect(effect_id)
+    cmd = at_effect(effect_id)
     return await run_verified(client, cmd, f"Applied Effect {effect_id} to current selection")
 
 
@@ -3141,10 +3136,27 @@ async def set_effect_seconds(value: float) -> str:
 @mcp.tool()
 @handle_connection_error
 async def set_effect_speed_group(group_id: int) -> str:
-    """Assign the effect to a speed group for synchronized control."""
+    """
+    Link the programmer's live effect to a speed master for synchronized control.
+
+    Sends ``assign specialmaster 3.<group_id>`` (Special Master group 3 = speed
+    masters). The effect must still be live in the programmer when this is
+    called. On 3.9.60, SpecialMaster 3.1 was observed to be the BPM master.
+
+    The ``effectspeedgroup <n>`` form is NOT used: EffectSpeedGroup only
+    switches the encoder layer and takes no argument (Error #27, see #92).
+
+    Args:
+        group_id: Speed master number within Special Master group 3
+
+    Returns:
+        str: Operation result message
+    """
     client = await get_client()
     return await run_verified(
-        client, cmd_effect_speed_group(group_id), f"Assigned effect to speed group {group_id}"
+        client,
+        assign("specialmaster", f"3.{group_id}"),
+        f"Linked effect to SpecialMaster 3.{group_id}",
     )
 
 

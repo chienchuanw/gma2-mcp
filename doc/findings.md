@@ -462,3 +462,24 @@ Executor [Pagepool].[Page].[ID]  # Specific pagepool and page
 ```
 
 When using `setup_executor_page()`, all executor references must use `[Page].[ID]` format to ensure commands target the correct page rather than the currently active one.
+
+## Silently Failing Apply / Speed-Group Forms (Issue #92, 2026-11-13)
+
+Source: `gma2-workflow/doc/CUE_DESIGN.md` section 1 (verified on a live onPC
+3.9.60 + Depence R4 rig by playback and screenshots), cross-checked against
+the v3.9 manual in `doc/`. Context7 has no grandMA2 library; no forum threads
+were found.
+
+| Builder / tool | Old form | New form | Evidence |
+|---|---|---|---|
+| `apply_preset`, `setup_group_with_preset` | `preset 4.3` | `at preset 4.3` (`at_preset()`) | Desk: bare form fails silently. Manual 10.2.213 claims a default At with a selection, but its own apply example is `At Preset 3.2`. |
+| `apply_effect`, `setup_effect_on_group` | `effect 1` | `at effect 1` (`at_effect()`) | Desk: bare form fails silently. Manual 10.2.76: Effect is an object keyword with no apply default. |
+| `effect_speed_group()` | `effectspeedgroup 1` | `effectspeedgroup` (no argument) | Manual 10.2.89: it only switches the encoder layer, syntax takes no value. Desk: `effectspeedgroup 1` -> Error #27. |
+| `set_effect_speed_group` | `effectspeedgroup <n>` | `assign specialmaster 3.<n>` | Desk-verified while the effect is live in the programmer (frame-delta changed with the master). The manual documents no command-line form; GUI only. 3.1 was the BPM master on 3.9.60. |
+
+### Goto: left unchanged
+
+`goto cue X executor N` is the manual's own example (10.2.122, `Goto Cue 5
+Executor 4`). The form the desk rejected downstream was a different one,
+`Executor 90 Goto Cue 3`. No evidence that the gma2-mcp form fails, so it was
+dropped from #92's scope. Verify on a desk before changing it.

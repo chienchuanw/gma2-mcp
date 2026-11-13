@@ -184,6 +184,24 @@ class TestPresetCommands:
         assert result == "preset 1.1 + 1.3 + 1.5"
 
 
+class TestAtPresetCommands:
+    """Tests for at_preset(): applying a preset to the selection (#92).
+
+    A bare ``preset x.y`` fails silently over telnet on 3.9.60, so applying
+    must use the explicit ``at preset x.y`` form.
+    """
+
+    def test_at_preset_with_type_name(self):
+        from src.commands import at_preset
+
+        assert at_preset("color", 3) == "at preset 4.3"
+
+    def test_at_preset_with_type_number(self):
+        from src.commands import at_preset
+
+        assert at_preset(2, 11) == "at preset 2.11"
+
+
 class TestPresetTypeCommands:
     """Tests for PresetType Object Keyword."""
 

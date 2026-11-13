@@ -72,6 +72,7 @@ from .functions import (
     assign_to_layout,
     # At Function Keyword
     at,
+    at_effect,
     at_full,
     at_relative,
     at_zero,
@@ -393,6 +394,7 @@ from .objects import (
     all_chase_executors,
     all_fader_executors,
     all_seq_executors,
+    at_preset,
     attribute,
     button_page,
     # Misc Object Keywords
@@ -470,6 +472,7 @@ __all__ = [
     "channel",
     "group",
     "layout",
+    "at_preset",
     "preset",
     "preset_type",
     "cue",
@@ -737,6 +740,7 @@ __all__ = [
     "matricks_reset",
     "matricks_wings",
     # Effect Function Keywords
+    "at_effect",
     "effect",
     "effect_attack",
     "effect_bpm",
