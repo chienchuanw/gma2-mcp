@@ -24,6 +24,8 @@ from src.commands import (
     assign_fade,
     assign_macro_cmd,
     at,
+    at_effect,
+    at_preset,
     attribute_at,
     effect_bpm,
     effect_high,
@@ -31,7 +33,6 @@ from src.commands import (
     executor_at,
     label,
     label_sequence_cue,
-    preset,
     select_fixture,
     store,
     store_cue,
@@ -42,9 +43,6 @@ from src.commands import (
 # Aliased so build_color_palette can call them without its label/appearance
 # bool parameters shadowing the builders.
 from src.commands import appearance as appearance_cmd
-from src.commands import (
-    effect as cmd_effect,
-)
 from src.commands import (
     effect_form as cmd_effect_form,
 )
@@ -183,7 +181,7 @@ class GMA2Client:
 
         sent.append(await self._send(select_fixture(start, end)))
         sent.append(await self._send(store_group(group_id, name=group_name)))
-        sent.append(await self._send(preset(preset_type, preset_id)))
+        sent.append(await self._send(at_preset(preset_type, preset_id)))
 
         return {
             "commands_sent": sent,
@@ -420,7 +418,7 @@ class GMA2Client:
         sent: list[str] = []
 
         sent.append(await self._send(f"group {group_id}"))
-        sent.append(await self._send(cmd_effect(effect_id)))
+        sent.append(await self._send(at_effect(effect_id)))
 
         if bpm is not None:
             sent.append(await self._send(effect_bpm(bpm)))

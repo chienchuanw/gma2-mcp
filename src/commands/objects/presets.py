@@ -2,7 +2,8 @@
 Preset Object Keywords for grandMA2 Command Builder
 
 Contains Object Keywords related to presets:
-- preset: Select or apply presets
+- preset: Select presets (bare ``preset x.y``)
+- at_preset: Apply a preset to the selection (``at preset x.y``)
 - preset_type: Call or select preset types
 
 Preset Types mapping:
@@ -27,8 +28,10 @@ def preset(
     - Select fixtures stored in a preset
     - Apply a preset to currently selected fixtures or channels
 
-    If no fixtures/channels are selected, the default function is SelFix.
-    If fixtures/channels are selected, the default function is At.
+    The manual says the default function is SelFix with no selection and At
+    with a selection. Over telnet on 3.9.60 the bare form does NOT apply the
+    preset to a selection -- it fails silently (#92). To apply a preset, use
+    ``at_preset()``.
 
     Args:
         preset_type_or_id: Preset type (string like "dimmer") or type number (integer)
@@ -100,6 +103,30 @@ def preset(
         return f"preset {type_num}.{preset_id}"
 
     raise ValueError("Must provide preset_type_or_id, preset_id, or name")
+
+
+def at_preset(preset_type: int | str, preset_id: int) -> str:
+    """
+    Construct an At Preset command to apply a preset to the current selection.
+
+    Always use this (not the bare ``preset()``) to apply: the bare form fails
+    silently over telnet on 3.9.60 (#92). ``At Preset 3.2`` is also the
+    manual's own example for applying a preset.
+
+    Args:
+        preset_type: Preset type name (e.g. "color") or type number
+        preset_id: Preset number
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> at_preset("color", 3)
+        'at preset 4.3'
+        >>> at_preset(2, 11)
+        'at preset 2.11'
+    """
+    return f"at {preset(preset_type, preset_id)}"
 
 
 def preset_type(

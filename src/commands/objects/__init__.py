@@ -114,7 +114,7 @@ from .misc_objects import (
 )
 
 # Preset related
-from .presets import preset, preset_type
+from .presets import at_preset, preset, preset_type
 
 # Time related
 from .time import timecode, timecode_slot, timer
@@ -126,6 +126,7 @@ __all__ = [
     # Group/Selection
     "group",
     # Preset
+    "at_preset",
     "preset",
     "preset_type",
     # Attribute/Feature

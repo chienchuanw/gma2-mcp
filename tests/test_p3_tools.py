@@ -165,7 +165,8 @@ class TestEffectExtensions:
 
         calls = _calls(client)
         assert "effectsec 2" in calls
-        assert "effectspeedgroup 1" in calls
+        assert "assign specialmaster 3.1" in calls
+        assert "effectspeedgroup 1" not in calls
 
 
 class TestParkUnpark:

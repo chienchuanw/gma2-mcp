@@ -100,7 +100,7 @@ class TestSetupGroupWithPreset:
         cmds = result["commands_sent"]
         assert cmds[0] == "selfix fixture 1 thru 10"
         assert cmds[1] == 'store group 1 "Front Wash"'
-        assert cmds[2] == "preset 4.3"
+        assert cmds[2] == "at preset 4.3"
         assert result["count"] == 3
         assert "Front Wash" in result["summary"]
 
@@ -335,7 +335,7 @@ class TestSetupEffectOnGroup:
         cmds = result["commands_sent"]
         assert result["count"] == 2
         assert "group 1" in cmds[0]
-        assert "effect 5" in cmds[1]
+        assert cmds[1] == "at effect 5"
 
     @pytest.mark.asyncio
     async def test_effect_with_full_params(self):

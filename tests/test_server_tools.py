@@ -309,7 +309,7 @@ class TestApplyPresetTool:
 
         result = await apply_preset(preset_type="color", preset_id=3)
 
-        client.execute.assert_called_once_with("preset 4.3")
+        client.execute.assert_called_once_with("at preset 4.3")
         assert "color" in result
 
 
@@ -906,7 +906,7 @@ class TestApplyEffectTool:
 
         result = await apply_effect(effect_id=5)
 
-        client.execute.assert_called_once_with("effect 5")
+        client.execute.assert_called_once_with("at effect 5")
         assert "Effect 5" in result
 
 
